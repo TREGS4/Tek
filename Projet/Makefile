@@ -18,6 +18,7 @@ EXE +=$(shell find -mindepth 2 -name '*.exe')
 NAME=blockchain
 
 all:
+	$(MAKE) clean
 	$(MAKE) main
 
 main: reseau.o gestion.o minage.o
