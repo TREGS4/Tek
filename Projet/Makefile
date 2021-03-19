@@ -1,6 +1,5 @@
 CC=gcc
-ARGS=-Wall -Wextra -std=c99
-GTK= -pthread -pipe
+ARGS=-Wall -Wextra -std=c99 -MMD
 CCFLAGS=$(ARGS) $(GTK)
 LDFLAGS=-pthread -lm
 

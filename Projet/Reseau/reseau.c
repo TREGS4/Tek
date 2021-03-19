@@ -1,83 +1,98 @@
-#include <unistd.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <sys/wait.h>
-#include <err.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+#include <stdlib.h>
+#include <string.h>
 #include <netdb.h>
+#include <unistd.h>
+#include <err.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 
-#include <netinet/in.h>
+int maint(){
+return 0;}
 
-
-#ifndef   NI_MAXHOST
-#define   NI_MAXHOST 1025
-#endif
-
-
-int reseau()
+void finisher()
 {
-	int fd[2];
-	int fd2[2];
-
-	if(pipe(fd))
-		err(1, "error while creating pipe");
-
-	if(fork())
-	{
-		close(fd[0]);
-		close(fd2[1]);
-
-		close(fd[1]);
-		close(fd2[0]);
-
-
-
-
-	}
-	else
-	{
-		close(fd[1]);
-		close(fd2[0]);
-
-		dup2(fd[0], STDIN_FILENO);
-
-
-		close(fd[0]);
-		close(fd2[1]);
-		struct addrinfo *result;
-		struct addrinfo *res;
-		int error;
-
-		/* resolve the domain name into a list of addresses */
-		error = getaddrinfo("www.example.com", NULL, NULL, &result);
-		if (error != 0)
-		{   
-			fprintf(stderr, "error in getaddrinfo:\n");
-			return EXIT_FAILURE;
-		}   
-
-		/* loop over all returned results and do inverse lookup */
-		for (res = result; res != NULL; res = res->ai_next)
-		{   
-			char hostname[NI_MAXHOST] = "";
-
-			error = getnameinfo(res->ai_addr, res->ai_addrlen, hostname, NI_MAXHOST, NULL, 0, 0); 
-			if (error != 0)
-			{
-				fprintf(stderr, "error in getnameinfo: %s\n", gai_strerror(error));
-				continue;
-			}
-			if (*hostname != '\0')
-				printf("hostname: %s\n", hostname);
-		}   
-
-		freeaddrinfo(result);
-	}
-
-
 	wait(NULL);
-	return 0;
 }
 
+int reseau(int argc, char** argv)
+{
+	if (argc != 2)
+		errx(EXIT_FAILURE, "Usage:\n"
+				"Arg 1 = Port number (e.g. 2048)");
+
+	struct addrinfo hints;
+	struct addrinfo *res;
+	int connect = 0;
+	int skt;
+	int skt2;
+	int pidc = getpid();
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	getaddrinfo(NULL, argv[1], &hints, &res);
+
+	while(res != NULL && connect == 0)
+	{
+		int value = 1;
+		skt = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
+		if(skt >= 0)
+		{
+			setsockopt(skt, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(int));
+
+			if (bind(skt, res->ai_addr, res->ai_addrlen) == 0)
+				connect = 1;
+			else
+				close(skt);
+		}
+		else
+			res = res->ai_next;
+
+	}
+
+	freeaddrinfo(res);
+
+	if(skt < 0)
+		err(1, "Error while creating the socket");
+	if(listen(skt, 5) == -1)
+		err(1, "Error on function listen()");
+	
+	while(pidc != 0)
+	{
+		signal(SIGCHLD, finisher);
+
+		skt2 = accept(skt, res->ai_addr, &res->ai_addrlen);
+		if(skt2 == -1)
+			err(1, "Error while connecting to the client");
+		pidc = fork();
+		if(pidc < 0)
+			err(1, "Error while creating the fork");
+
+		if(pidc)
+		{
+			close(skt2);
+		}
+		else
+		{
+			close(skt);
+			if(dup2(skt2, STDIN_FILENO) == - 1)
+				err(1, "Error while dumping in reseau.c");
+			if(dup2(skt2, STDOUT_FILENO) == - 1)
+				err(1, "Error while dumping in reseau.c");	
+			if(dup2(skt2, STDERR_FILENO) == - 1)
+				err(1, "Error while dumping in reseau.c");
+			
+			if(execlp("bc", "bc", NULL) == -1)
+				err(1, "Error while running command in reseau.c");
+			close(skt2);
+		}
+	}
+
+	close(skt);
+	exit(0);
+}
