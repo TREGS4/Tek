@@ -1,8 +1,9 @@
 #include "./Reseau/reseau.h"
+#include <stddef.h>
 
-int main()
+int main(int argc, char **argv)
 {
-	reseau();
+	reseau(argc, argv);
 
 	return 0;
 }

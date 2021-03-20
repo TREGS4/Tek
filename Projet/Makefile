@@ -1,6 +1,6 @@
 CC=gcc
-ARGS=-Wall -Wextra -std=c99 -MMD
-CCFLAGS=$(ARGS) $(GTK)
+FINAL=-Werror
+CCFLAGS=-Wall -Wextra
 LDFLAGS=-pthread -lm
 
 SRCR=$(shell find ./Reseau -name '*.c' -not -name "main.c")
@@ -10,6 +10,7 @@ SRCW=$(shell find ./Site_web -name '*.c' -not -name "main.c")
 
 SRC += $(shell find -maxdepth 1 -name '*.c')
 OBJ=$(shell find -name '*.o')
+DEP=$(shell find -name '*.d')
 
 EXE=$(shell find -mindepth 2 -name '*.out')
 EXE +=$(shell find -mindepth 2 -name '*.exe')
@@ -21,8 +22,10 @@ all:
 	$(MAKE) main
 
 main: reseau.o gestion.o minage.o
-	$(CC) $(CCFLAGS) -o $(NAME) $(ADD) $^ $(SRC) $(LDFLAGS)
+	$(CC) $(CCFLAGS) $(FINAL) -o $(NAME) $(ADD) $^ $(SRC) $(LDFLAGS)
 
+final: reseau.o gestion.o minage.o
+	$(CC) $(CCFLAGS) -o $(NAME) $(ADD) $^ $(SRC) $(LDFLAGS)
 
 reseau.o:
 	$(CC) $(CCFLAGS) -c -o $@ $(SRCR) $(LDFLAGS)
@@ -39,8 +42,9 @@ web.o:
 clean:
 	for i in $(OBJ);do(rm $$i);done
 	for i in $(EXE);do(rm $$i);done
+	for i in $(DEP);do(rm $$i);done
 
 cleanall: clean
 	rm $(NAME)
 
-.SILENT:all main clean cleanall reseau.o gestion.o minage.o web.o
+.SILENT:all main clean cleanall final reseau.o gestion.o minage.o web.o

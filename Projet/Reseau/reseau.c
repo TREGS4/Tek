@@ -7,20 +7,39 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-
-
-int maint(){
-return 0;}
+#include <pthread.h>
 
 void finisher()
 {
 	wait(NULL);
 }
 
+void * read_thread(){
+	int buff_size = 5;
+	char buff[buff_size];
+	int r = 1;
+
+	while ((r = read(STDIN_FILENO, &buff, buff_size)) > 0)
+		write(STDOUT_FILENO, buff, r);
+
+	return 0;
+}
+
+void * write_thread(){
+	printf("in write thread\n");
+	return 0;
+} 
+
+
+/*
+	This section create the server and listen for connection.
+	When connection is receive, a fork is made for the client.
+	Each fork contain two thread for transmit and receive data simultanously.
+*/
 int reseau(int argc, char** argv)
 {
 	if (argc != 2)
-		errx(EXIT_FAILURE, "Usage:\n"
+		err(EXIT_FAILURE, "Usage:\n"
 				"Arg 1 = Port number (e.g. 2048)");
 
 	struct addrinfo hints;
@@ -29,6 +48,8 @@ int reseau(int argc, char** argv)
 	int skt;
 	int skt2;
 	int pidc = getpid();
+	pthread_t Rthr;
+	pthread_t Wthr;
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
@@ -58,9 +79,9 @@ int reseau(int argc, char** argv)
 	freeaddrinfo(res);
 
 	if(skt < 0)
-		err(1, "Error while creating the socket");
+		err(EXIT_FAILURE, "Error while creating the socket");
 	if(listen(skt, 5) == -1)
-		err(1, "Error on function listen()");
+		err(EXIT_FAILURE, "Error on function listen()");
 	
 	while(pidc != 0)
 	{
@@ -68,10 +89,10 @@ int reseau(int argc, char** argv)
 
 		skt2 = accept(skt, res->ai_addr, &res->ai_addrlen);
 		if(skt2 == -1)
-			err(1, "Error while connecting to the client");
+			err(EXIT_FAILURE, "Error while connecting to the client");
 		pidc = fork();
 		if(pidc < 0)
-			err(1, "Error while creating the fork");
+			err(EXIT_FAILURE, "Error while creating the fork");
 
 		if(pidc)
 		{
@@ -81,14 +102,21 @@ int reseau(int argc, char** argv)
 		{
 			close(skt);
 			if(dup2(skt2, STDIN_FILENO) == - 1)
-				err(1, "Error while dumping in reseau.c");
-			if(dup2(skt2, STDOUT_FILENO) == - 1)
-				err(1, "Error while dumping in reseau.c");	
+				err(EXIT_FAILURE, "Error while dumping in reseau.c");
+			/*if(dup2(skt2, STDOUT_FILENO) == - 1)
+				err(EXIT_FAILURE, "Error while dumping in reseau.c");	
 			if(dup2(skt2, STDERR_FILENO) == - 1)
-				err(1, "Error while dumping in reseau.c");
+				err(EXIT_FAILURE, "Error while dumping in reseau.c");*/
+		
+			int res1 = pthread_create(&Rthr, NULL, read_thread, NULL);
+			int res2 = pthread_create(&Wthr, NULL, write_thread, NULL);
 			
-			if(execlp("bc", "bc", NULL) == -1)
-				err(1, "Error while running command in reseau.c");
+			if(res1 || res2 )
+				err(EXIT_FAILURE, "Error while creating the threads in reseau.c");
+			
+			pthread_join(Wthr, NULL);
+			pthread_join(Rthr, NULL);
+			
 			close(skt2);
 		}
 	}
