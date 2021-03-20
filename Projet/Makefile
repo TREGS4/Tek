@@ -1,50 +1,24 @@
 CC=gcc
-FINAL=-Werror
-CCFLAGS=-Wall -Wextra
+CCFLAGS=-Wall -Wextra -Werror
 LDFLAGS=-pthread -lm
 
-SRCR=$(shell find ./Reseau -name '*.c' -not -name "main.c")
-SRCG=$(shell find ./Noeud_de_gestion -name '*.c' -not -name "main.c")
-SRCM=$(shell find ./Noeud_de_gestion -name '*.c' -not -name "main.c")
-SRCW=$(shell find ./Site_web -name '*.c' -not -name "main.c")
+TARGET ?= blockchain
+SRC_DIRS ?= ./
 
-SRC += $(shell find -maxdepth 1 -name '*.c')
-OBJ=$(shell find -name '*.o')
-DEP=$(shell find -name '*.d')
+SRCS := $(shell find $(SRC_DIRS) -name '*.c' -or -name '*.s')
+OBJS := $(addsuffix .o,$(basename $(SRCS)))
+DEPS := $(OBJS:.o=.d)
 
-EXE=$(shell find -mindepth 2 -name '*.out')
-EXE +=$(shell find -mindepth 2 -name '*.exe')
+INC_DIRS := $(shell find $(SRC_DIRS) -type d)
+INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-NAME=blockchain
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 
-all:
-	$(MAKE) clean
-	$(MAKE) main
+$(TARGET): $(OBJS)
+	$(CC) $(LDFLAGS) $(CCFLAGS) $(OBJS) -o $@ $(LOADLIBES) $(LDLIBS)
 
-main: reseau.o gestion.o minage.o
-	$(CC) $(CCFLAGS) $(FINAL) -o $(NAME) $(ADD) $^ $(SRC) $(LDFLAGS)
-
-final: reseau.o gestion.o minage.o
-	$(CC) $(CCFLAGS) -o $(NAME) $(ADD) $^ $(SRC) $(LDFLAGS)
-
-reseau.o:
-	$(CC) $(CCFLAGS) -c -o $@ $(SRCR) $(LDFLAGS)
-
-gestion.o:
-	$(CC) $(CCFLAGS) -c -o $@ $(SRCG) $(LDFLAGS)
-
-minage.o:
-	$(CC) $(CCFLAGS) -c -o $@ $(SRCM) $(LDFLAGS)
-
-web.o:
-	$(CC) $(CCFLAGS) -c -o $@ $(SRCW) $(LDFLAGS)
-	
+.PHONY: clean
 clean:
-	for i in $(OBJ);do(rm $$i);done
-	for i in $(EXE);do(rm $$i);done
-	for i in $(DEP);do(rm $$i);done
+	$(RM) $(OBJS) $(DEPS)
 
-cleanall: clean
-	rm $(NAME)
-
-.SILENT:all main clean cleanall final reseau.o gestion.o minage.o web.o
+-include $(DEPS)
