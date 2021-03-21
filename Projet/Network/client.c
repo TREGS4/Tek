@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <pthread.h>
+#include <sys/socket.h>
+
 
 void finisher_client()
 {
@@ -43,7 +45,7 @@ int client(char** argv)
 	struct addrinfo hints;
 	struct addrinfo *res;
 	struct addrinfo *test;
-	int connect = 0;
+	int connected = 0;
 	int skt;
 	int skt2;
 	int pidc = getpid();
@@ -53,24 +55,26 @@ int client(char** argv)
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 
-	getaddrinfo(argv[1], argv[2] , &hints, &res);
+	if(getaddrinfo(argv[1], argv[2] , &hints, &res) != 0)
+		err(EXIT_FAILURE, "Fail while using getaddrinfo() in client.c");
 
-	while(res != NULL && connect == 0)
+	while(res != NULL && connected == 0)
 	{
+		int value = 1;
 		skt = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
 		if(skt >= 0)
 		{
-			connect = 1;
-			//setsockopt(skt, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(int));
+			connected = 1;
+			setsockopt(skt, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(int));
 
-			/*if (bind(skt, res->ai_addr, res->ai_addrlen) == 0)
-				connect = 1;
+			if (connect(skt, res->ai_addr, res->ai_addrlen) == 0)
+				connected = 1;
 			else
 			{
 				close(skt);
 				res = res->ai_next;
-			}	*/		
+			}		
 		}
 		else
 			res = res->ai_next;
@@ -79,7 +83,7 @@ int client(char** argv)
 
 	freeaddrinfo(res);
 	
-	if((uint32_t)skt < 0)
+	if(skt < 0)
 		err(EXIT_FAILURE, "Error while creating the socket in client.c");
 	
 	/*while(pidc != 0)
@@ -117,11 +121,11 @@ int client(char** argv)
 	}*/
 
 
-    //if(dup2(skt, STDIN_FILENO) == - 1)
-	//	err(EXIT_FAILURE, "Error while dumping in client.c");
+    if(dup2(skt, STDOUT_FILENO) == - 1)
+		err(EXIT_FAILURE, "Error while dumping in client.c");
 
-	
-	int res1 = pthread_create(&Rthr, NULL, read_thread_client, NULL);
+	write(STDOUT_FILENO, "test\n", 5);
+	int res1 = pthread_create(&Rthr, NULL, read_thread_client, NULL);    // le thread ne prennd pas en compte le changement de FD, il remet par defaut
 	int res2 = pthread_create(&Wthr, NULL, write_thread_client, NULL);
 			
 	if(res1 || res2 )

@@ -8,6 +8,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <pthread.h>
+#include <sys/socket.h>
+
+
 
 void finisher()
 {
