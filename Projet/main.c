@@ -1,7 +1,4 @@
-#include "./Network/network.h"
-
-int main(int argc, char **argv)
+int main()
 {
-	network(argv);
 	return 0;
 }
