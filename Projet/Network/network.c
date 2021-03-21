@@ -7,26 +7,25 @@
 #include "server.h"
 
 
-int network(int argc, char **argv)
+int network(char **argv)
 {
     int r;
         if((r = fork()))
         {
             if(r < 0)
                 err(EXIT_FAILURE, "Fail lauching server side in network.c");
-        
-            if(execvp("./server.c", argv) < 0)
-                err(EXIT_FAILURE, "Fail lauching server side in network.c");
-        } 
+	    
+	        server(argv);            
+	    } 
         else if((r = fork()))
         {
             if(r < 0)
                 err(EXIT_FAILURE, "Fail lauching client side in network.c");
             
             argv[2] = "2048";
-            argv[1] = "127.0.0.1";   
-            if(execvp("./client.c", argv) < 0)
-                err(EXIT_FAILURE, "Fail lauching client side in network.c");
+            argv[1] = "127.0.0.1"; 
+            sleep(1);
+            client(argv);
         } 
     
 

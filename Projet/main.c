@@ -2,6 +2,6 @@
 
 int main(int argc, char **argv)
 {
-	network(argv, argv);
+	network(argv);
 	return 0;
 }

@@ -1,6 +1,7 @@
 CC=gcc
-CCFLAGS=-Wall -Wextra -Werror
-LDFLAGS=-pthread -lm
+CFLAGS=-Wall -Wextra 
+CFLAGS +=$(FINAL)
+LOADLIBS=-pthread -lm
 
 TARGET ?= blockchain
 SRC_DIRS ?= ./
@@ -15,7 +16,7 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 
 $(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) $(CCFLAGS) $(OBJS) -o $@ $(LOADLIBES) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(LOADLIBES) $(LDLIBS)
 
 .PHONY: clean
 clean:
