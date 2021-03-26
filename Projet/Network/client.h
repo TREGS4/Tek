@@ -1,6 +1,6 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-int client(int argc, char **argv);
+int client(char **argv);
 
 #endif

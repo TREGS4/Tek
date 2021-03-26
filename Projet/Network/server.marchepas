@@ -15,6 +15,7 @@ void finisher()
 }
 
 void * read_thread(){
+	printf("in read thread server\n");
 	int buff_size = 5;
 	char buff[buff_size];
 	int r = 1;
@@ -26,7 +27,7 @@ void * read_thread(){
 }
 
 void * write_thread(){
-	printf("in write thread\n");
+	printf("in write thread server\n");
 	return 0;
 } 
 
