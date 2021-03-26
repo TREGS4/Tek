@@ -1,7 +1,7 @@
-#include "./Network/network.h"
+#include "./Noeud_de_minage/minage.h"
 
 int main(int argc, char **argv)
 {
-	network(argc, argv);
+	moncuq();
 	return 0;
 }
