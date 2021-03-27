@@ -1,8 +1,7 @@
 #include "./Network/network.h"
 
-int main(int argc, char **argv)
+int main(/*int argc, char **argv*/)
 {
-	argc++;
-	network(argv);
+	network(STDIN_FILENO, STDOUT_FILENO);
 	return 0;
 }

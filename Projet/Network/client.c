@@ -39,6 +39,7 @@ void * write_thread_client(){
 	When connection is receive, a fork is made for the client.
 	Each fork contain two thread for transmit and receive data simultanously.
 */
+/*
 int client(char** argv)
 {
 
@@ -86,7 +87,7 @@ int client(char** argv)
 	if(skt < 0)
 		err(EXIT_FAILURE, "Error while creating the socket in client.c");
 	
-	/*while(pidc != 0)
+	while(pidc != 0)
 	{
 		signal(SIGCHLD, finisher);
 
@@ -118,7 +119,7 @@ int client(char** argv)
 			
 			close(skt);
 		}
-	}*/
+	}
 
 
     if(dup2(skt, STDOUT_FILENO) == - 1)
@@ -137,3 +138,4 @@ int client(char** argv)
 	close(skt);
 	exit(0);
 }
+*/
