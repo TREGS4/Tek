@@ -24,6 +24,4 @@ int main(){
 		printf("%02x", merkleHash[i]);
 	}
 	printf("\n");
-
-	return 0;
 }

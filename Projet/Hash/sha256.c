@@ -157,6 +157,7 @@ void sha256_final(SHA256_CTX *ctx, BYTE hash[])
 	}
 }
 
+
 void sha256(const BYTE *txt, BYTE buf[SHA256_BLOCK_SIZE])
 {
 	SHA256_CTX ctx;
