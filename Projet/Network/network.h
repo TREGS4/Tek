@@ -44,7 +44,7 @@ struct listClientInfo
 };
 
 int network(int fdin, int fdout);
-void initClient(struct clientInfo *client);
+struct clientInfo * initClient(struct listClientInfo *clients);
 void *transmit(void *arg);
 void freeClient(struct clientInfo client, struct listClientInfo *clients);
 void removeClient(struct clientInfo client, struct listClientInfo *clients);

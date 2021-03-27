@@ -87,15 +87,14 @@ void * server(void * arg)
 
 	while (!finish)
 	{
-		size_t clientIndex = findNextNotUsed(clients);
-		initClient(&clients->list[clientIndex]);
-		socklen_t len = sizeof(clients->list[clientIndex].IP);
+		struct clientInfo *client = initClient(clients);
+		socklen_t len = sizeof(client->IP);
 
-		clients->list[clientIndex].fd = accept(skt, clients->list[clientIndex].IP, &len);
-		if (clients->list[clientIndex].fd == -1)
+		client->fd = accept(skt, client->IP, &len);
+		if (client->fd == -1)
 			err(EXIT_FAILURE, "Error while connecting to the client in server.c");
 		
-		clients->list[clientIndex].status = CONNECTING;
+		client->status = CONNECTING;
 		
 		printf("Client connected!\n");
 	}

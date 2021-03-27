@@ -49,6 +49,7 @@ int network(int fdin, int fdout)
     for (size_t i = 0; i < clients.size; i++)
     {
         clients.list[i].status = NOTUSED;
+        clients.list[i].IP = malloc(sizeof(struct sockaddr));
     }
     //connect()
 
@@ -154,6 +155,26 @@ void *transmit(void *arg)
     }
 }
 
+/*
+Double the size of the list
+*/
+
+void extendList(struct listClientInfo *ptr)
+{
+    pthread_mutex_lock(&mutexListClients);
+    ptr->size *= 2;
+
+    if (realloc(ptr->list, ptr->size * sizeof(struct clientInfo)) == NULL)
+        err(EXIT_FAILURE, "Error while increasing the list of client network.c");
+    for (size_t i = ptr->size / 2; i < ptr->size; i++)
+    {
+        ptr->list[i].status = NOTUSED;
+        ptr->list[i].IP = malloc(sizeof(struct sockaddr));
+    } 
+        
+    pthread_mutex_unlock(&mutexListClients);
+}
+
 size_t findNextNotUsed(struct listClientInfo *clients)
 {
     size_t res = 0;
@@ -171,15 +192,15 @@ size_t findNextNotUsed(struct listClientInfo *clients)
 }
 
 
+
 /*
 Creat un ptr for a struct clientInfo, set config to IPV4
 */
 
 struct clientInfo * initClient(struct listClientInfo *clients)
 {
-    struct clientInfo *client = &clients->list[findNextNotUsed(clients];
-    client->status = NOSTARTED;
-    client->IP = malloc(sizeof(sizeof(struct sockaddr)));
+    struct clientInfo *client = &clients->list[findNextNotUsed(clients)];
+    client->status = NOTUSED;
     client->IP->sa_family = INET_ADDRSTRLEN;
     client->ID = rand() * rand();
     client->fd = -1;
@@ -245,42 +266,5 @@ void removeClient(struct clientInfo client, struct listClientInfo *clients)
         printf("Error while removing, this client does not exist in the list of client\n");
     }
 
-    pthread_mutex_unlock(&mutexListClients);
-}
-
-/*
-Add a client to the list, search a NOUSED client before putting the new client at the end
-*/
-
-void addClient(struct clientInfo client, struct listClientInfo *clients)
-{
-    int find = 0;
-    pthread_mutex_lock(&mutexListClients);
-    for (size_t i = 0; i < clients->size && !find; i++)
-    {
-        if (clients->list[i].status == NOTUSED)
-        {
-            clients->list[i] = client;
-            find = 1;
-        }
-    }
-    pthread_mutex_unlock(&mutexListClients);
-    if (clients->list[clients->size - 1].status != NOTUSED)
-        extendList(clients);
-}
-
-/*
-Double the size of the list
-*/
-
-void extendList(struct listClientInfo *ptr)
-{
-    pthread_mutex_lock(&mutexListClients);
-    ptr->size *= 2;
-
-    if (realloc(ptr->list, ptr->size * sizeof(struct clientInfo)) == NULL)
-        err(EXIT_FAILURE, "Error while increasing the list of client network.c");
-    for (size_t i = ptr->size / 2; i < ptr->size; i++)
-        ptr->list[i].status = NOTUSED;
     pthread_mutex_unlock(&mutexListClients);
 }
