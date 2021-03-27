@@ -161,6 +161,6 @@ void sha256(const BYTE *txt, BYTE buf[SHA256_BLOCK_SIZE])
 {
 	SHA256_CTX ctx;
 	sha256_init(&ctx);
-	sha256_update(&ctx, txt, strlen(txt));
+	sha256_update(&ctx, txt, strlen((char *)txt));
 	sha256_final(&ctx, buf);
 }
