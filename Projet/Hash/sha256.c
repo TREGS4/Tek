@@ -164,4 +164,27 @@ void sha256(const BYTE *txt, BYTE buf[SHA256_BLOCK_SIZE])
 	sha256_init(&ctx);
 	sha256_update(&ctx, txt, strlen((char *)txt));
 	sha256_final(&ctx, buf);
+
+}
+
+void sha256ToAscii(BYTE hash[SHA256_BLOCK_SIZE], char buf[SHA256_BLOCK_SIZE * 2])
+{
+	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
+	{
+		//var1 => valeur de gauche
+		//var2 => valeur de droite
+		BYTE byte = hash[i];
+		BYTE var1 = byte / 16;
+		BYTE var2 = byte % 16;
+		
+		if (var1 < 10)
+			buf[i*2] = var1 + '0';
+		else
+			buf[i*2] = var1 - 10 + 'a';
+			
+		if (var2 < 10)
+			buf[i*2 + 1] = var2 + '0';
+		else
+			buf[i*2 + 1] = var2 - 10 + 'a';
+	}	
 }
