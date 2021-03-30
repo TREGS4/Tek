@@ -25,7 +25,7 @@ void *test(void *arg)
                 //printf("%ld IP is %s\n", i, clients->list[i].IP->sa_data);
             }
             else
-                printf("%ld is not used", i);
+                printf("%ld is %d\n", i, clients->list[i].status);
         }
         printf("\n\n");
         sleep(2);
@@ -36,7 +36,7 @@ void *test(void *arg)
 int network(int fdin, int fdout)
 {
     struct listClientInfo clients;
-    clients.size = 1;
+    clients.size = 3;
     clients.list = malloc(clients.size * sizeof(struct clientInfo));
     pthread_t ServerThread;
     pthread_t MaintenerThread;
@@ -61,6 +61,8 @@ int network(int fdin, int fdout)
     pthread_join(MaintenerThread, NULL);
     pthread_join(transmitThread, NULL);
 
+    for (size_t i = 0; i < clients.size; i++)
+        free(clients.list[i].IP);
     free(clients.list);
 
     return EXIT_SUCCESS;
@@ -202,7 +204,7 @@ struct clientInfo * initClient(struct listClientInfo *clients)
     struct clientInfo *client = &clients->list[findNextNotUsed(clients)];
     client->status = NOTUSED;
     client->IP->sa_family = INET_ADDRSTRLEN;
-    client->ID = rand() * rand();
+    client->ID = (rand() + 1) * (rand() + 1);
     client->fd = -1;
     int tab[2];
     int tab2[2];

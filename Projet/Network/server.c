@@ -10,7 +10,7 @@ void finisher()
 	int wstatus;
 	wait(&wstatus);
 	wstatus = WEXITSTATUS(wstatus);
-	removeClient(forTheFinisher->list[wstatus], forTheFinisher);
+	//removeClient(forTheFinisher->list[wstatus], forTheFinisher);
 }
 
 void *read_thread(void *args)
@@ -141,6 +141,7 @@ void * connectionMaintener(void *arg)
 					pthread_create(&Rthr, NULL, read_thread, (void*) argR);
 					pthread_join(Wthr, NULL);
 					pthread_join(Rthr, NULL);
+					printf("Thread ended\n");
 
 					close(clients->list[i].fd);
 					close(clients->list[i].fdin);
