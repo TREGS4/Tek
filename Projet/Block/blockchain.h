@@ -15,5 +15,6 @@ BLOCK *getLastBlock(BLOCKCHAIN *blockchain);
 void addBlock(BLOCKCHAIN *blockchain, BLOCK block);
 BLOCKCHAIN initBlockchain();
 BLOCK createGenesis();
+char *blockchainToJson(BLOCKCHAIN *bc);
 
 #endif

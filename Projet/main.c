@@ -124,5 +124,7 @@ int main(){
 	addBlock(&newBlockchain, b3);
 	printf("Number of blocks in the blockchain : %lu.\n\n", newBlockchain.blocksNumber);
 	printBlockchain(newBlockchain);
-	
+	char *json = blockchainToJson(&newBlockchain);
+	printf("%s\n", json);
+	free(json);
 }
