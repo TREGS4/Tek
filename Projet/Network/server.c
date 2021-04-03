@@ -6,20 +6,31 @@ void finisher()
 	wait(NULL);
 }
 
+void ender()
+{
+
+}
+
+
 void *read_thread(void *arg)
 {
 	printf("in read thread server\n");
 	struct clientInfo *client = arg;
 	int fdin = client->fd;
 	int fdout = client->fdoutThread;
+	int end = 0;
 
 	char buff[BUFFER_SIZE_SOCKET];
 	int r = 1;
 
-	while ((r = read(fdin, &buff, BUFFER_SIZE_SOCKET)) > 0 && client->status != ENDED)
+	while (!end && client->status != ENDED && (r = read(fdin, &buff, BUFFER_SIZE_SOCKET)) > 0)
+	{
 		write(fdout, buff, r);
+		if(buff[r - 1] == '\0')
+			end = 1;
+	}
 
-	return 0;
+	return NULL;
 }
 
 void *write_thread(void *arg)
@@ -28,14 +39,19 @@ void *write_thread(void *arg)
 	struct clientInfo *client = arg;
 	int fdin = client->fdinThread;
 	int fdout = client->fd;
+	int end = 0;
 
 	char buff[BUFFER_SIZE_SOCKET];
 	int r = 1;
 
-	while ((r = read(fdin, &buff, BUFFER_SIZE_SOCKET)) > 0 && client->status != ENDED)
+	while (!end && client->status != ENDED && (r = read(fdin, &buff, BUFFER_SIZE_SOCKET)) > 0)
+	{
 		write(fdout, buff, r);
-	
-	return 0;
+		if(buff[r - 1] == '\0')
+			end = 1;
+	}	
+
+	return NULL;
 }
 
 /*
@@ -43,7 +59,7 @@ void *write_thread(void *arg)
 	When connection is receive, a fork is made for the client.
 	Each fork contain two thread for transmit and receive data simultanously.
 */
-void * server(void * arg)
+void *server(void *arg)
 {
 	struct listClientInfo *clients = arg;
 	struct addrinfo hints;
@@ -94,10 +110,10 @@ void * server(void * arg)
 
 		if (client->fd == -1)
 			err(EXIT_FAILURE, "Error while connecting to the client in server.c");
-		
+
 		client->status = CONNECTING;
 		pthread_mutex_unlock(&clients->lockList);
-		
+
 		printf("Client connected!\n");
 	}
 
@@ -105,14 +121,16 @@ void * server(void * arg)
 	return NULL;
 }
 
-
-void * connectionMaintener(void *arg)
+void *connectionMaintener(void *arg)
 {
 	struct listClientInfo *clients = arg;
 	int res = 1;
 	pthread_t Rthr;
 	pthread_t Wthr;
+	struct sigaction IsEnded;
+	memset (&IsEnded, '\0', sizeof(IsEnded));
 	signal(SIGCHLD, finisher);
+	signal(jsp, )
 
 	while (res)
 	{
@@ -133,29 +151,37 @@ void * connectionMaintener(void *arg)
 				}
 				else
 				{
-					pthread_create(&Wthr, NULL, write_thread, (void*) &clients->list[i]);
-					pthread_create(&Rthr, NULL, read_thread, (void*) &clients->list[i]);
-					
-					pthread_join(Rthr, NULL);
-					pthread_mutex_lock(&clients->lockWrite);						// Send EOF to stop write thread when read has been stopped by the client
-					write(clients->list[i].fdinThread, (char*)EOF, 1);					// by receiving an EOF
-					pthread_mutex_unlock(&clients->lockWrite);
-					pthread_join(Wthr, NULL);
-					
+					pthread_create(&Wthr, NULL, write_thread, (void *)&clients->list[i]);
+					pthread_create(&Rthr, NULL, read_thread, (void *)&clients->list[i]);
 
-					close(clients->list[i].fd);
+					pthread_join(Rthr, NULL);
+					printf("read thread ended !\n");
+					clients->list[i].status = ENDED;
+
+					pthread_join(Wthr, NULL);
+					printf("write thread ended !\n");
+
+					pthread_mutex_lock(&clients->lockRead);
+					close(clients->fdin);
 					close(clients->list[i].fdinThread);
+					pthread_mutex_unlock(&clients->lockRead);
+
+					pthread_mutex_lock(&clients->lockWrite);
+					close(clients->fdout);
 					close(clients->list[i].fdoutThread);
+					pthread_mutex_unlock(&clients->lockWrite);
+					
+					close(clients->list[i].fdout);
+					close(clients->list[i].fd);
+					
+					
 
 					//removeClient(clients->list[i], clients);
 					printf("Client disconnected !\n");
 					exit(EXIT_SUCCESS);
 				}
-			
 			}
-			
 		}
-		
 	}
 
 	return NULL;

@@ -7,6 +7,27 @@ struct descripAndClients
     int fdout;
 };
 
+void * ReWriteForAllThreads(void *arg)
+{
+    struct listClientInfo *clients = arg;
+	char buff[BUFFER_SIZE_SOCKET];
+	int r = 1;
+
+	while ((r = read(clients->fdin, &buff, BUFFER_SIZE_SOCKET)) > 0)
+	{
+		for(size_t i = 0; i < clients->size; i++)
+        {
+            if(clients->list[i].status == CONNECTED)
+                write(clients->list[i].fdout, buff, r);
+            else if(clients->list[i].status == ENDED)
+                close(clients->list[i].fdout);
+        } 
+	}	
+
+    return NULL;
+}
+
+
 void *test(void *arg)
 {
     while (1)
@@ -39,6 +60,7 @@ int network(int fdin, int fdout)
     pthread_t ServerThread;
     pthread_t MaintenerThread;
     pthread_t transmitThread;
+    pthread_t reWriteThread;
     struct descripAndClients fdCli;
     fdCli.clients = &clients;
     fdCli.fdin = fdin;
@@ -47,14 +69,17 @@ int network(int fdin, int fdout)
     pthread_mutex_init(&clients.lockRead, NULL);
     pthread_mutex_init(&clients.lockWrite, NULL);
 
+    clients.fdin = STDIN_FILENO;
+    clients.fdout = STDOUT_FILENO;
+
     for (size_t i = 0; i < clients.size; i++)
         clients.list[i].status = NOTUSED;
-    
 
     //connect()
 
     pthread_create(&ServerThread, NULL, server, (void *)&clients);
     pthread_create(&MaintenerThread, NULL, connectionMaintener, (void *)&clients);
+    pthread_create(&reWriteThread, NULL, ReWriteForAllThreads, (void *)&clients);
     //pthread_create(&transmitThread, NULL, test, (void *)&clients);
 
     pthread_join(ServerThread, NULL);
@@ -168,10 +193,9 @@ void extendList(struct listClientInfo *ptr)
     if (ptr->list == NULL)
         err(EXIT_FAILURE, "Error while increasing the list of client network.c");
 
-    
     for (size_t i = ptr->size / 2; i < ptr->size; i++)
         ptr->list[i].status = NOTUSED;
-        
+
     pthread_mutex_unlock(&ptr->lockList);
 }
 
@@ -182,22 +206,20 @@ size_t findNextNotUsed(struct listClientInfo *clients)
     {
         res++;
     }
-    
-    if(res == clients->size && clients->list[res - 1].status != NOTUSED)
+
+    if (res == clients->size && clients->list[res - 1].status != NOTUSED)
     {
         extendList(clients);
-    } 
+    }
 
     return res;
 }
-
-
 
 /*
 Creat un ptr for a struct clientInfo, set config to IPV4
 */
 
-struct clientInfo * initClient(struct listClientInfo *clients)
+struct clientInfo *initClient(struct listClientInfo *clients)
 {
     size_t res = findNextNotUsed(clients);
     struct clientInfo *client = &clients->list[res];
@@ -206,9 +228,14 @@ struct clientInfo * initClient(struct listClientInfo *clients)
     client->IP.sa_family = AF_INET;
     client->ID = rand() * rand();
     client->fd = -1;
+    
+    int tab[2];
+    pipe(tab);
+    
+    client->fdout = tab[1];
+    client->fdinThread = tab[0];
 
-    dup2(clients->fdin, client->fdinThread);
-    dup2(clients->fdout, client->fdoutThread);
+    client->fdoutThread = dup(clients->fdout);
 
     return client;
 }
@@ -242,6 +269,6 @@ void removeClient(struct clientInfo client, struct listClientInfo *clients)
     {
         printf("Error while removing, this client does not exist in the list of client\n");
     }
-    
+
     pthread_mutex_unlock(&clients->lockList);
 }

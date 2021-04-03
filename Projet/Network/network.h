@@ -15,11 +15,9 @@
 #include <semaphore.h>
 #include <arpa/inet.h>
 
-
 #include "client.h"
 #include "server.h"
 #include "../Hash/sha256.h"
-
 
 #define ERROR -1
 #define ENDED 0
@@ -34,6 +32,7 @@ struct clientInfo
     struct sockaddr IP;
     socklen_t IPLen;
     int fd;
+    int fdout;
     int fdinThread;
     int fdoutThread;
     int status;
@@ -52,11 +51,9 @@ struct listClientInfo
 
 void printIP(struct sockaddr *IP);
 int network(int fdin, int fdout);
-struct clientInfo * initClient(struct listClientInfo *clients);
+struct clientInfo *initClient(struct listClientInfo *clients);
 void *transmit(void *arg);
 void freeClient(struct clientInfo client, struct listClientInfo *clients);
 void removeClient(struct clientInfo client, struct listClientInfo *clients);
-
-
 
 #endif
