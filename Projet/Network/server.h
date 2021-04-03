@@ -13,6 +13,8 @@
 #include <pthread.h>
 #include <sys/socket.h>
 
+#define PORT "6969"
+#define BUFFER_SIZE_SOCKET 512
 
 
 

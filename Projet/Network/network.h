@@ -12,6 +12,9 @@
 #include <sys/wait.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#include <semaphore.h>
+#include <arpa/inet.h>
+
 
 #include "client.h"
 #include "server.h"
@@ -28,10 +31,9 @@
 struct clientInfo
 {
     size_t ID;
-    struct sockaddr *IP;
+    struct sockaddr IP;
+    socklen_t IPLen;
     int fd;
-    int fdin;
-    int fdout;
     int fdinThread;
     int fdoutThread;
     int status;
@@ -40,9 +42,15 @@ struct clientInfo
 struct listClientInfo
 {
     size_t size;
+    pthread_mutex_t lockList;
+    pthread_mutex_t lockWrite;
+    pthread_mutex_t lockRead;
+    int fdin;
+    int fdout;
     struct clientInfo *list;
 };
 
+void printIP(struct sockaddr *IP);
 int network(int fdin, int fdout);
 struct clientInfo * initClient(struct listClientInfo *clients);
 void *transmit(void *arg);
