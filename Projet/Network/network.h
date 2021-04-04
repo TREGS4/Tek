@@ -22,45 +22,46 @@
 #define ERROR -1
 #define ENDED 0
 #define CONNECTED 1
-#define NOSTARTED 2
 #define CONNECTING 3
+#define SENTINEL 4
 #define NOTUSED 255
+#define DEAD 254
+
+
+
 
 struct clientInfo
 {
     size_t ID;
     struct sockaddr IP;
     socklen_t IPLen;
-    pthread_mutex_t *lockInfo;
-    pthread_mutex_t *lockWrite;
-    pthread_mutex_t *lockRead;
+
+    pthread_mutex_t lockInfo;
+    pthread_mutex_t lockWrite;
+    pthread_mutex_t lockRead;
+    pthread_mutex_t lockReadGlobal;
+
     int fd;
     int fdout;
     int fdinThread;
     int fdoutThread;
+
     int status;
+
+    pthread_t clientThread;
+    pthread_t readThread;
+    pthread_t writeThread;
+
     struct clientInfo *next;
     struct clientInfo *prev;
-    
-};
-
-struct listClientInfo
-{
-    size_t size;
-    pthread_mutex_t lockList;
-    pthread_mutex_t lockWrite;
-    pthread_mutex_t lockRead;
-    pthread_mutex_t lockGetPos;
-    int fdin;
-    int fdout;
-    struct clientInfo *list;
+    struct clientInfo *sentinel;
 };
 
 void printIP(struct sockaddr *IP);
 int network(int fdin, int fdout);
-struct clientInfo *initClient(struct listClientInfo *clients);
-//void *transmit(void *arg);
-void freeClient(struct clientInfo client, struct listClientInfo *clients);
-void removeClient(struct clientInfo client, struct listClientInfo *clients);
+struct clientInfo *initClient(struct clientInfo *clients);
+struct clientInfo *last(struct clientInfo *client);
+size_t listLen(struct clientInfo *client);
+int removeClient(struct clientInfo *client);
 
 #endif
