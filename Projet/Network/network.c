@@ -18,12 +18,36 @@ void * ReWriteForAllThreads(void *arg)
 		for(size_t i = 0; i < clients->size; i++)
         {
             if(clients->list[i].status == CONNECTED)
+            {
+                pthread_mutex_lock(&clients->lockWrite);
                 write(clients->list[i].fdout, buff, r);
-            else if(clients->list[i].status == ENDED)
-                close(clients->list[i].fdout);
+                pthread_mutex_lock(&clients->lockWrite);
+            } 
+                
         } 
 	}	
 
+    return NULL;
+}
+
+void * closeConnection(void *arg)
+{
+    struct listClientInfo *clients = arg;
+    while (1)
+    {
+        for(size_t i = 0; i < clients->size; i++)
+        {
+            if(clients->list[i].status == ENDED)
+            {
+                printf("here\n");
+                pthread_mutex_lock(&clients->lockWrite);
+                close(clients->list[i].fdout);
+                
+                pthread_mutex_unlock(&clients->lockWrite);
+            } 
+        } 
+    }
+    
     return NULL;
 }
 
@@ -39,12 +63,13 @@ void *test(void *arg)
             if (clients->list[i].status == NOTUSED)
                 printf("%ld is not used\n", i);
             else if (clients->list[i].status == CONNECTED)
-            {
                 printf("%ld is connected\n", i);
-                //printf("%ld IP is %s\n", i, clients->list[i].IP->sa_data);
-            }
+            else if (clients->list[i].status == CONNECTING)
+                printf("%ld is connecting\n", i);
+            else if (clients->list[i].status == ENDED)
+                printf("%ld is ended\n", i);
             else
-                printf("%ld is autre chose\n", i);
+                printf("%ld is other\n", i);
         }
         printf("\n\n");
         sleep(2);
@@ -54,13 +79,23 @@ void *test(void *arg)
 
 int network(int fdin, int fdout)
 {
-    struct listClientInfo clients;
-    clients.size = 1;
-    clients.list = malloc(clients.size * sizeof(struct clientInfo));
+    struct clientInfo *listClients = malloc(sizeof(struct clientInfo));
+    listClients->prev = NULL;
+    listClients->next = NULL;
+    listClients->ID = 0;   
+   
+   
+   
+   
+   
+   
+   
+   
     pthread_t ServerThread;
     pthread_t MaintenerThread;
     pthread_t transmitThread;
     pthread_t reWriteThread;
+    pthread_t closeConnectionThread;
     struct descripAndClients fdCli;
     fdCli.clients = &clients;
     fdCli.fdin = fdin;
@@ -68,6 +103,7 @@ int network(int fdin, int fdout)
     pthread_mutex_init(&clients.lockList, NULL);
     pthread_mutex_init(&clients.lockRead, NULL);
     pthread_mutex_init(&clients.lockWrite, NULL);
+    pthread_mutex_init(&clients.lockGetPos, NULL);
 
     clients.fdin = STDIN_FILENO;
     clients.fdout = STDOUT_FILENO;
@@ -80,11 +116,14 @@ int network(int fdin, int fdout)
     pthread_create(&ServerThread, NULL, server, (void *)&clients);
     pthread_create(&MaintenerThread, NULL, connectionMaintener, (void *)&clients);
     pthread_create(&reWriteThread, NULL, ReWriteForAllThreads, (void *)&clients);
-    //pthread_create(&transmitThread, NULL, test, (void *)&clients);
+    pthread_create(&closeConnectionThread, NULL, ReWriteForAllThreads, (void *)&clients);
+    pthread_create(&transmitThread, NULL, test, (void *)&clients);
 
     pthread_join(ServerThread, NULL);
     pthread_join(MaintenerThread, NULL);
-    //pthread_join(transmitThread, NULL);
+    pthread_join(reWriteThread, NULL);
+    pthread_join(closeConnectionThread, NULL);
+    pthread_join(transmitThread, NULL);
 
     free(clients.list);
 
@@ -129,7 +168,7 @@ size_t findClient(struct listClientInfo *clients, char *buff)
     return res;
 }
 
-void *transmit(void *arg)
+/*void *transmit(void *arg)
 {
     struct descripAndClients *fds = arg;
     char buff[4];
@@ -179,12 +218,12 @@ void *transmit(void *arg)
             printf("Error while receiving the IP of the server\n");
     }
 }
-
+*/
 /*
-Double the size of the list
+Double the size of the list   Deprecated
 */
 
-void extendList(struct listClientInfo *ptr)
+/*void extendList(struct listClientInfo *ptr)
 {
     pthread_mutex_lock(&ptr->lockList);
     ptr->size *= 2;
@@ -214,20 +253,34 @@ size_t findNextNotUsed(struct listClientInfo *clients)
 
     return res;
 }
+*/
 
 /*
 Creat un ptr for a struct clientInfo, set config to IPV4
 */
 
-struct clientInfo *initClient(struct listClientInfo *clients)
+struct clientInfo *initClient(struct clientInfo *prev)
 {
-    size_t res = findNextNotUsed(clients);
-    struct clientInfo *client = &clients->list[res];
+    struct clientInfo *client = malloc(sizeof(struct clientInfo));
+    pthread_mutex_init(client->lockInfo, NULL);
+    pthread_mutex_init(client->lockRead, NULL);
+    pthread_mutex_init(client->lockWrite, NULL);
 
+    pthread_mutex_lock(client->lockInfo);
+    pthread_mutex_lock(client->lockWrite);
+    pthread_mutex_lock(client->lockRead);
+    
+    pthread_mutex_lock(prev->lockInfo);
+    prev->next = client;
+    pthread_mutex_unlock(prev->lockInfo);
+
+    client->next = NULL;
     client->status = NOTUSED;
     client->IP.sa_family = AF_INET;
-    client->ID = rand() * rand();
+    client->ID = rand() * rand() + 1;
     client->fd = -1;
+    client->prev = prev;
+    
     
     int tab[2];
     pipe(tab);
@@ -235,7 +288,11 @@ struct clientInfo *initClient(struct listClientInfo *clients)
     client->fdout = tab[1];
     client->fdinThread = tab[0];
 
-    client->fdoutThread = dup(clients->fdout);
+    client->fdoutThread = -1;      //fdout a faire en global avec son mutex global aussi
+
+    pthread_mutex_unlock(client->lockRead);
+    pthread_mutex_unlock(client->lockWrite);
+    pthread_mutex_unlock(client->lockInfo);
 
     return client;
 }

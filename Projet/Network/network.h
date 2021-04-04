@@ -31,11 +31,17 @@ struct clientInfo
     size_t ID;
     struct sockaddr IP;
     socklen_t IPLen;
+    pthread_mutex_t *lockInfo;
+    pthread_mutex_t *lockWrite;
+    pthread_mutex_t *lockRead;
     int fd;
     int fdout;
     int fdinThread;
     int fdoutThread;
     int status;
+    struct clientInfo *next;
+    struct clientInfo *prev;
+    
 };
 
 struct listClientInfo
@@ -44,6 +50,7 @@ struct listClientInfo
     pthread_mutex_t lockList;
     pthread_mutex_t lockWrite;
     pthread_mutex_t lockRead;
+    pthread_mutex_t lockGetPos;
     int fdin;
     int fdout;
     struct clientInfo *list;
@@ -52,7 +59,7 @@ struct listClientInfo
 void printIP(struct sockaddr *IP);
 int network(int fdin, int fdout);
 struct clientInfo *initClient(struct listClientInfo *clients);
-void *transmit(void *arg);
+//void *transmit(void *arg);
 void freeClient(struct clientInfo client, struct listClientInfo *clients);
 void removeClient(struct clientInfo client, struct listClientInfo *clients);
 
