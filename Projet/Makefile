@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Wextra 
 CFLAGS +=$(FINAL)
-LOADLIBS=-pthread -lm
+LDLIBS=-pthread -lm
 
 TARGET ?= blockchain
 SRC_DIRS ?= ./
