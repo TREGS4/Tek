@@ -138,8 +138,8 @@ void freeList(struct clientInfo *sentinel)
 
 void * interComms(void *arg)
 {
-    
-    return NULL;
+
+    return arg;
 }
 
 
