@@ -1,46 +1,71 @@
 #include "server.h"
 #include "network.h"
 
-
 void *read_thread(void *arg)
 {
-	printf("in read thread server\n");
+	//printf("in read thread server\n");
 	struct clientInfo *client = arg;
 	int fdin = client->fd;
-	int fdout = client->fdoutThread;
-	int end = 0;
+	int fdout = client->fdoutExtern;
+	int writingExtern = 0;
+	int writingIntern = 0;
 
 	char buff[BUFFER_SIZE_SOCKET];
 	int r = 1;
 
-	while (!end && client->status != ENDED && (r = read(fdin, &buff, BUFFER_SIZE_SOCKET)) > 0)
+	while (client->status != ENDED && (r = read(fdin, &buff, BUFFER_SIZE_SOCKET)) > 0)
 	{
+		if (writingIntern == 0 && writingExtern == 0 && buff[0] == '0')
+		{
+			pthread_mutex_lock(client->lockReadGlobalIntern);
+			writingIntern = 1;
+			fdout = client->fdoutIntern;
+		}
+
+		if (writingIntern == 0 && writingExtern == 0 && buff[0] == '1')
+		{
+			pthread_mutex_lock(client->lockReadGlobalExtern);
+			writingExtern = 1;
+			fdout = client->fdoutExtern;
+		}
+
 		write(fdout, buff, r);
-		if (buff[r - 1] == '\0')
-			end = 1;
+
+		if (r != 0 && buff[r - 1] == '\0')
+		{
+			if (writingIntern == 1)
+			{
+				writingIntern = 0;
+				pthread_mutex_unlock(client->lockReadGlobalIntern);
+			}
+			else
+			{
+				writingExtern = 0;
+				pthread_mutex_unlock(client->lockReadGlobalExtern);
+			}
+		}
 	}
+
+	if (writingExtern == 1)
+		pthread_mutex_unlock(client->lockReadGlobalExtern);
+	if (writingIntern == 1)
+		pthread_mutex_unlock(client->lockReadGlobalIntern);
 
 	return NULL;
 }
 
 void *write_thread(void *arg)
 {
-	printf("in write thread server\n");
+	//printf("in write thread server\n");
 	struct clientInfo *client = arg;
 	int fdin = client->fdinThread;
 	int fdout = client->fd;
-	int end = 0;
 
 	char buff[BUFFER_SIZE_SOCKET];
 	int r = 1;
 
-	while (!end && client->status != ENDED && (r = read(fdin, &buff, BUFFER_SIZE_SOCKET)) > 0)
-	{
-		printf("here\n");
+	while (client->status != ENDED && (r = read(fdin, &buff, BUFFER_SIZE_SOCKET)) > 0)
 		write(fdout, buff, r);
-		if (buff[r - 1] == '\0')
-			end = 0;
-	}
 
 	return NULL;
 }
@@ -53,15 +78,14 @@ void *client_thread(void *arg)
 	pthread_create(&client->readThread, NULL, read_thread, arg);
 
 	pthread_join(client->readThread, NULL);
-	printf("read thread ended !\n");
+	//printf("read thread ended !\n");
 
-	
 	pthread_mutex_lock(&client->lockInfo);
 	client->status = ENDED;
 	pthread_mutex_unlock(&client->lockInfo);
 
 	pthread_join(client->writeThread, NULL);
-	printf("write thread ended !\n");
+	//printf("write thread ended !\n");
 
 	pthread_mutex_lock(&client->lockRead);
 	pthread_mutex_lock(&client->lockWrite);
@@ -70,7 +94,7 @@ void *client_thread(void *arg)
 
 	pthread_mutex_unlock(&client->lockWrite);
 	pthread_mutex_unlock(&client->lockRead);
-	
+
 	pthread_mutex_lock(&client->lockInfo);
 	client->status = DEAD;
 	pthread_mutex_unlock(&client->lockInfo);
@@ -126,7 +150,7 @@ void *server(void *arg)
 
 	while (!finish)
 	{
-		struct clientInfo *client = initClient((struct clientInfo *) arg);
+		struct clientInfo *client = initClient((struct clientInfo *)arg);
 		int fd = -1;
 		struct sockaddr temp;
 		socklen_t len = 0;
@@ -165,11 +189,11 @@ void *connectionMaintener(void *arg)
 
 	while (res)
 	{
-		for(client = client->sentinel->next; client != client->sentinel; client = client->next)
+		for (client = client->sentinel->next; client != client->sentinel; client = client->next)
 		{
 			if (client->status == CONNECTING)
 			{
-				if(pthread_create(&client->clientThread, NULL, client_thread, (void *)client) == 0)
+				if (pthread_create(&client->clientThread, NULL, client_thread, (void *)client) == 0)
 				{
 					pthread_mutex_lock(&client->lockInfo);
 					client->status = CONNECTED;

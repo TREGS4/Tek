@@ -13,8 +13,7 @@ void *ReWriteForAllThreads(void *arg)
             if (client->status == CONNECTED)
             {
                 pthread_mutex_lock(&client->lockWrite);
-                write(client->fdout, buff, r);
-                printf("%lu\n", client->ID);
+                write(client->fdTofdin, buff, r);
                 pthread_mutex_unlock(&client->lockWrite);
             }
         }
@@ -33,7 +32,7 @@ void *closeConnection(void *arg)
             if (client->status == ENDED)
             {
                 pthread_mutex_lock(&client->lockWrite);
-                close(client->fdout);
+                close(client->fdTofdin);
                 pthread_mutex_unlock(&client->lockWrite);
             }
         }
@@ -83,13 +82,17 @@ void *printList(void *arg)
     return NULL;
 }
 
-struct clientInfo *initList(int fdin, int fdout)
+
+struct clientInfo *initList(int fdin, int fdoutExtern, int fdoutIntern)
 {
     struct clientInfo *client = malloc(sizeof(struct clientInfo));
+    client->lockReadGlobalExtern = malloc(sizeof(pthread_mutex_t));
+    client->lockReadGlobalIntern = malloc(sizeof(pthread_mutex_t));
     pthread_mutex_init(&client->lockInfo, NULL);
     pthread_mutex_init(&client->lockRead, NULL);
     pthread_mutex_init(&client->lockWrite, NULL);
-    pthread_mutex_init(&client->lockReadGlobal, NULL);
+    pthread_mutex_init(client->lockReadGlobalExtern, NULL);
+    pthread_mutex_init(client->lockReadGlobalIntern, NULL);
 
     pthread_mutex_lock(&client->lockInfo);
     client->ID = 0;
@@ -100,9 +103,10 @@ struct clientInfo *initList(int fdin, int fdout)
     client->prev = NULL;
 
     client->fd = -1;
-    client->fdout = -1;
+    client->fdTofdin = -1;
     client->fdinThread = fdin;
-    client->fdoutThread = fdout;
+    client->fdoutExtern = fdoutExtern;
+    client->fdoutIntern = fdoutIntern;
 
     pthread_mutex_unlock(&client->lockInfo);
 
@@ -124,21 +128,33 @@ void freeList(struct clientInfo *sentinel)
     pthread_mutex_destroy(&sentinel->lockInfo);
     pthread_mutex_destroy(&sentinel->lockWrite);
     pthread_mutex_destroy(&sentinel->lockRead);
-    pthread_mutex_destroy(&sentinel->lockReadGlobal);
+    pthread_mutex_destroy(sentinel->lockReadGlobalExtern);
+    pthread_mutex_destroy(sentinel->lockReadGlobalIntern);
 
+    free(sentinel->lockReadGlobalExtern);
+    free(sentinel->lockReadGlobalIntern);
     free(sentinel);
+}
+
+void * interComms(void *arg)
+{
+    
+    return NULL;
 }
 
 
 int network(int fdin, int fdout)
 {
-    struct clientInfo *listClients = initList(fdin, fdout);
+    int fdIntern[2];
+    pipe(fdIntern);
+
+    struct clientInfo *listClients = initList(fdin, fdout, fdIntern[1]);
 
     pthread_t serverThread;
     pthread_t maintenerThread;
-    pthread_t printListThread;
     pthread_t reWriteThread;
     pthread_t closeConnectionThread;
+    //pthread_t printListThread;
 
     //connect()
 
@@ -146,13 +162,13 @@ int network(int fdin, int fdout)
     pthread_create(&maintenerThread, NULL, connectionMaintener, (void *)listClients);
     pthread_create(&reWriteThread, NULL, ReWriteForAllThreads, (void *)listClients);
     pthread_create(&closeConnectionThread, NULL, closeConnection, (void *)listClients);
-    pthread_create(&printListThread, NULL, printList, (void *)listClients);
+    //pthread_create(&printListThread, NULL, printList, (void *)listClients);
 
     pthread_join(serverThread, NULL);
     pthread_join(maintenerThread, NULL);
     pthread_join(reWriteThread, NULL);
     pthread_join(closeConnectionThread, NULL);
-    pthread_join(printListThread, NULL);
+    //pthread_join(printListThread, NULL);
 
     freeList(listClients);
 
@@ -208,7 +224,8 @@ struct clientInfo *initClient(struct clientInfo *prev)
 
     client->ID = rand() * rand() + 1;
     client->sentinel = prev->sentinel;
-    client->lockReadGlobal = client->sentinel->lockReadGlobal;
+    client->lockReadGlobalExtern = client->sentinel->lockReadGlobalExtern;
+    client->lockReadGlobalIntern = client->sentinel->lockReadGlobalIntern;
     client->status = NOTUSED;
     client->next = client->sentinel;
     client->IP.sa_family = AF_INET;
@@ -219,9 +236,10 @@ struct clientInfo *initClient(struct clientInfo *prev)
     int tab[2];
     pipe(tab);
 
-    client->fdout = tab[1];
+    client->fdTofdin = tab[1];
     client->fdinThread = tab[0];
-    client->fdoutThread = client->sentinel->fdoutThread;
+    client->fdoutExtern = client->sentinel->fdoutExtern;
+    client->fdoutIntern = client->sentinel->fdoutIntern;
     pthread_mutex_unlock(&client->lockInfo);
 
     pthread_mutex_lock(&prev->lockInfo);

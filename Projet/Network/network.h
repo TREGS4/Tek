@@ -39,12 +39,14 @@ struct clientInfo
     pthread_mutex_t lockInfo;
     pthread_mutex_t lockWrite;
     pthread_mutex_t lockRead;
-    pthread_mutex_t lockReadGlobal;
+    pthread_mutex_t *lockReadGlobalExtern;
+    pthread_mutex_t *lockReadGlobalIntern;
 
     int fd;
-    int fdout;
+    int fdTofdin;
     int fdinThread;
-    int fdoutThread;
+    int fdoutExtern;
+    int fdoutIntern;
 
     int status;
 
