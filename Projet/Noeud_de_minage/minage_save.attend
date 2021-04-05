@@ -14,7 +14,6 @@
 //write : string(either : "occupied" or "proof")
 //
 int occupied = 0;
-int ismining = 0;
 
 //string to sum : takes the incoming string and sum it's component splitted with \n
 unsigned int char_to_sum(char str[], int *diff){
@@ -67,49 +66,6 @@ unsigned long mine(int diff, unsigned int sum){
 	return proof;
 }
 
-struct mining_arg{
-	unsigned int sum;
-	int diff;
-	unsigned long nbthread;
-};
-
-//mine with the sum from char_to_sum
-void *thread_mining(void *arg){
-	struct mining_arg *m_a = arg;
-	int diff = m_a->diff;
-	unsigned int sum = m_a->sum;
-	unsigned long nbthread = m_a->nbthread;
-	unsigned long proof = 0;
-	unsigned int res = 1;
-	unsigned int tmp;
-	BYTE str[SHA256_BLOCK_SIZE];
-	while(res == 1 && ismining == 0){
-		//int to str
-		tmp = sum + proof;
-		sprintf((char *)str, "%d", tmp);
-
-		//hash with sha256
-		BYTE buf[SHA256_BLOCK_SIZE];
-		sha256(str, buf);
-		//uncomment if you want to print the hash
-		/*printf("buf :");
-		  for(int i = 0; i < 32; i++)
-		  printf("%02x", buf[i]);
-		  printf("\n");*/
-		res = 0;
-		for(int i = SHA256_BLOCK_SIZE - diff; i < SHA256_BLOCK_SIZE; i++)
-		{
-			if(buf[i] != 0)
-				res = 1;
-		}
-		if(res == 1)
-			proof += nbthread;
-		else
-			ismining = 1;
-	}
-	return (void *)proof;
-}
-
 //return 0 if proof is correct, 1 if not
 unsigned int __testproof(int diff, unsigned int sum, unsigned long proof){
 	unsigned int res = 0;
@@ -142,35 +98,13 @@ unsigned int testproof(char strin[] ,unsigned long proof){
 }
 
 //find the proof from the string
-unsigned int mine_from_string(char *strin, int nbthread){
+unsigned int mine_from_string(char *strin){
 	char *str = malloc(sizeof(char) * strlen(strin));
 	strcpy(str,strin);
 	int diff = 0;
 	unsigned int sum = char_to_sum(str, &diff);
 	free(str);
-
-	//struct for arg
-	struct mining_arg *m_a = malloc(sizeof(struct mining_arg));
-	m_a->diff = diff;
-	m_a->nbthread = nbthread;
-	m_a->sum = sum;
-
-	//threads for the mining
-	pthread_t thr[nbthread];
-	ismining = 0;
-	unsigned int proof = 0;
-	unsigned int *output = 0;
-	for(int n = 0; n < nbthread; n++){
-		if(pthread_create(thr + n, NULL, thread_mining, (void *)m_a) != 0)
-			err(3,"mining.c: mine_from_string: error while creating the threads");
-	}
-	for(int n = 0; n < nbthread; n++){
-		pthread_join(thr[n], (void *)output);
-		if(testproof(strin, *output) == 0)
-			proof = *output;
-	}
-	//unsigned int proof = mine(diff,sum);
-	free(m_a);
+	unsigned int proof = mine(diff,sum);
 	return proof;
 }
 
@@ -203,8 +137,8 @@ void rewrite(int fd, const void *buf, size_t count)
 }
 
 //take a string and send it with the proof on fdout
-void mine_and_write(char str[], int fdout, int nbthread){
-	unsigned long proof = mine_from_string(str, nbthread);
+void mine_and_write(char str[], int fdout){
+	unsigned long proof = mine_from_string(str);
 	char strout[len_of_proof(proof) + strlen(str) + 2];
 	rebuild(strout, str, proof);
 	rewrite(fdout, &strout, strlen(strout));
@@ -217,7 +151,7 @@ void handler(){
 }
 
 //basic fonction wich read on fdin and send the res on fdout, if occupied send "occupied"
-int mininglobby(int fdin, int fdout, int nbthread){
+int mininglobby(int fdin, int fdout){
 	size_t lenbuff = 1024;
 	char buff[lenbuff];
 	pid_t p = getpid();
@@ -228,7 +162,7 @@ int mininglobby(int fdin, int fdout, int nbthread){
 		if(occupied == 0){
 			if((p = fork()) == 0){//son
 				occupied = 1;
-				mine_and_write(buff, fdout, nbthread);
+				mine_and_write(buff, fdout);
 			}
 			else
 				occupied = 1;
@@ -245,7 +179,7 @@ int moncuq()
 	//mininglobby(STDIN_FILENO, STDOUT_FILENO);
 	char nbstr[] = "1-2-3-5";
 	//unsigned long proof = mine_from_string(nbstr);
-	mine_and_write(nbstr, STDOUT_FILENO, 4);
+	mine_and_write(nbstr, STDOUT_FILENO);
 	/*char *str = malloc(sizeof(char) * strlen(nbstr));
 	strcpy(str,nbstr);
 	unsigned int res = testproof(nbstr, proof);
