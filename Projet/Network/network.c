@@ -106,7 +106,8 @@ struct clientInfo *initList(int fdin, int fdoutExtern, int fdoutIntern)
     client->fdTofdin = -1;
     client->fdinThread = fdin;
     client->fdoutExtern = fdoutExtern;
-    client->fdoutIntern = fdoutIntern;
+    client->fdoutExtern = fdoutExtern;
+    //client->fdoutIntern = fdoutIntern;
 
     pthread_mutex_unlock(&client->lockInfo);
 
@@ -138,8 +139,16 @@ void freeList(struct clientInfo *sentinel)
 
 void * interComms(void *arg)
 {
+    struct clientInfo *sentinel = arg;
+    int r = 1;
+    char buff[BUFFER_SIZE_SOCKET];
 
-    return arg;
+    /*while((r = read( , buff, BUFFER_SIZE_SOCKET) > 0))
+    {
+
+    } */
+
+    return NULL;
 }
 
 

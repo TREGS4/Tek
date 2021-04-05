@@ -15,6 +15,9 @@
 
 #define PORT "6969"
 #define BUFFER_SIZE_SOCKET 512
+#define SIZE_ULONLON 20
+
+
 
 void *server(void *arg);
 void *connectionMaintener(void *arg);

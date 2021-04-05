@@ -9,10 +9,31 @@ void *read_thread(void *arg)
 	int fdout = client->fdoutExtern;
 	int writingExtern = 0;
 	int writingIntern = 0;
+	unsigned long long size = 0;
+	int type = -1;
 
-	char buff[BUFFER_SIZE_SOCKET];
+	char buff[30];
+	memset(buff, '\0', 8);
 	int r = 1;
 
+	int header = 3;
+	int pos = 0;
+
+	while (pos < header)
+	{
+		r = read(fdin, &buff + pos, header - pos);
+		pos += r;
+	}
+	
+	type = atoi(&buff[0]);
+	//size = atoll(&buff[1]);
+	printf("%d\n", type);
+	//printf("%llu\n", size);
+	printf("%s\n", buff);
+	
+
+
+/*
 	while (client->status != ENDED && (r = read(fdin, &buff, BUFFER_SIZE_SOCKET)) > 0)
 	{
 		if (writingIntern == 0 && writingExtern == 0 && buff[0] == '0')
@@ -50,7 +71,7 @@ void *read_thread(void *arg)
 		pthread_mutex_unlock(client->lockReadGlobalExtern);
 	if (writingIntern == 1)
 		pthread_mutex_unlock(client->lockReadGlobalIntern);
-
+*/
 	return NULL;
 }
 
