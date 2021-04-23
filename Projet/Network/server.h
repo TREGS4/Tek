@@ -15,7 +15,9 @@
 
 #define PORT "6969"
 #define BUFFER_SIZE_SOCKET 512
-#define SIZE_ULONLON 20
+#define SIZE_ULONGLONG 19
+#define SIZE_TYPE_MSG 3
+
 
 
 

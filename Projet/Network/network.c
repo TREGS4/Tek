@@ -36,6 +36,7 @@ void *closeConnection(void *arg)
                 pthread_mutex_unlock(&client->lockWrite);
             }
         }
+        sleep(1);
     }
 
     return NULL;
@@ -102,7 +103,7 @@ struct clientInfo *initList(int fdin, int fdoutExtern, int fdoutIntern)
     client->IP.sa_family = AF_INET;
     client->prev = NULL;
 
-    client->fd = -1;
+    client->clientSocket = -1;
     client->fdTofdin = -1;
     client->fdinThread = fdin;
     client->fdoutExtern = fdoutExtern;
@@ -231,7 +232,7 @@ struct clientInfo *initClient(struct clientInfo *prev)
 
     pthread_mutex_lock(&client->lockInfo);
 
-    client->ID = rand() * rand() + 1;
+    client->ID = rand() * rand() + 1;           //need to be change with hash
     client->sentinel = prev->sentinel;
     client->lockReadGlobalExtern = client->sentinel->lockReadGlobalExtern;
     client->lockReadGlobalIntern = client->sentinel->lockReadGlobalIntern;
@@ -240,7 +241,7 @@ struct clientInfo *initClient(struct clientInfo *prev)
     client->IP.sa_family = AF_INET;
     client->prev = prev;
 
-    client->fd = -1;
+    client->clientSocket = -1;
 
     int tab[2];
     pipe(tab);

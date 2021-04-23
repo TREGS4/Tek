@@ -5,73 +5,97 @@ void *read_thread(void *arg)
 {
 	//printf("in read thread server\n");
 	struct clientInfo *client = arg;
-	int fdin = client->fd;
+	int fdin = client->clientSocket;
 	int fdout = client->fdoutExtern;
 	int writingExtern = 0;
 	int writingIntern = 0;
 	unsigned long long size = 0;
 	int type = -1;
 
-	char buff[30];
-	memset(buff, '\0', 8);
-	int r = 1;
+	char buffLen[SIZE_ULONGLONG + SIZE_TYPE_MSG + 1];
+	char buffType[SIZE_TYPE_MSG + 1];
+	char buff[BUFFER_SIZE_SOCKET];
 
-	int header = 3;
-	int pos = 0;
-
-	while (pos < header)
+	while (client->status == CONNECTED)
 	{
-		r = read(fdin, &buff + pos, header - pos);
-		pos += r;
-	}
-	
-	type = atoi(&buff[0]);
-	//size = atoll(&buff[1]);
-	printf("%d\n", type);
-	//printf("%llu\n", size);
-	printf("%s\n", buff);
-	
+		memset(buffLen, 0, SIZE_ULONGLONG + 1);
+		memset(buffType, 0, SIZE_TYPE_MSG + 1);
+		memset(buff, 0, BUFFER_SIZE_SOCKET);
 
+		int r = 1;
 
-/*
-	while (client->status != ENDED && (r = read(fdin, &buff, BUFFER_SIZE_SOCKET)) > 0)
-	{
-		if (writingIntern == 0 && writingExtern == 0 && buff[0] == '0')
+		size_t nbToRead = SIZE_ULONGLONG + SIZE_TYPE_MSG;
+		size_t nbchr = 0;
+
+		/*Header part*/
+
+		while (client->status != ENDED && nbToRead > 0)
+		{
+			if ((r = read(fdin, &buffLen + nbchr, nbToRead)) <= 0)
+			{
+				pthread_mutex_lock(&client->lockInfo);
+				client->status = ENDED;
+				pthread_mutex_unlock(&client->lockInfo);
+			}
+
+			nbToRead -= r;
+			nbchr += r;
+		}
+
+		for (size_t i = 0; i < SIZE_TYPE_MSG; i++)
+			buffType[i] = buffLen[i];
+
+		type = atoi(&buffType[0]);
+		size = (unsigned)atoll(&buffLen[SIZE_TYPE_MSG]); //not working number above 9 999 999 999
+
+		if (size < BUFFER_SIZE_SOCKET)
+			nbToRead = size;
+		else
+			nbToRead = BUFFER_SIZE_SOCKET;
+
+		if (type == 1) //block the corresponding mutex for intern or extern message and setup the correct fdout
 		{
 			pthread_mutex_lock(client->lockReadGlobalIntern);
 			writingIntern = 1;
 			fdout = client->fdoutIntern;
 		}
-
-		if (writingIntern == 0 && writingExtern == 0 && buff[0] == '1')
+		else
 		{
 			pthread_mutex_lock(client->lockReadGlobalExtern);
 			writingExtern = 1;
 			fdout = client->fdoutExtern;
 		}
 
-		write(fdout, buff, r);
+		if(client->status == CONNECTED)
+			write(fdout, buffLen, SIZE_TYPE_MSG + SIZE_ULONGLONG);
 
-		if (r != 0 && buff[r - 1] == '\0')
+		/*Message part*/
+
+		while (client->status != ENDED && size > 0)
 		{
-			if (writingIntern == 1)
+			if ((r = read(fdin, &buff, nbToRead)) <= 0)
 			{
-				writingIntern = 0;
-				pthread_mutex_unlock(client->lockReadGlobalIntern);
+				pthread_mutex_lock(&client->lockInfo);
+				client->status = ENDED;
+				pthread_mutex_unlock(&client->lockInfo);
 			}
+
+			size -= r;
+
+			if (size > BUFFER_SIZE_SOCKET)
+				nbToRead = size;
 			else
-			{
-				writingExtern = 0;
-				pthread_mutex_unlock(client->lockReadGlobalExtern);
-			}
+				nbToRead = BUFFER_SIZE_SOCKET;
+
+			write(fdout, buff, r);
 		}
+
+		if (writingExtern == 1)
+			pthread_mutex_unlock(client->lockReadGlobalExtern);
+		if (writingIntern == 1)
+			pthread_mutex_unlock(client->lockReadGlobalIntern);
 	}
 
-	if (writingExtern == 1)
-		pthread_mutex_unlock(client->lockReadGlobalExtern);
-	if (writingIntern == 1)
-		pthread_mutex_unlock(client->lockReadGlobalIntern);
-*/
 	return NULL;
 }
 
@@ -80,7 +104,7 @@ void *write_thread(void *arg)
 	//printf("in write thread server\n");
 	struct clientInfo *client = arg;
 	int fdin = client->fdinThread;
-	int fdout = client->fd;
+	int fdout = client->clientSocket;
 
 	char buff[BUFFER_SIZE_SOCKET];
 	int r = 1;
@@ -111,7 +135,7 @@ void *client_thread(void *arg)
 	pthread_mutex_lock(&client->lockRead);
 	pthread_mutex_lock(&client->lockWrite);
 
-	close(client->fd);
+	close(client->clientSocket);
 
 	pthread_mutex_unlock(&client->lockWrite);
 	pthread_mutex_unlock(&client->lockRead);
@@ -186,9 +210,9 @@ void *server(void *arg)
 
 		client->IPLen = len;
 		client->IP = temp;
-		client->fd = fd;
+		client->clientSocket = fd;
 
-		if (client->fd == -1)
+		if (client->clientSocket == -1)
 			err(EXIT_FAILURE, "Error while connecting to the client in server.c");
 
 		client->status = CONNECTING;
@@ -222,6 +246,7 @@ void *connectionMaintener(void *arg)
 				}
 			}
 		}
+		sleep(0.1);
 	}
 
 	return NULL;
