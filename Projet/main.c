@@ -2,6 +2,8 @@
 
 int main(/*int argc, char **argv*/)
 {
-	network(STDIN_FILENO, STDOUT_FILENO);
+	int fd[2];
+	pipe(fd); 
+	network(fd[0], STDOUT_FILENO, "192.168.1.22", NULL, fd[1]);
 	return 0;
 }

@@ -15,15 +15,15 @@
 #include <semaphore.h>
 #include <arpa/inet.h>
 
-#include "client.h"
-#include "server.h"
-#include "../Hash/sha256.h"
 
 #define ERROR -1
 #define ENDED 0
 #define CONNECTED 1
 #define CONNECTING 3
 #define SENTINEL 4
+#define ONLINE 5
+#define OFFLINE 6
+#define EXITING 7
 #define NOTUSED 255
 #define DEAD 254
 
@@ -33,7 +33,7 @@
 struct clientInfo
 {
     size_t ID;
-    struct sockaddr IP;
+    struct sockaddr IPandPort;
     socklen_t IPLen;
 
     pthread_mutex_t lockInfo;                       //lock when modifing everything except file descriptors
@@ -57,13 +57,39 @@ struct clientInfo
     struct clientInfo *next;
     struct clientInfo *prev;
     struct clientInfo *sentinel;
+    struct serverInfo *server;
 };
 
+struct serverInfo
+{
+    int status;
+
+    int fdInInternComm;
+    int fdtest;
+
+    pthread_mutex_t lockinfo;
+
+    struct sockaddr IPandPort;
+    socklen_t IPLen;
+
+    struct clientInfo *listClients;
+};
+
+
 void printIP(struct sockaddr *IP);
-int network(int fdin, int fdout);
+int network(int fdin, int fdout, char *IP, char *firstserver, int fdtest);
 struct clientInfo *initClient(struct clientInfo *clients);
 struct clientInfo *last(struct clientInfo *client);
 size_t listLen(struct clientInfo *client);
 int removeClient(struct clientInfo *client);
+int isInList(struct sockaddr *tab, struct clientInfo *list);
+int itsme(char *str1, char *str2);
+
+
+//Here because server.h needs the declaration of the struct clientInfo
+#include "client.h"
+#include "server.h"
+#include "../Hash/sha256.h"
+
 
 #endif

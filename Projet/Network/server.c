@@ -1,5 +1,4 @@
 #include "server.h"
-#include "network.h"
 
 void *read_thread(void *arg)
 {
@@ -156,6 +155,7 @@ void *client_thread(void *arg)
 */
 void *server(void *arg)
 {
+	struct serverInfo *serInfo = arg;
 	struct addrinfo hints;
 	struct addrinfo *res;
 	int connect = 0;
@@ -193,13 +193,14 @@ void *server(void *arg)
 	if (listen(skt, 5) == -1)
 		err(EXIT_FAILURE, "Error on function listen() in server.c");
 
+
 	while (!finish)
 	{
-		struct clientInfo *client = initClient((struct clientInfo *)arg);
+		struct clientInfo *client = initClient(serInfo->listClients);
 		int fd = -1;
 		struct sockaddr temp;
 		socklen_t len = 0;
-		len = sizeof(client->IP.sa_data);
+		len = sizeof(client->IPandPort.sa_data);
 
 		fd = accept(skt, &temp, &len);
 		printIP(&temp);
@@ -209,7 +210,7 @@ void *server(void *arg)
 		pthread_mutex_lock(&client->lockRead);
 
 		client->IPLen = len;
-		client->IP = temp;
+		client->IPandPort = temp;
 		client->clientSocket = fd;
 
 		if (client->clientSocket == -1)
@@ -229,7 +230,8 @@ void *server(void *arg)
 
 void *connectionMaintener(void *arg)
 {
-	struct clientInfo *client = arg;
+	struct serverInfo *server = arg;
+	struct clientInfo *client = server->listClients;
 	int res = 1;
 
 	while (res)
@@ -244,10 +246,46 @@ void *connectionMaintener(void *arg)
 					client->status = CONNECTED;
 					pthread_mutex_unlock(&client->lockInfo);
 				}
+				else
+				{
+					pthread_mutex_lock(&client->lockInfo);
+					client->status = DEAD;
+					pthread_mutex_unlock(&client->lockInfo);
+					client = client->next;
+					removeClient(client->prev);
+				}	
 			}
 		}
 		sleep(0.1);
 	}
 
 	return NULL;
+}
+
+
+int connectClient(struct sockaddr *infoClient, struct clientInfo *list)
+{
+	int skt;
+	struct sockaddr_in *info = (struct sockaddr_in *)infoClient;
+	info->sin_port = 6969;
+
+	if(infoClient == NULL)
+		return 1;
+	
+    if((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	{
+		return -1;
+	}	
+        
+	if(connect(skt, (struct sockaddr *)info, sizeof(info)) < 0)
+	{
+		return -1;
+	}
+	
+	struct clientInfo *client = initClient(list);
+	client->clientSocket = skt;
+	client->IPandPort = *infoClient;
+	client->IPLen = sizeof(infoClient->sa_data);
+
+	return 1;
 }
