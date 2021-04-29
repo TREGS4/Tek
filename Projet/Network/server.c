@@ -213,9 +213,6 @@ void *server(void *arg)
 		client->IPandPort = temp;
 		client->clientSocket = fd;
 
-		if (client->clientSocket == -1)
-			err(EXIT_FAILURE, "Error while connecting to the client in server.c");
-
 		client->status = CONNECTING;
 		pthread_mutex_unlock(&client->lockRead);
 		pthread_mutex_unlock(&client->lockWrite);
@@ -288,9 +285,12 @@ int connectClient(char *IP, struct clientInfo *list)
 
 	temp = (struct sockaddr *)&info;
 	struct clientInfo *client = initClient(list);
+	pthread_mutex_lock(&client->lockInfo);
 	client->clientSocket = skt;
 	client->IPandPort = *temp;
 	client->IPLen = sizeof(client->IPandPort.sa_data);
+	client->status = CONNECTING;
+	pthread_mutex_unlock(&client->lockInfo);
 
 	return 1;
 }
