@@ -279,7 +279,7 @@ int connectClient(struct sockaddr *infoClient, struct clientInfo *list)
     
 	if(connect(skt, (struct sockaddr *)info, sizeof(info)) < 0)
 	{
-		perror();
+		perror(NULL);
 		return -1;
 	}
 	printf("here4\n");
