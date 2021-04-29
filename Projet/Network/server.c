@@ -291,6 +291,8 @@ int connectClient(char *IP, struct clientInfo *list)
 	client->IPLen = sizeof(client->IPandPort.sa_data);
 	client->status = CONNECTING;
 	pthread_mutex_unlock(&client->lockInfo);
+	printIP(temp);
+	printf("Server connected\n");
 
 	return 1;
 }
