@@ -265,7 +265,6 @@ void *connectionMaintener(void *arg)
 
 int connectClient(struct sockaddr *infoClient, struct clientInfo *list)
 {
-	printf("here1\n");
 	if(infoClient == NULL)
 		return 1;
 
@@ -273,15 +272,14 @@ int connectClient(struct sockaddr *infoClient, struct clientInfo *list)
 	struct sockaddr_in *info = (struct sockaddr_in *)infoClient;
 	info->sin_port = 6969;
 	
-	printf("here2\n");
     if((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		return -1;
 	}	
     
-	printf("here3\n");
 	if(connect(skt, (struct sockaddr *)info, sizeof(info)) < 0)
 	{
+		perror();
 		return -1;
 	}
 	printf("here4\n");
