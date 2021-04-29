@@ -122,7 +122,7 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     pthread_mutex_lock(&server->lockinfo);
     server->listClients = client;
     server->fdInInternComm = fdIntern[0];
-    inet_pton(AF_INET, IP, &server->IPandPort);
+    inet_pton(AF_INET, IP, &server->IPandPort.sa_data);
     server->IPLen = sizeof(server->IPandPort.sa_data);
     server->status = ONLINE;
     pthread_mutex_unlock(&server->lockinfo);
