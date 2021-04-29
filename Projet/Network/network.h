@@ -65,7 +65,7 @@ struct serverInfo
     int status;
 
     int fdInInternComm;
-    int fdtest;
+    int fdtemp;
 
     pthread_mutex_t lockinfo;
 
@@ -77,7 +77,7 @@ struct serverInfo
 
 
 void printIP(struct sockaddr *IP);
-int network(int fdin, int fdout, char *IP, char *firstserver, int fdtest);
+int network(int *fdin, int *fdout, char *IP, char *firstserver);
 struct clientInfo *initClient(struct clientInfo *clients);
 struct clientInfo *last(struct clientInfo *client);
 size_t listLen(struct clientInfo *client);

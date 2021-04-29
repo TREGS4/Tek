@@ -112,7 +112,7 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     client->fdTofdin = -1;
     client->fdinThread = fdin;
     client->fdoutExtern = fdoutExtern;
-    client->fdoutIntern = STDOUT_FILENO;//fdIntern[1];
+    client->fdoutIntern = fdIntern[1];
 
     pthread_mutex_unlock(&client->lockInfo);
 
@@ -239,24 +239,24 @@ void * sendNetwork(void *arg)
         size = datasize * (listLen(server->listClients) + 1);
         sprintf(buffh, "%03d%019llu", type, size);
         //printf("%s", buffh);
-        write(server->fdtest, buffh, headersize);
+        write(server->fdtemp, buffh, headersize);
         client = client->sentinel->next;
         for (size_t i = 0; i < listLen(server->listClients); i++)
         {
             if(client->status == CONNECTED)
             {
-                write(server->fdtest, &client->IPandPort.sa_data, 14);
+                write(server->fdtemp, &client->IPandPort.sa_data, 14);
                 //printf("%s", client->IPandPort.sa_data);
                 sprintf(buff, "%05u", client->IPandPort.sa_family);
                 //printf("%s", buff);
-                write(server->fdtest, buff, 5);
+                write(server->fdtemp, buff, 5);
                 client = client->next;
             } 
         }
-        write(server->fdtest, &server->IPandPort.sa_data, 14);
+        write(server->fdtemp, &server->IPandPort.sa_data, 14);
         //printf("%s", server->IPandPort.sa_data);
         sprintf(buff, "%05u", server->IPandPort.sa_family);
-        write(server->fdtest, buff, 5);
+        write(server->fdtemp, buff, 5);
         //printf("%s\n", buff);
 
 
@@ -267,10 +267,18 @@ void * sendNetwork(void *arg)
 }
 
 
-int network(int fdin, int fdout, char *IP, char *firstserver, int fdtest)
+int network(int *fdin, int *fdout, char *IP, char *firstserver)
 {   
-    struct serverInfo *serverInf = initServer(fdin, fdout, IP);
-    serverInf->fdtest = fdtest;
+    int fd1[2];
+    int fd2[2];
+    pipe(fd1);
+    pipe(fd2);
+
+    fdin = &fd1[0]; 
+    fdout = &fd2[1];
+    
+    struct serverInfo *serverInf = initServer(fd2[0], fd1[1], IP);
+    serverInf->fdtemp = fd2[1]; 
 
     pthread_t serverThread;
     pthread_t maintenerThread;
