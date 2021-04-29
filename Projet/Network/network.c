@@ -163,6 +163,7 @@ void *internComms(void *arg)
     struct serverInfo *server = arg;
     int r = 1;
     char buff[BUFFER_SIZE_SOCKET];
+    char buffIP[16]; 
     struct sockaddr info;
     size_t nbclient = 0;
     size_t sizeclient = 14;
@@ -210,7 +211,12 @@ void *internComms(void *arg)
         info.sa_family = (unsigned)atoi(&buff[0]);
 
         if (isInList(&info, server->listClients) == 0 && itsme(info.sa_data, server->IPandPort.sa_data) == 0)
-            connectClient(&info, server->listClients);
+        {
+            struct sockaddr_in *test = (struct sockaddr_in *)&info;
+            inet_ntop(AF_INET, &test->sin_addr, buffIP, 16);
+            connectClient(buffIP, server->listClients);
+        } 
+            
     }
     return NULL;
 }
@@ -274,12 +280,7 @@ int network(int fdin, int fdout, char *IP, char *firstserver, int fdtest)
     pthread_t sendNetworkThread;
     //pthread_t printListThread;
 
-    if(firstserver != NULL)
-    {
-        struct sockaddr IPserver;
-        inet_pton(AF_INET, firstserver, &IPserver);
-        connectClient(&IPserver, serverInf->listClients);
-    } 
+    connectClient(firstserver, serverInf->listClients);
     
 
     pthread_create(&serverThread, NULL, server, (void *)serverInf);

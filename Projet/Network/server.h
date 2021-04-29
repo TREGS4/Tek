@@ -25,6 +25,6 @@
 
 void *server(void *arg);
 void *connectionMaintener(void *arg);
-int connectClient(struct sockaddr *infoClient, struct clientInfo *list);
+int connectClient(char *IP, struct clientInfo *list);
 
 #endif

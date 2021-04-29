@@ -263,31 +263,34 @@ void *connectionMaintener(void *arg)
 }
 
 
-int connectClient(struct sockaddr *infoClient, struct clientInfo *list)
+int connectClient(char *IP, struct clientInfo *list)
 {
-	if(infoClient == NULL)
+	if(IP == NULL)
 		return 1;
 
 	int skt;
-	struct sockaddr_in *info = (struct sockaddr_in *)infoClient;
-	info->sin_port = htons(6969);
-	info->sin_family = AF_INET;
+	struct sockaddr_in info;
+	struct sockaddr *temp;
+	info.sin_port = htons(6969);
+	info.sin_family = AF_INET;
+	inet_pton(AF_INET, IP, &info.sin_addr);
 	
     if((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		return -1;
 	}	
-    
-	if(connect(skt, (struct sockaddr *)info, sizeof(info)) < 0)
+
+	if(connect(skt, (struct sockaddr *)&info, sizeof(info)) < 0)
 	{
 		perror(NULL);
 		return -1;
 	}
-	printf("here4\n");
+
+	temp = (struct sockaddr *)&info;
 	struct clientInfo *client = initClient(list);
 	client->clientSocket = skt;
-	client->IPandPort = *infoClient;
-	client->IPLen = sizeof(infoClient->sa_data);
+	client->IPandPort = *temp;
+	client->IPLen = sizeof(client->IPandPort.sa_data);
 
 	return 1;
 }
