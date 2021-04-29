@@ -112,7 +112,7 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     client->fdTofdin = -1;
     client->fdinThread = fdin;
     client->fdoutExtern = fdoutExtern;
-    client->fdoutIntern = STDOUT_FILENO//fdIntern[1];
+    client->fdoutIntern = STDOUT_FILENO;//fdIntern[1];
 
     pthread_mutex_unlock(&client->lockInfo);
 
