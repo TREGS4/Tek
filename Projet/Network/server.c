@@ -270,14 +270,15 @@ int connectClient(struct sockaddr *infoClient, struct clientInfo *list)
 
 	int skt;
 	struct sockaddr_in *info = (struct sockaddr_in *)infoClient;
-	info->sin_port = 6969;
+	info->sin_port = htons(6969);
+	info->sin_family = AF_INET;
 	
     if((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		return -1;
 	}	
     
-	if(connect(skt, (struct sockaddr *)&info, sizeof(info)) < 0)
+	if(connect(skt, (struct sockaddr *)info, sizeof(info)) < 0)
 	{
 		perror(NULL);
 		return -1;
