@@ -277,7 +277,7 @@ int connectClient(struct sockaddr *infoClient, struct clientInfo *list)
 		return -1;
 	}	
     
-	if(connect(skt, (struct sockaddr *)info, sizeof(info)) < 0)
+	if(connect(skt, (struct sockaddr *)&info, sizeof(info)) < 0)
 	{
 		perror(NULL);
 		return -1;
