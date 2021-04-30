@@ -120,6 +120,10 @@ void *client_thread(void *arg)
 
 	pthread_create(&client->writeThread, NULL, write_thread, arg);
 	pthread_create(&client->readThread, NULL, read_thread, arg);
+	
+	printf("Server connnected:\n");
+	printIP(&client->IPandPort);
+	
 
 	pthread_join(client->readThread, NULL);
 	//printf("read thread ended !\n");
@@ -143,8 +147,11 @@ void *client_thread(void *arg)
 	client->status = DEAD;
 	pthread_mutex_unlock(&client->lockInfo);
 
+
+	printf("Client disconnected:\n");
+	printIP(&client->IPandPort);
 	removeClient(client);
-	printf("Client disconnected !\n");
+	
 	return NULL;
 }
 
@@ -158,6 +165,9 @@ void *server(void *arg)
 	struct serverInfo *serInfo = arg;
 	struct addrinfo hints;
 	struct addrinfo *res;
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 0;
 	int connect = 0;
 	int skt;
 	int finish = 0;
@@ -175,7 +185,8 @@ void *server(void *arg)
 
 		if (skt >= 0)
 		{
-			setsockopt(skt, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(int));
+			setsockopt(skt, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+			setsockopt(skt, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value));
 
 			if (bind(skt, res->ai_addr, res->ai_addrlen) == 0)
 				connect = 1;
@@ -203,7 +214,6 @@ void *server(void *arg)
 		len = sizeof(client->IPandPort.sa_data);
 
 		fd = accept(skt, &temp, &len);
-		printIP(&temp);
 
 		pthread_mutex_lock(&client->lockInfo);
 		pthread_mutex_lock(&client->lockWrite);
@@ -217,8 +227,6 @@ void *server(void *arg)
 		pthread_mutex_unlock(&client->lockRead);
 		pthread_mutex_unlock(&client->lockWrite);
 		pthread_mutex_unlock(&client->lockInfo);
-
-		printf("Client connected!\n");
 	}
 
 	close(skt);
@@ -291,8 +299,6 @@ int connectClient(char *IP, struct clientInfo *list)
 	client->IPLen = sizeof(client->IPandPort.sa_data);
 	client->status = CONNECTING;
 	pthread_mutex_unlock(&client->lockInfo);
-	printIP(temp);
-	printf("Server connected\n");
 
 	return 1;
 }
