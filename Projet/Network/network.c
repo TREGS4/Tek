@@ -105,7 +105,7 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     client->sentinel = client;
     client->status = SENTINEL;
     client->next = client;
-    client->IPandPort.sa_family = AF_INET;
+    client->IPandPort.sin_family = AF_INET;
     client->prev = NULL;
 
     client->clientSocket = -1;
@@ -217,11 +217,13 @@ void *internComms(void *arg)
 
         struct sockaddr_in *test = (struct sockaddr_in *)&info;
         inet_ntop(AF_INET, &test->sin_addr, buffIP, 16);
+        int me = isInList((struct sockaddr_in *)&info, server->listClients);
+        int inlist = itsme((struct sockaddr_in *)&info, (struct sockaddr_in *)&server->IPandPort);
         printf("IP: %s\n", buffIP);
-        printf("%d\n", isInList(&info, server->listClients));
-        printf("%d\n", itsme((struct sockaddr_in *)&info, (struct sockaddr_in *)&server->IPandPort));
+        printf("%d\n", me);
+        printf("%d\n", inlist);
 
-        if (isInList(&info, server->listClients) == 0 && itsme((struct sockaddr_in *)&info, (struct sockaddr_in *)&server->IPandPort) == 0)
+        if (inlist == 0 && me == 0)
         {
             
             connectClient(buffIP, server->listClients);
@@ -254,9 +256,9 @@ void *sendNetwork(void *arg)
         {
             if (client->status == CONNECTED)
             {
-                write(server->fdtemp, &client->IPandPort.sa_data, 14);
+                write(server->fdtemp, &((struct sockaddr *)&client->IPandPort)->sa_data, 14);
                 //printf("%s", client->IPandPort.sa_data);
-                sprintf(buff, "%05u", client->IPandPort.sa_family);
+                sprintf(buff, "%05u", ((struct sockaddr *)&client->IPandPort)->sa_family);
                 //printf("%s", buff);
                 write(server->fdtemp, buff, 5);
                 client = client->next;
@@ -319,14 +321,12 @@ int network(int *fdin, int *fdout, char *IP, char *firstserver)
     return EXIT_SUCCESS;
 }
 
-void printIP(struct sockaddr *IP)
+void printIP(struct sockaddr_in *IP)
 {
-
-    struct sockaddr_in *IPinfo = (struct sockaddr_in *)IP;
     char *buff = malloc(16 * sizeof(char));
 
-    unsigned int port = ntohs(IPinfo->sin_port);
-    inet_ntop(AF_INET, &IPinfo->sin_addr, buff, 16);
+    unsigned int port = ntohs(IP->sin_port);
+    inet_ntop(AF_INET, &IP->sin_addr, buff, 16);
 
     printf("%s:%u\n", buff, port);
     free(buff);
@@ -355,21 +355,14 @@ size_t listLen(struct clientInfo *client)
     return res;
 }
 
-int isInList(struct sockaddr *tab, struct clientInfo *list)
+int isInList(struct sockaddr_in *tab, struct clientInfo *list)
 {
     int find = 0;
     list = list->sentinel->next;
-    char buff[16];
-    char buff2[16];
-    inet_ntop(AF_INET, tab, buff2, 16);
 
     while (find == 0 && list != list->sentinel)
     {
-        inet_ntop(AF_INET, &list->IPandPort.sa_data, buff, 16);
-        find = 1;
-        for (size_t i = 0; i < 16 && find == 1; i++)
-            find = buff[i] == buff2[i];
-
+        find = itsme(tab, &list->IPandPort);
         list = list->next;
     }
 
@@ -386,14 +379,9 @@ int itsme(struct sockaddr_in *first, struct sockaddr_in *second)
     inet_ntop(AF_INET, &first->sin_addr, buff, 16);
     inet_ntop(AF_INET, &second->sin_addr, buff2, 16);
 
-    for (size_t i = 0; i <= sizeof(first->sin_addr) && me == 1; i++)
-    {
-        if((buff[i] >= '0' && buff[i] <= '9') || buff[i] == '.')
-        {
-            if (buff[i] != buff2[i])
-            me = 0;
-        } 
-    }
+    for (size_t i = 0; i <= 15 && me == 1; i++)
+        if(((buff[i] >= '0' && buff[i] <= '9') || buff[i] == '.') && ((buff2[i] >= '0' && buff2[i] <= '9') || buff2[i] == '.'))
+            me = buff[i] == buff2[i];
 
     return me;
 }
@@ -420,7 +408,7 @@ struct clientInfo *initClient(struct clientInfo *prev)
     client->lockReadGlobalIntern = client->sentinel->lockReadGlobalIntern;
     client->status = NOTUSED;
     client->next = client->sentinel;
-    client->IPandPort.sa_family = AF_INET;
+    client->IPandPort.sin_family = AF_INET;
     client->prev = prev;
 
     client->clientSocket = -1;

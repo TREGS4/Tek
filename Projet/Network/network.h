@@ -33,7 +33,7 @@
 struct clientInfo
 {
     size_t ID;
-    struct sockaddr IPandPort;
+    struct sockaddr_in IPandPort;
     socklen_t IPLen;
 
     pthread_mutex_t lockInfo;                       //lock when modifing everything except file descriptors
@@ -76,13 +76,13 @@ struct serverInfo
 };
 
 
-void printIP(struct sockaddr *IP);
+void printIP(struct sockaddr_in *IP);
 int network(int *fdin, int *fdout, char *IP, char *firstserver);
 struct clientInfo *initClient(struct clientInfo *clients);
 struct clientInfo *last(struct clientInfo *client);
 size_t listLen(struct clientInfo *client);
 int removeClient(struct clientInfo *client);
-int isInList(struct sockaddr *tab, struct clientInfo *list);
+int isInList(struct sockaddr_in *tab, struct clientInfo *list);
 int itsme(struct sockaddr_in *first, struct sockaddr_in *second);
 
 

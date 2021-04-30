@@ -210,11 +210,11 @@ void *server(void *arg)
 	{
 		struct clientInfo *client = initClient(serInfo->listClients);
 		int fd = -1;
-		struct sockaddr temp;
+		struct sockaddr_in temp;
 		socklen_t len = 0;
-		len = sizeof(client->IPandPort.sa_data);
+		len = sizeof(temp);
 
-		fd = accept(skt, &temp, &len);
+		fd = accept(skt, (struct sockaddr *)&temp, &len);
 
 		pthread_mutex_lock(&client->lockInfo);
 		pthread_mutex_lock(&client->lockWrite);
@@ -276,7 +276,6 @@ int connectClient(char *IP, struct clientInfo *list)
 
 	int skt;
 	struct sockaddr_in info;
-	struct sockaddr *temp;
 	info.sin_port = htons(6969);
 	info.sin_family = AF_INET;
 	inet_pton(AF_INET, IP, &info.sin_addr);
@@ -292,12 +291,11 @@ int connectClient(char *IP, struct clientInfo *list)
 		return -1;
 	}
 
-	temp = (struct sockaddr *)&info;
 	struct clientInfo *client = initClient(list);
 	pthread_mutex_lock(&client->lockInfo);
 	client->clientSocket = skt;
-	client->IPandPort = *temp;
-	client->IPLen = sizeof(client->IPandPort.sa_data);
+	client->IPandPort = info;
+	client->IPLen = sizeof(client->IPandPort);
 	client->status = CONNECTING;
 	pthread_mutex_unlock(&client->lockInfo);
 
