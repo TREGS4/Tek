@@ -65,7 +65,7 @@ void *read_thread(void *arg)
 			fdout = client->fdoutExtern;
 		}
 
-		if(client->status == CONNECTED)
+		if (client->status == CONNECTED)
 			write(fdout, buffLen, SIZE_TYPE_MSG + SIZE_ULONGLONG);
 
 		/*Message part*/
@@ -120,7 +120,7 @@ void *client_thread(void *arg)
 
 	pthread_create(&client->writeThread, NULL, write_thread, arg);
 	pthread_create(&client->readThread, NULL, read_thread, arg);
-	
+
 	printf("Server connnected:\n");
 	printIP(&client->IPandPort);
 	printf("\n\n");
@@ -143,16 +143,11 @@ void *client_thread(void *arg)
 	pthread_mutex_unlock(&client->lockWrite);
 	pthread_mutex_unlock(&client->lockRead);
 
-	pthread_mutex_lock(&client->lockInfo);
-	client->status = DEAD;
-	pthread_mutex_unlock(&client->lockInfo);
-
-
 	printf("Client disconnected:\n");
 	printIP(&client->IPandPort);
 	printf("\n\n");
 	removeClient(client);
-	
+
 	return NULL;
 }
 
@@ -204,7 +199,6 @@ void *server(void *arg)
 		err(EXIT_FAILURE, "Error while creating the socket in server.c");
 	if (listen(skt, 5) == -1)
 		err(EXIT_FAILURE, "Error on function listen() in server.c");
-
 
 	while (!finish)
 	{
@@ -259,7 +253,7 @@ void *connectionMaintener(void *arg)
 					pthread_mutex_unlock(&client->lockInfo);
 					client = client->next;
 					removeClient(client->prev);
-				}	
+				}
 			}
 		}
 		sleep(0.1);
@@ -268,10 +262,9 @@ void *connectionMaintener(void *arg)
 	return NULL;
 }
 
-
 int connectClient(char *IP, struct clientInfo *list)
 {
-	if(IP == NULL)
+	if (IP == NULL)
 		return 1;
 
 	int skt;
@@ -279,13 +272,13 @@ int connectClient(char *IP, struct clientInfo *list)
 	info.sin_port = htons(6969);
 	info.sin_family = AF_INET;
 	inet_pton(AF_INET, IP, &info.sin_addr);
-	
-    if((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+
+	if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		return -1;
-	}	
+	}
 
-	if(connect(skt, (struct sockaddr *)&info, sizeof(info)) < 0)
+	if (connect(skt, (struct sockaddr *)&info, sizeof(info)) < 0)
 	{
 		perror(NULL);
 		return -1;

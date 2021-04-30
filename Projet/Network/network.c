@@ -191,7 +191,7 @@ void *internComms(void *arg)
             nbToRead -= r;
             nbchr += r;
         }
-        
+
         size = (unsigned)atoll(&buff[SIZE_TYPE_MSG]); //not working number above 9 999 999 999
         nbclient = size / sizeclient;
 
@@ -226,9 +226,9 @@ void *internComms(void *arg)
             inet_ntop(AF_INET, &test->sin_addr, buffIP, 16);
             int me = isInList((struct sockaddr_in *)&info, server->listClients);
             int inlist = itsme((struct sockaddr_in *)&info, (struct sockaddr_in *)&server->IPandPort);
-            printf("IP: %s\n", buffIP);
-            printf("%d\n", me);
-            printf("%d\n", inlist);
+            //printf("IP: %s\n", buffIP);
+            //printf("%d\n", me);
+            //printf("%d\n", inlist);
 
             if (inlist == 0 && me == 0)
             {
@@ -295,7 +295,6 @@ int network(int *fdin, int *fdout, char *IP, char *firstserver)
     fdout = &fd2[1];
 
     struct serverInfo *serverInf = initServer(fd2[0], fd1[1], IP);
-    //struct serverInfo *serverInf = initServer(fd2[0], STDOUT_FILENO, IP);
     serverInf->fdtemp = fd2[1];
 
     pthread_t serverThread;
@@ -304,7 +303,7 @@ int network(int *fdin, int *fdout, char *IP, char *firstserver)
     pthread_t closeConnectionThread;
     pthread_t internCommsThread;
     pthread_t sendNetworkThread;
-    //pthread_t printListThread;
+    pthread_t printListThread;
 
     connectClient(firstserver, serverInf->listClients);
 
@@ -314,7 +313,7 @@ int network(int *fdin, int *fdout, char *IP, char *firstserver)
     pthread_create(&closeConnectionThread, NULL, closeConnection, (void *)serverInf);
     pthread_create(&internCommsThread, NULL, internComms, (void *)serverInf);
     pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)serverInf);
-    //pthread_create(&printListThread, NULL, printList, (void *)serverInf->listClients);
+    pthread_create(&printListThread, NULL, printList, (void *)serverInf->listClients);
 
     pthread_join(serverThread, NULL);
     pthread_join(maintenerThread, NULL);
@@ -322,7 +321,7 @@ int network(int *fdin, int *fdout, char *IP, char *firstserver)
     pthread_join(closeConnectionThread, NULL);
     pthread_join(internCommsThread, NULL);
     pthread_join(sendNetworkThread, NULL);
-    //pthread_join(printListThread, NULL);
+    pthread_join(printListThread, NULL);
 
     freeServer(serverInf);
 
@@ -453,6 +452,10 @@ int removeClient(struct clientInfo *client)
         printf("Can't remove the sentinel\n");
         return EXIT_FAILURE;
     }
+
+    pthread_mutex_lock(&client->lockInfo);
+	client->status = DEAD;
+	pthread_mutex_unlock(&client->lockInfo);
 
     pthread_mutex_lock(&client->lockInfo);
     pthread_mutex_lock(&client->lockRead);
