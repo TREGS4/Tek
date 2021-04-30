@@ -6,8 +6,9 @@ int main(int argc, char **argv)
 		return -1;
 
 	int fd[2];
-	
-	network(&fd[0], &fd[1], argv[1], argv[2]);
+	pthread_mutex_t test;
+
+	network(&fd[0], &fd[1], &test, argv[1], argv[2]);
 	return 0;
 
 }

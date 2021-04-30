@@ -192,7 +192,12 @@ void *internComms(void *arg)
             nbchr += r;
         }
 
-        size = (unsigned)atoll(&buff[SIZE_TYPE_MSG]); //not working number above 9 999 999 999
+
+ 
+
+		memcpy(&size, &buff[SIZE_TYPE_MSG], 8);
+        
+        //size = (unsigned)atoll(&buff[SIZE_TYPE_MSG]); //not working number above 9 999 999 999
         nbclient = size / sizeclient;
 
         //message part
@@ -255,8 +260,11 @@ void *sendNetwork(void *arg)
 
     while (server->status == ONLINE)
     {
+        pthread_mutex_lock(&server->mutexfdtemp);
         size = datasize * (listLen(server->listClients) + 1);
-        sprintf(buffh, "%03d%019llu", type, size);
+        memcpy(buffh, &type, SIZE_TYPE_MSG);
+        memcpy(buffh + 1, &size, SIZE_ULONGLONG);
+        //srintf(buffh, "%03d%019llu", type, size);
         //printf("%s", buffh);
         write(server->fdtemp, buffh, headersize);
         client = client->sentinel->next;
@@ -277,25 +285,34 @@ void *sendNetwork(void *arg)
         sprintf(buff, "%05u", server->IPandPort.sa_family);
         write(server->fdtemp, buff, 5);
         //printf("%s\n", buff);
-
+        pthread_mutex_unlock(&server->mutexfdtemp);
         sleep(2);
     }
 
     return NULL;
 }
 
-int network(int *fdin, int *fdout, char *IP, char *firstserver)
+int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *firstserver)
 {
     int fd1[2];
     int fd2[2];
     pipe(fd1);
     pipe(fd2);
 
+    struct serverInfo *serverInf = initServer(fd2[0], fd1[1], IP);
+    serverInf->fdtemp = fd2[1];
+
+    pthread_mutex_init(&serverInf->mutexfdtemp, NULL);
+    mutexfd = &serverInf->mutexfdtemp;
     fdin = &fd1[0];
     fdout = &fd2[1];
 
-    struct serverInfo *serverInf = initServer(fd2[0], fd1[1], IP);
-    serverInf->fdtemp = fd2[1];
+    fdin += 1;
+    fdout += 1;
+    mutexfd += 1;
+
+
+
 
     pthread_t serverThread;
     pthread_t maintenerThread;
@@ -303,7 +320,7 @@ int network(int *fdin, int *fdout, char *IP, char *firstserver)
     pthread_t closeConnectionThread;
     pthread_t internCommsThread;
     pthread_t sendNetworkThread;
-    pthread_t printListThread;
+    //pthread_t printListThread;
 
     connectClient(firstserver, serverInf->listClients);
 
@@ -313,7 +330,7 @@ int network(int *fdin, int *fdout, char *IP, char *firstserver)
     pthread_create(&closeConnectionThread, NULL, closeConnection, (void *)serverInf);
     pthread_create(&internCommsThread, NULL, internComms, (void *)serverInf);
     pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)serverInf);
-    pthread_create(&printListThread, NULL, printList, (void *)serverInf->listClients);
+    //pthread_create(&printListThread, NULL, printList, (void *)serverInf->listClients);
 
     pthread_join(serverThread, NULL);
     pthread_join(maintenerThread, NULL);
@@ -321,7 +338,7 @@ int network(int *fdin, int *fdout, char *IP, char *firstserver)
     pthread_join(closeConnectionThread, NULL);
     pthread_join(internCommsThread, NULL);
     pthread_join(sendNetworkThread, NULL);
-    pthread_join(printListThread, NULL);
+    //pthread_join(printListThread, NULL);
 
     freeServer(serverInf);
 

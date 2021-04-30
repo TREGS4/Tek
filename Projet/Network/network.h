@@ -68,6 +68,7 @@ struct serverInfo
     int fdtemp;
 
     pthread_mutex_t lockinfo;
+    pthread_mutex_t mutexfdtemp;
 
     struct sockaddr IPandPort;
     socklen_t IPLen;
@@ -77,7 +78,7 @@ struct serverInfo
 
 
 void printIP(struct sockaddr_in *IP);
-int network(int *fdin, int *fdout, char *IP, char *firstserver);
+int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *firstserver);
 struct clientInfo *initClient(struct clientInfo *clients);
 struct clientInfo *last(struct clientInfo *client);
 size_t listLen(struct clientInfo *client);
