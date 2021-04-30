@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
 	write(tst.fd[1], str, 10); 
 
-	
+	pthread_join(thread, NULL);
 	return 0;
 
 }
