@@ -118,11 +118,13 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
 
     //Server part
     pthread_mutex_init(&server->lockinfo, NULL);
-
+    struct sockaddr_in temp;
+    struct sockaddr *tempbis = (struct sockaddr *)&temp;
     pthread_mutex_lock(&server->lockinfo);
     server->listClients = client;
     server->fdInInternComm = fdIntern[0];
-    inet_pton(AF_INET, IP, &server->IPandPort.sa_data);
+    inet_pton(AF_INET, IP, &temp.sin_addr);
+    server->IPandPort = *tempbis;
     server->IPLen = sizeof(server->IPandPort.sa_data);
     server->status = ONLINE;
     pthread_mutex_unlock(&server->lockinfo);
@@ -163,7 +165,7 @@ void *internComms(void *arg)
     struct serverInfo *server = arg;
     int r = 1;
     char buff[BUFFER_SIZE_SOCKET];
-    char buffIP[16]; 
+    char buffIP[16];
     struct sockaddr info;
     size_t nbclient = 0;
     size_t sizeclient = 14;
@@ -202,26 +204,29 @@ void *internComms(void *arg)
         nbchr = 0;
         while (server->status != ENDED && nbToRead > 0 && r > 0)
         {
-            r = read(server->fdInInternComm, &info.sa_data + nbchr, nbToRead);
+            r = read(server->fdInInternComm, &buff + nbchr, nbToRead);
             nbToRead -= r;
             nbchr += r;
         }
 
         buff[nbchr] = '\0';
         info.sa_family = (unsigned)atoi(&buff[0]);
+        memset(buffIP, 0, 16);
 
-        if (isInList(&info, server->listClients) == 0 && itsme(info.sa_data, server->IPandPort.sa_data) == 0)
+        //printf("%d\n", isInList(&info, server->listClients));
+
+        if (isInList(&info, server->listClients) == 0 && itsme((struct sockaddr_in *)&info, (struct sockaddr_in *)&server->IPandPort) == 0)
         {
             struct sockaddr_in *test = (struct sockaddr_in *)&info;
             inet_ntop(AF_INET, &test->sin_addr, buffIP, 16);
+            printf("IP: %s\n", buffIP);
             connectClient(buffIP, server->listClients);
-        } 
-            
+        }
     }
     return NULL;
 }
 
-void * sendNetwork(void *arg)
+void *sendNetwork(void *arg)
 {
     struct serverInfo *server = arg;
     struct clientInfo *client = server->listClients->sentinel->next;
@@ -234,7 +239,7 @@ void * sendNetwork(void *arg)
     memset(buff, 0, datasize);
     memset(buffh, 0, headersize);
 
-    while(server->status == ONLINE)
+    while (server->status == ONLINE)
     {
         size = datasize * (listLen(server->listClients) + 1);
         sprintf(buffh, "%03d%019llu", type, size);
@@ -243,7 +248,7 @@ void * sendNetwork(void *arg)
         client = client->sentinel->next;
         for (size_t i = 0; i < listLen(server->listClients); i++)
         {
-            if(client->status == CONNECTED)
+            if (client->status == CONNECTED)
             {
                 write(server->fdtemp, &client->IPandPort.sa_data, 14);
                 //printf("%s", client->IPandPort.sa_data);
@@ -251,7 +256,7 @@ void * sendNetwork(void *arg)
                 //printf("%s", buff);
                 write(server->fdtemp, buff, 5);
                 client = client->next;
-            } 
+            }
         }
         write(server->fdtemp, &server->IPandPort.sa_data, 14);
         //printf("%s", server->IPandPort.sa_data);
@@ -259,26 +264,25 @@ void * sendNetwork(void *arg)
         write(server->fdtemp, buff, 5);
         //printf("%s\n", buff);
 
-
         sleep(2);
-    } 
+    }
 
     return NULL;
 }
 
-
 int network(int *fdin, int *fdout, char *IP, char *firstserver)
-{   
+{
     int fd1[2];
     int fd2[2];
     pipe(fd1);
     pipe(fd2);
 
-    fdin = &fd1[0]; 
+    fdin = &fd1[0];
     fdout = &fd2[1];
-    
+
     struct serverInfo *serverInf = initServer(fd2[0], fd1[1], IP);
-    serverInf->fdtemp = fd2[1]; 
+    //struct serverInfo *serverInf = initServer(fd2[0], STDOUT_FILENO, IP);
+    serverInf->fdtemp = fd2[1];
 
     pthread_t serverThread;
     pthread_t maintenerThread;
@@ -289,7 +293,6 @@ int network(int *fdin, int *fdout, char *IP, char *firstserver)
     //pthread_t printListThread;
 
     connectClient(firstserver, serverInf->listClients);
-    
 
     pthread_create(&serverThread, NULL, server, (void *)serverInf);
     pthread_create(&maintenerThread, NULL, connectionMaintener, (void *)serverInf);
@@ -298,7 +301,7 @@ int network(int *fdin, int *fdout, char *IP, char *firstserver)
     pthread_create(&internCommsThread, NULL, internComms, (void *)serverInf);
     pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)serverInf);
     //pthread_create(&printListThread, NULL, printList, (void *)serverInf->listClients);
-    
+
     pthread_join(serverThread, NULL);
     pthread_join(maintenerThread, NULL);
     pthread_join(reWriteThread, NULL);
@@ -340,7 +343,7 @@ size_t listLen(struct clientInfo *client)
 
     while (client != client->sentinel)
     {
-        if(client->status == CONNECTED)
+        if (client->status == CONNECTED)
             res++;
         client = client->next;
     }
@@ -360,7 +363,7 @@ int isInList(struct sockaddr *tab, struct clientInfo *list)
     {
         inet_ntop(AF_INET, &list->IPandPort.sa_data, buff, 16);
         find = 1;
-        for (size_t i = 0; i < 16 && find == 1; i++)            
+        for (size_t i = 0; i < 16 && find == 1; i++)
             find = buff[i] == buff2[i];
 
         list = list->next;
@@ -369,16 +372,23 @@ int isInList(struct sockaddr *tab, struct clientInfo *list)
     return find;
 }
 
-int itsme(char *str1, char *str2)
+int itsme(struct sockaddr_in *first, struct sockaddr_in *second)
 {
     int correct = 1;
     char buff[16];
     char buff2[16];
-    inet_ntop(AF_INET, str1, buff, 16);
-    inet_ntop(AF_INET, str2, buff2, 16);
+    memset(buff, 0, 16);
+    memset(buff, 0, 16);
+    inet_ntop(AF_INET, &first->sin_addr, buff, 16);
+    inet_ntop(AF_INET, &second->sin_addr, buff2, 16);
+    printf("%s\n%s\n", buff, buff2);
 
     for (size_t i = 0; i < 16 && correct == 1; i++)
-        correct = buff[i] == buff2[i];
+    {
+        if(buff[i] != buff2[i])
+            correct = 0;
+    } 
+        
 
     return correct;
 }

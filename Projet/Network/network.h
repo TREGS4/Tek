@@ -83,7 +83,7 @@ struct clientInfo *last(struct clientInfo *client);
 size_t listLen(struct clientInfo *client);
 int removeClient(struct clientInfo *client);
 int isInList(struct sockaddr *tab, struct clientInfo *list);
-int itsme(char *str1, char *str2);
+int itsme(struct sockaddr_in *first, struct sockaddr_in *second);
 
 
 //Here because server.h needs the declaration of the struct clientInfo
