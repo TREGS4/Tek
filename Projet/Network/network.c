@@ -165,7 +165,7 @@ void freeServer(struct serverInfo *server)
 void *internComms(void *arg)
 {
     struct serverInfo *server = arg;
-    int r = 1;
+
     char buff[BUFFER_SIZE_SOCKET];
     char buffIP[16];
     struct sockaddr info;
@@ -175,58 +175,66 @@ void *internComms(void *arg)
 
     size_t nbToRead = SIZE_ULONGLONG + SIZE_TYPE_MSG;
     size_t nbchr = 0;
+    int r = 1;
 
-    /*Header part*/
-
-    while (server->status != EXITING && nbToRead > 0 && r > 0)
+    while (server->status == ONLINE)
     {
-        r = read(server->fdInInternComm, &buff + nbchr, nbToRead);
-        nbToRead -= r;
-        nbchr += r;
-    }
+        /*Header part*/
 
-    size = (unsigned)atoll(&buff[SIZE_TYPE_MSG]); //not working number above 9 999 999 999
-    nbclient = size / sizeclient;
-
-    //message part
-
-    for (size_t i = 0; i < nbclient; i++)
-    {
-        nbToRead = 14;
+        nbToRead = SIZE_ULONGLONG + SIZE_TYPE_MSG;
         nbchr = 0;
+        r = 1;
 
-        while (server->status != ENDED && nbToRead > 0 && r > 0)
-        {
-            r = read(server->fdInInternComm, &info.sa_data + nbchr, nbToRead);
-            nbToRead -= r;
-            nbchr += r;
-        }
-
-        nbToRead = 5;
-        nbchr = 0;
-        while (server->status != ENDED && nbToRead > 0 && r > 0)
+        while (server->status != EXITING && nbToRead > 0 && r > 0)
         {
             r = read(server->fdInInternComm, &buff + nbchr, nbToRead);
             nbToRead -= r;
             nbchr += r;
         }
+        
+        size = (unsigned)atoll(&buff[SIZE_TYPE_MSG]); //not working number above 9 999 999 999
+        nbclient = size / sizeclient;
 
-        buff[nbchr] = '\0';
-        info.sa_family = (unsigned)atoi(&buff[0]);
-        memset(buffIP, 0, 16);
+        //message part
 
-        struct sockaddr_in *test = (struct sockaddr_in *)&info;
-        inet_ntop(AF_INET, &test->sin_addr, buffIP, 16);
-        int me = isInList((struct sockaddr_in *)&info, server->listClients);
-        int inlist = itsme((struct sockaddr_in *)&info, (struct sockaddr_in *)&server->IPandPort);
-        printf("IP: %s\n", buffIP);
-        printf("%d\n", me);
-        printf("%d\n", inlist);
-
-        if (inlist == 0 && me == 0)
+        for (size_t i = 0; i < nbclient; i++)
         {
-            
-            connectClient(buffIP, server->listClients);
+            nbToRead = 14;
+            nbchr = 0;
+
+            while (server->status != ENDED && nbToRead > 0 && r > 0)
+            {
+                r = read(server->fdInInternComm, &info.sa_data + nbchr, nbToRead);
+                nbToRead -= r;
+                nbchr += r;
+            }
+
+            nbToRead = 5;
+            nbchr = 0;
+            while (server->status != ENDED && nbToRead > 0 && r > 0)
+            {
+                r = read(server->fdInInternComm, &buff + nbchr, nbToRead);
+                nbToRead -= r;
+                nbchr += r;
+            }
+
+            buff[nbchr] = '\0';
+            info.sa_family = (unsigned)atoi(&buff[0]);
+            memset(buffIP, 0, 16);
+
+            struct sockaddr_in *test = (struct sockaddr_in *)&info;
+            inet_ntop(AF_INET, &test->sin_addr, buffIP, 16);
+            int me = isInList((struct sockaddr_in *)&info, server->listClients);
+            int inlist = itsme((struct sockaddr_in *)&info, (struct sockaddr_in *)&server->IPandPort);
+            printf("IP: %s\n", buffIP);
+            printf("%d\n", me);
+            printf("%d\n", inlist);
+
+            if (inlist == 0 && me == 0)
+            {
+
+                connectClient(buffIP, server->listClients);
+            }
         }
     }
     return NULL;
@@ -380,7 +388,7 @@ int itsme(struct sockaddr_in *first, struct sockaddr_in *second)
     inet_ntop(AF_INET, &second->sin_addr, buff2, 16);
 
     for (size_t i = 0; i <= 15 && me == 1; i++)
-        if(((buff[i] >= '0' && buff[i] <= '9') || buff[i] == '.') && ((buff2[i] >= '0' && buff2[i] <= '9') || buff2[i] == '.'))
+        if (((buff[i] >= '0' && buff[i] <= '9') || buff[i] == '.') && ((buff2[i] >= '0' && buff2[i] <= '9') || buff2[i] == '.'))
             me = buff[i] == buff2[i];
 
     return me;
