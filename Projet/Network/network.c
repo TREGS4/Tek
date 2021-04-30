@@ -120,6 +120,8 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     pthread_mutex_init(&server->lockinfo, NULL);
     struct sockaddr_in temp;
     struct sockaddr *tempbis = (struct sockaddr *)&temp;
+    memset(&temp.sin_addr, 0, sizeof(temp.sin_addr));
+
     pthread_mutex_lock(&server->lockinfo);
     server->listClients = client;
     server->fdInInternComm = fdIntern[0];
@@ -213,13 +215,15 @@ void *internComms(void *arg)
         info.sa_family = (unsigned)atoi(&buff[0]);
         memset(buffIP, 0, 16);
 
-        //printf("%d\n", isInList(&info, server->listClients));
+        struct sockaddr_in *test = (struct sockaddr_in *)&info;
+        inet_ntop(AF_INET, &test->sin_addr, buffIP, 16);
+        printf("IP: %s\n", buffIP);
+        printf("%d\n", isInList(&info, server->listClients));
+        printf("%d\n", itsme((struct sockaddr_in *)&info, (struct sockaddr_in *)&server->IPandPort));
 
         if (isInList(&info, server->listClients) == 0 && itsme((struct sockaddr_in *)&info, (struct sockaddr_in *)&server->IPandPort) == 0)
         {
-            struct sockaddr_in *test = (struct sockaddr_in *)&info;
-            inet_ntop(AF_INET, &test->sin_addr, buffIP, 16);
-            printf("IP: %s\n", buffIP);
+            
             connectClient(buffIP, server->listClients);
         }
     }
@@ -374,23 +378,24 @@ int isInList(struct sockaddr *tab, struct clientInfo *list)
 
 int itsme(struct sockaddr_in *first, struct sockaddr_in *second)
 {
-    int correct = 1;
+    int me = 1;
     char buff[16];
     char buff2[16];
     memset(buff, 0, 16);
     memset(buff, 0, 16);
     inet_ntop(AF_INET, &first->sin_addr, buff, 16);
     inet_ntop(AF_INET, &second->sin_addr, buff2, 16);
-    printf("%s\n%s\n", buff, buff2);
 
-    for (size_t i = 0; i < 16 && correct == 1; i++)
+    for (size_t i = 0; i <= sizeof(first->sin_addr) && me == 1; i++)
     {
-        if(buff[i] != buff2[i])
-            correct = 0;
-    } 
-        
+        if((buff[i] >= '0' && buff[i] <= '9') || buff[i] == '.')
+        {
+            if (buff[i] != buff2[i])
+            me = 0;
+        } 
+    }
 
-    return correct;
+    return me;
 }
 
 /*
