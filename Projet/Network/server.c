@@ -123,7 +123,7 @@ void *client_thread(void *arg)
 	
 	printf("Server connnected:\n");
 	printIP(&client->IPandPort);
-	
+	printf("\n\n");
 
 	pthread_join(client->readThread, NULL);
 	//printf("read thread ended !\n");
@@ -150,6 +150,7 @@ void *client_thread(void *arg)
 
 	printf("Client disconnected:\n");
 	printIP(&client->IPandPort);
+	printf("\n\n");
 	removeClient(client);
 	
 	return NULL;
