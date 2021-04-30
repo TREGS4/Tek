@@ -46,10 +46,8 @@ void *read_thread(void *arg)
 
 
 		type = buffLen[0]; 
-
 		memcpy(&size, &buffLen[SIZE_TYPE_MSG], 8);
-
-		//size = (unsigned)atoll(&buffLen[SIZE_TYPE_MSG]); //not working number above 9 999 999 999
+		
 
 		if (size < BUFFER_SIZE_SOCKET)
 			nbToRead = size;

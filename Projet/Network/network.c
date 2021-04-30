@@ -111,7 +111,7 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     client->clientSocket = -1;
     client->fdTofdin = -1;
     client->fdinThread = fdin;
-    client->fdoutExtern = fdoutExtern;
+    client->fdoutExtern = STDOUT_FILENO;//fdoutExtern;
     client->fdoutIntern = fdIntern[1];
 
     pthread_mutex_unlock(&client->lockInfo);
@@ -192,12 +192,7 @@ void *internComms(void *arg)
             nbchr += r;
         }
 
-
- 
-
 		memcpy(&size, &buff[SIZE_TYPE_MSG], 8);
-        
-        //size = (unsigned)atoll(&buff[SIZE_TYPE_MSG]); //not working number above 9 999 999 999
         nbclient = size / sizeclient;
 
         //message part
