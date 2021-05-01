@@ -140,4 +140,7 @@ int main(){
 	printf("\n");
 	
 	verifBlockchain(newBlockchain);
+	char *json = blockchainToJson(&newBlockchain);
+	printf("%s\n", json);
+	free(json);
 }

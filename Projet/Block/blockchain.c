@@ -61,9 +61,13 @@ BLOCK createGenesis()
 	
 	BYTE buf[] = "HarryStylesAuraitDuAvoirUnGrammyPourHS1";
 	sha256(buf, newGenesis.blockHash);
+	for (int i = 0; i < SHA256_BLOCK_SIZE; i++){
+		newGenesis.previusHash[i] = 0;
+	}
 	
 	return newGenesis;
 }
+
 
 int checkBlockchain(BLOCKCHAIN *blockchain)
 {
@@ -82,4 +86,26 @@ int checkBlockchain(BLOCKCHAIN *blockchain)
 	}
 	
 	return 0;
+}
+
+
+char *blockchainToJson(BLOCKCHAIN *bc)
+{
+	char *s1 = "{\"blocks\":[";
+	char *s2 = "]}";
+	size_t size = strlen(s1) + strlen(s2);
+	char *resblock = malloc(sizeof(char));
+	size_t blocksize = 0;
+	for (size_t i = 0; i < bc->blocksNumber; i++){
+		char *blockjson = blockToJson(&bc->blocks[i]);
+		size_t t = blocksize + strlen(blockjson) + 1;
+		resblock = realloc(resblock, t);
+		sprintf(resblock + blocksize,"%s,",blockjson);
+		blocksize += strlen(blockjson) + 1;
+		free(blockjson);
+	}
+	char *json = calloc(size + blocksize + 1, sizeof(char));
+	sprintf(json, "%s%s%s", s1, resblock, s2);
+	free(resblock);
+	return json;
 }

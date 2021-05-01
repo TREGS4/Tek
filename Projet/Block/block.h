@@ -24,5 +24,7 @@ typedef struct{
 
 void getMerkleHash(BLOCK *b, BYTE merkleHash[SHA256_BLOCK_SIZE]);
 void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE]);
+char *txsToJson(TRANSACTION *t);
+char *blockToJson(BLOCK *b);
 
 #endif
