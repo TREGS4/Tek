@@ -31,6 +31,8 @@ void sha256_init(SHA256_CTX *ctx);
 void sha256_update(SHA256_CTX *ctx, const BYTE data[], size_t len);
 void sha256_final(SHA256_CTX *ctx, BYTE hash[]);
 void sha256(const BYTE *txt, BYTE buf[SHA256_BLOCK_SIZE]);
+void sha256ToAscii(BYTE hash[SHA256_BLOCK_SIZE], char buf[SHA256_BLOCK_SIZE * 2]);
+
 
 #endif   // SHA256_H
 
