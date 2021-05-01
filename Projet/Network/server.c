@@ -44,10 +44,8 @@ void *read_thread(void *arg)
 		for (size_t i = 0; i < SIZE_TYPE_MSG; i++)
 			buffType[i] = buffLen[i];
 
-
-		type = buffLen[0]; 
+		type = buffLen[0];
 		memcpy(&size, &buffLen[SIZE_TYPE_MSG], 8);
-		
 
 		if (size < BUFFER_SIZE_SOCKET)
 			nbToRead = size;
@@ -285,14 +283,16 @@ int connectClient(char *IP, struct clientInfo *list)
 		perror(NULL);
 		return -1;
 	}
-
-	struct clientInfo *client = initClient(list);
-	pthread_mutex_lock(&client->lockInfo);
-	client->clientSocket = skt;
-	client->IPandPort = info;
-	client->IPLen = sizeof(client->IPandPort);
-	client->status = CONNECTING;
-	pthread_mutex_unlock(&client->lockInfo);
+	else
+	{
+		struct clientInfo *client = initClient(list);
+		pthread_mutex_lock(&client->lockInfo);
+		client->clientSocket = skt;
+		client->IPandPort = info;
+		client->IPLen = sizeof(client->IPandPort);
+		client->status = CONNECTING;
+		pthread_mutex_unlock(&client->lockInfo);
+	}
 
 	return 1;
 }
