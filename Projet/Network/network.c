@@ -308,7 +308,7 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     pthread_t closeConnectionThread;
     pthread_t internCommsThread;
     pthread_t sendNetworkThread;
-    pthread_t printListThread;
+    //pthread_t printListThread;
 
     connectClient(firstserver, serverInf->listClients);
 
@@ -318,7 +318,7 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     pthread_create(&closeConnectionThread, NULL, closeConnection, (void *)serverInf);
     pthread_create(&internCommsThread, NULL, internComms, (void *)serverInf);
     pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)serverInf);
-    pthread_create(&printListThread, NULL, printList, (void *)serverInf->listClients);
+    //pthread_create(&printListThread, NULL, printList, (void *)serverInf->listClients);
 
 
     pthread_join(serverThread, NULL);
@@ -327,7 +327,7 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     pthread_join(closeConnectionThread, NULL);
     pthread_join(internCommsThread, NULL);
     pthread_join(sendNetworkThread, NULL);
-    pthread_join(printListThread, NULL);
+    //pthread_join(printListThread, NULL);
 
     freeServer(serverInf);
 
