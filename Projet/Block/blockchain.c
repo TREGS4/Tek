@@ -64,3 +64,22 @@ BLOCK createGenesis()
 	
 	return newGenesis;
 }
+
+int checkBlockchain(BLOCKCHAIN *blockchain)
+{
+	for (size_t i = 1 ; i < blockchain->blocksNumber ; i++)
+	{
+		BYTE hash[SHA256_BLOCK_SIZE];
+		BLOCK current = blockchain->blocks[i];
+		BLOCK prev = blockchain->blocks[i - 1];
+		getHash(&current, hash);
+		
+		if (memcmp(current.previusHash, prev.blockHash, SHA256_BLOCK_SIZE) != 0)
+			return 1;
+			
+		if (memcmp(current.blockHash, hash, SHA256_BLOCK_SIZE) != 0)
+			return 1;
+	}
+	
+	return 0;
+}

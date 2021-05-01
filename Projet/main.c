@@ -53,6 +53,19 @@ void printBlockchain(BLOCKCHAIN blockchain)
 	printf("------------------------------------------------\n");
 }
 
+void verifBlockchain(BLOCKCHAIN blockchain)
+{
+	printf("-------------Veryfing blockchain-------------\n\n");
+	
+	int checked = checkBlockchain(&blockchain);
+	if (checked == 0)
+		printf("This blockchain is legit.\n\n");
+	else if (checked == 1)
+		printf("There is something wrong with this blockchain.\n\n");
+	
+	printf("-------------End of verification-------------\n");
+}
+
 
 int main(){
 	TRANSACTION t = 
@@ -124,5 +137,7 @@ int main(){
 	addBlock(&newBlockchain, b3);
 	printf("Number of blocks in the blockchain : %lu.\n\n", newBlockchain.blocksNumber);
 	printBlockchain(newBlockchain);
+	printf("\n");
 	
+	verifBlockchain(newBlockchain);
 }
