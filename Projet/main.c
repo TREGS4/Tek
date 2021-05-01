@@ -12,7 +12,7 @@ void *moncul(void *arg)
 {
 	struct test *tst = arg;
 
-	network(&tst->fd[0], &tst->fd[1], &tst->mutext, "192.168.1.22", "192.168.1.28");
+	network(&tst->fd[0], &tst->fd[1], &tst->mutext, tst->IP, tst->firstserver);
 
 	return NULL;
 }
@@ -46,13 +46,13 @@ int main(int argc, char **argv)
 	memcpy(str + 1, &size, 8);
 	
 	sleep(2);
-	
+	/*
 	pthread_mutex_lock(&tst.mutext);
 	write(tst.fd[1], str, 10);
 	write(tst.fd[1], data, size);
 	pthread_mutex_unlock(&tst.mutext);
 	printf("Message send\n");
-
+*/
 	pthread_join(thread, NULL);
 	return 0;
 
