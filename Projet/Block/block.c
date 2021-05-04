@@ -5,11 +5,6 @@
 #include <stdlib.h>
 
 
-void txsToString(TRANSACTION *txs, char buf[TRANSACTION_SIZE])
-{
-	sprintf(buf, "%s%s%014d", txs->sender, txs->receiver, txs->amount);
-}
-
 void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE])
 {
 	BYTE buf[4 * SHA256_BLOCK_SIZE + 1];
@@ -30,11 +25,12 @@ void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE])
 
 void getMerkleHash(BLOCK *b, BYTE merkleHash[SHA256_BLOCK_SIZE])
 {
-	BYTE buf[TRANSACTION_SIZE*NB_TRANSACTIONS_PER_BLOCK];
+	size_t nbTxs = b->tl.size;
+	BYTE buf[TRANSACTION_SIZE*nbTxs];
 	size_t offset = 0;
-	for (int i = 0; i < NB_TRANSACTIONS_PER_BLOCK; i++){
+	for (size_t i = 0; i < nbTxs; i++){
 		char txs_buf[TRANSACTION_SIZE];
-		txsToString(&(b->transactions[i]), txs_buf);
+		txsToString(&(b->tl.transactions[i]), txs_buf);
 		sprintf((char*)buf+offset, "%s", txs_buf);
 		offset += strlen(txs_buf);
 	}
@@ -43,21 +39,8 @@ void getMerkleHash(BLOCK *b, BYTE merkleHash[SHA256_BLOCK_SIZE])
 }
 
 
-
-char *txsToJson(TRANSACTION *t){
-	char *s1 = "{\"sender\":\"";
-	char *s2 = "\",\"receiver\":\"";
-	char *s3 = "\",\"amount\":";
-	char *s4 = "}";
-	size_t size = strlen(s1) + strlen(s2) + strlen(s3) + strlen(s4);
-	char *res = calloc(size + TRANSACTION_SIZE + 1, sizeof(char));
-	sprintf(res, "%s%s%s%s%s%d%s", s1, t->sender,s2, t->receiver, s3, t->amount, s4);	
-	char *json = calloc(strlen(res), sizeof(char));
-	memcpy(json, res, strlen(res));
-	free(res);
-	return json;
-}
-char *blockToJson(BLOCK *b){
+char *blockToJson(BLOCK *b)
+{
 	char *s1 = "{\"previousHash\":\"";
 	char *s2 = "\",\"currentHash\":\"";
 	char *s3 = "\",\"transactions\":[";
@@ -84,10 +67,11 @@ char *blockToJson(BLOCK *b){
 	char *json = NULL;
 
 	if (!isGenesis){
+		size_t nbTxs = b->tl.size;
 		char *restxs = NULL;
 		size_t txssize = 0;
-		for (int i = 0; i < NB_TRANSACTIONS_PER_BLOCK; i++){
-			char *txsjson = txsToJson(&b->transactions[i]);
+		for (size_t i = 0; i < nbTxs; i++){
+			char *txsjson = txsToJson(&b->tl.transactions[i]);
 			size_t t = txssize + strlen(txsjson) + 1;
 			restxs = realloc(restxs, t);
 			sprintf(restxs + txssize,"%s,",txsjson);

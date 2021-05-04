@@ -1,4 +1,5 @@
 #include "Block/block.h"
+#include "Block/transactions.h"
 #include "Block/blockchain.h"
 #include "Hash/sha256.h"
 #include <stdio.h>
@@ -25,9 +26,10 @@ void printBlock(BLOCK block)
 	}
 	printf("\n");
 	
-	for (int i = 0; i < NB_TRANSACTIONS_PER_BLOCK; i++)
+	size_t nbTxs = block.tl.size;
+	for (size_t i = 0; i < nbTxs; i++)
 	{
-		printTransaction(block.transactions[i]);
+		printTransaction(block.tl.transactions[i]);
 	}	
 }
 
@@ -90,46 +92,29 @@ int main(){
 	};
 	
 	BLOCK b;
-	for (int i = 0; i < NB_TRANSACTIONS_PER_BLOCK; i++)
+	b.tl = initListTxs();	
+	for (int i = 0; i < 3; i++)
 	{
 		t.amount = rand() % 3000 + 1;
-		b.transactions[i] = t;
+		addTx(&b.tl, &t);
 	}
+
 	BLOCK b2;
-	for (int i = 0; i < NB_TRANSACTIONS_PER_BLOCK; i++)
+	b2.tl = initListTxs();
+	for (int i = 0; i < 5; i++)
 	{
 		t2.amount = rand() % 3000 + 1;
-		b2.transactions[i] = t2;
+		addTx(&b2.tl, &t2);
 	}
+	
 	BLOCK b3;
-	for (int i = 0; i < NB_TRANSACTIONS_PER_BLOCK; i++)
+	b3.tl = initListTxs();
+	for (int i = 0; i < 1; i++)
 	{
 		t3.amount = rand() % 3000 + 1;
-		b3.transactions[i] = t3;
-	}
-	/*for (int i = 0; i < NB_TRANSACTIONS_PER_BLOCK; i++){
-		printf("txs %d: %d de %s a %s\n",i, b.transactions[i].amount, b.transactions[i].sender, b.transactions[i].receiver);
+		addTx(&b3.tl, &t3);
 	}
 	
-	BYTE tmp[] = {"margauxcavalie"};
-	sha256(tmp, b.previusHash);
-	
-	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
-	{
-		printf("%02x", b.previusHash[i]);
-		
-	}
-	printf("\n");
-	
-	BYTE hash[SHA256_BLOCK_SIZE];
-	getHash(&b, hash);
-	
-	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
-	{
-		printf("%02x", hash[i]);
-	}
-	
-	printf("\n");*/
 	
 	BLOCKCHAIN newBlockchain = initBlockchain();
 	addBlock(&newBlockchain, b);
