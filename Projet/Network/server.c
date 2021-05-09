@@ -87,20 +87,6 @@ void *read_thread(void *arg)
 			else
 				nbToRead = BUFFER_SIZE_SOCKET;
 
-
-			if (type != 1)
-			{
-				for (size_t i = 0; i < r; i++)
-				{
-					if (i % 20 == 0)
-					{
-						printf("\n");
-					}
-					printf("%02x ", buff[i]);
-				}
-				printf("\n\n");
-			}
-
 			write(fdout, buff, r);
 		}
 

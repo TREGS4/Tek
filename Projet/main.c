@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Network/network.h"
+#include "Network/server.h"
 
 struct test
 {
@@ -21,6 +22,63 @@ void *moncul(void *arg)
 	network(&tst->fd[0], &tst->fd[1], &tst->mutext, tst->IP, tst->firstserver);
 
 	return NULL;
+}
+
+void *mabite(void *arg)
+{
+	struct test *tst = arg;
+	int fdin = tst->fd[0]; 
+	char buffLen[SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG + 1];
+	char buffType[SIZE_TYPE_MSG + 1];
+	char *buff;
+	int r = 1;
+	int type;
+	unsigned long long size;
+
+	while (1)
+	{
+
+		memset(buffLen, 0, SIZE_DATA_LEN_HEADER + 1);
+		memset(buffType, 0, SIZE_TYPE_MSG + 1);
+
+		size_t nbToRead = SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG;
+		size_t nbchr = 0;
+
+		/*Header part*/
+
+		while (nbToRead > 0)
+		{
+			r = read(fdin, &buffLen + nbchr, nbToRead);
+			nbToRead -= r;
+			nbchr += r;
+		}
+
+		for (size_t i = 0; i < SIZE_TYPE_MSG; i++)
+			buffType[i] = buffLen[i];
+
+		type = buffLen[0];
+		memcpy(&size, &buffLen[SIZE_TYPE_MSG], 8);
+		buff = malloc(sizeof(char) * size);
+		nbToRead = size;
+		nbchr = 0;
+
+		while (nbToRead > 0)
+		{
+			r = read(fdin, &buff + nbchr, nbToRead);
+			nbToRead -= r;
+			nbchr += r;
+		}
+
+		for (size_t i = 0; i < size; i++)
+		{
+			if (i % 20 == 0)
+			{
+				printf("\n");
+			}
+			printf("%02x ", buff[i]);
+		}
+		printf("\n\n");
+	}
 }
 
 void printTransaction(TRANSACTION t)
@@ -97,7 +155,9 @@ int main(int argc, char **argv)
 	tst.IP = argv[1];
 	tst.firstserver = argv[2];
 	pthread_t thread;
+	pthread_t readfd;
 	pthread_create(&thread, NULL, moncul, (void *)&tst);
+	pthread_create(&readfd, NULL, mabite, (void *)&tst);
 
 	TRANSACTION t =
 		{
@@ -154,8 +214,7 @@ int main(int argc, char **argv)
 
 	BLOCKCHAIN_BIN bcbin = blockchainToBin(&newBlockchain);
 
-	sleep(10);
-	SendMessage((char *)bcbin.bin, tst.fd[1], (unsigned long long)bcbin.nbBytes, 2);
+	
 
 	for (size_t i = 0; i < bcbin.nbBytes; i++)
 	{
@@ -167,6 +226,8 @@ int main(int argc, char **argv)
 	}
 	printf("\n\n");
 
+	sleep(10);
+	//SendMessage((char *)bcbin.bin, tst.fd[1], (unsigned long long)bcbin.nbBytes, 2);
 	BLOCKCHAIN bc = binToBlockchain(bcbin.bin);
 
 	free(bcbin.bin);
@@ -174,4 +235,5 @@ int main(int argc, char **argv)
 
 	free(newBlockchain.blocks);
 	pthread_join(thread, NULL);
+	pthread_join(readfd, NULL);
 }
