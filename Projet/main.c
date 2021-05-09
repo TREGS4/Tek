@@ -70,6 +70,7 @@ void verifBlockchain(BLOCKCHAIN blockchain)
 
 
 int main(){
+
 	TRANSACTION t = 
 	{
 		.sender = "Adrien",
@@ -152,8 +153,10 @@ int main(){
 
 
 	printf("\nTests :\n\n");
-	printTransaction(t3);
-	TRANSACTION_BIN txsbin = txsToBin(&t3);
+
+	/*TXS*/
+	printTransaction(newBlockchain.blocks[1].tl.transactions[0]);
+	TRANSACTION_BIN txsbin = txsToBin(&newBlockchain.blocks[1].tl.transactions[0]);
 	for (size_t i = 0; i < txsbin.nbBytes; i++)
 	{
 		if (i % 20 == 0){
@@ -161,13 +164,49 @@ int main(){
 		}
 		printf("%02x ", txsbin.bin[i]);
 	}
-	printf("\n");
+	printf("\n\n");
 
 	TRANSACTION t4 = binToTxs(txsbin.bin);
 	printTransaction(t4);
 	free(txsbin.bin);
 
+	/*BLOCK*/
+	printf("\n\n");
+	printBlock(newBlockchain.blocks[2]);
+	BLOCK_BIN blockbin = blockToBin(&newBlockchain.blocks[2]);
+	for (size_t i = 0; i < blockbin.nbBytes; i++)
+	{
+		if (i % 20 == 0){
+			printf("\n");
+		}
+		printf("%02x ", blockbin.bin[i]);
+	}
+	printf("\n\n");
+
+	BLOCK b4 = binToBlock(blockbin.bin);
+	printBlock(b4);
+	free(blockbin.bin);
 
 
+	/*BLOCKCHAIN*/
+	printf("\n\n");
+	printBlockchain(newBlockchain);
+	bcbin = blockchainToBin(&newBlockchain);
+	for (size_t i = 0; i < bcbin.nbBytes; i++)
+	{
+		if (i % 20 == 0){
+			printf("\n");
+		}
+		printf("%02x ", bcbin.bin[i]);
+	}
+	printf("\n\n");
+
+	BLOCKCHAIN bc = binToBlockchain(bcbin.bin);
+	printBlockchain(bc);
+	free(bcbin.bin);
+	free(bc.blocks);
+
+
+	
 	free(newBlockchain.blocks);
 }

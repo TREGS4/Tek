@@ -137,3 +137,25 @@ BLOCKCHAIN_BIN blockchainToBin(BLOCKCHAIN *bc)
 	};
 	return bcbin;
 }
+
+
+BLOCKCHAIN binToBlockchain(BYTE *bin){
+	size_t nbBlocks;
+	size_t cursor = 0;
+	memcpy(&nbBlocks, bin + cursor, sizeof(nbBlocks));
+	cursor += sizeof(nbBlocks);
+
+	BLOCKCHAIN bc = {
+		.blocksNumber = nbBlocks,
+	};
+	bc.blocks = malloc(sizeof(BLOCK)*nbBlocks);
+
+	for (size_t i = 0; i < nbBlocks; i++){
+		size_t nbTxs;
+		memcpy(&nbTxs, bin + cursor, sizeof(nbTxs));
+		BLOCK b = binToBlock(bin + cursor);
+		cursor += getSizeOf_blockbin(nbTxs);
+		bc.blocks[i] = b;
+	}
+	return bc;
+}

@@ -126,3 +126,30 @@ BLOCK_BIN blockToBin(BLOCK *b)
 	};
 	return blockbin;
 }
+
+BLOCK binToBlock(BYTE *bin){
+	size_t nbTxs;
+	size_t cursor = 0;
+	memcpy(&nbTxs, bin + cursor, sizeof(nbTxs));
+	cursor += sizeof(nbTxs);
+	BYTE previusHash[SHA256_BLOCK_SIZE];
+	memcpy(previusHash, bin + cursor, SHA256_BLOCK_SIZE);
+	cursor +=  SHA256_BLOCK_SIZE;
+	BYTE blockHash[SHA256_BLOCK_SIZE];
+	memcpy(blockHash, bin + cursor, SHA256_BLOCK_SIZE);
+	cursor +=  SHA256_BLOCK_SIZE;
+
+	TRANSACTIONS_LIST tl = initListTxs();
+	for (size_t i = 0; i < nbTxs; i++)
+	{
+		TRANSACTION t = binToTxs(bin + cursor);
+		cursor += getSizeOf_txsbin();
+		addTx(&tl, &t);
+	}
+	BLOCK b = {
+		.tl = tl,
+	};
+	memcpy(b.previusHash, previusHash, SHA256_BLOCK_SIZE);
+	memcpy(b.blockHash, blockHash, SHA256_BLOCK_SIZE);
+	return b;
+}
