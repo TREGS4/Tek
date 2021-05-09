@@ -15,12 +15,14 @@
 #include <arpa/inet.h>
 
 #define PORT "6969"
+#define PORT_INT 6969
+
 
 // Message part
 #define BUFFER_SIZE_SOCKET 512
 #define SIZE_DATA_LEN_HEADER 8
 #define SIZE_TYPE_MSG 1
-#define HEADER_SIZE SIZE_ULONGLON + SIZE_TYPE_MSG
+#define HEADER_SIZE SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG
 
 //Status part
 #define ERROR -1
@@ -74,7 +76,7 @@ struct serverInfo
     pthread_mutex_t lockinfo;
     pthread_mutex_t mutexfdtemp;
 
-    struct sockaddr IPandPort;
+    struct sockaddr_in IPandPort;
     socklen_t IPLen;
 
     struct clientInfo *listClients;
@@ -82,6 +84,6 @@ struct serverInfo
 
 void *server(void *arg);
 void *connectionMaintener(void *arg);
-int connectClient(char *IP, struct clientInfo *list);
+int connectClient(struct sockaddr_in *IP, struct clientInfo *list);
 
 #endif

@@ -1,6 +1,18 @@
 #include "server.h"
 #include "network_tools.h"
 
+void Send(int fd, const void *buf, size_t count, int flag)
+{
+    ssize_t r = 0;
+    size_t reste = count;
+
+    while (r >= 0 && (r = send(fd, buf + count - reste, count, flag)) < (long int)reste)
+        reste -= r;
+
+    if (r < 0)
+        err(3, "Error while rewriting");
+}
+
 void *ReWriteForAllThreads(void *arg)
 {
     struct clientInfo *client = arg;
@@ -94,18 +106,16 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     server->listClients = initClientList(fdin, fdoutExtern, fdIntern[1]);
 
     pthread_mutex_init(&server->lockinfo, NULL);
-    struct sockaddr_in temp;
-    struct sockaddr *tempbis = (struct sockaddr *)&temp;
-    memset(&temp.sin_addr, 0, sizeof(temp.sin_addr));
 
     pthread_mutex_lock(&server->lockinfo);
     pthread_mutex_lock(&server->listClients->lockInfo);
     server->listClients->server = server;
     pthread_mutex_unlock(&server->listClients->lockInfo);
+
     server->fdInInternComm = fdIntern[0];
-    inet_pton(AF_INET, IP, &temp.sin_addr);
-    server->IPandPort = *tempbis;
-    server->IPLen = sizeof(server->IPandPort.sa_data);
+    inet_pton(AF_INET, IP, &server->IPandPort.sin_addr);
+    server->IPandPort.sin_port = PORT_INT;
+    server->IPLen = sizeof(server->IPandPort);
     server->status = ONLINE;
     pthread_mutex_unlock(&server->lockinfo);
 
@@ -124,21 +134,20 @@ void *internComms(void *arg)
     struct serverInfo *server = arg;
 
     char buff[BUFFER_SIZE_SOCKET];
-    char buffIP[16];
-    struct sockaddr info;
+    struct sockaddr_in client;
     size_t nbclient = 0;
-    size_t sizeclient = 14;
+    size_t sizeclient = sizeof(struct sockaddr_in);
     unsigned long long size = 0;
 
-    size_t nbToRead = SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG;
-    size_t nbchr = 0;
-    int r = 1;
+    size_t nbToRead;
+    size_t nbchr;
+    int r;
 
     while (server->status == ONLINE)
     {
         /*Header part*/
 
-        nbToRead = SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG;
+        nbToRead = HEADER_SIZE;
         nbchr = 0;
         r = 1;
 
@@ -156,41 +165,25 @@ void *internComms(void *arg)
 
         for (size_t i = 0; i < nbclient; i++)
         {
-            nbToRead = 14;
+            nbToRead = sizeclient;
             nbchr = 0;
 
-            while (server->status != ENDED && nbToRead > 0 && r > 0)
+            while (server->status != EXITING && nbToRead > 0 && r > 0)
             {
-                r = read(server->fdInInternComm, &info.sa_data + nbchr, nbToRead);
+                r = read(server->fdInInternComm, &client + nbchr, nbToRead);
                 nbToRead -= r;
                 nbchr += r;
             }
 
-            nbToRead = 5;
-            nbchr = 0;
-            while (server->status != ENDED && nbToRead > 0 && r > 0)
-            {
-                r = read(server->fdInInternComm, &buff + nbchr, nbToRead);
-                nbToRead -= r;
-                nbchr += r;
-            }
-
-            buff[nbchr] = '\0';
-            info.sa_family = (unsigned)atoi(&buff[0]);
-            memset(buffIP, 0, 16);
-
-            struct sockaddr_in *test = (struct sockaddr_in *)&info;
-            inet_ntop(AF_INET, &test->sin_addr, buffIP, 16);
-            int me = isInList((struct sockaddr_in *)&info, server->listClients);
-            int inlist = itsme((struct sockaddr_in *)&info, (struct sockaddr_in *)&server->IPandPort);
+            int me = isInList(&client, server->listClients);
+            int inlist = itsme(&client, &server->IPandPort);
             //printf("IP: %s\n", buffIP);
             //printf("%d\n", me);
             //printf("%d\n", inlist);
 
             if (inlist == 0 && me == 0)
             {
-
-                connectClient(buffIP, server->listClients);
+                connectClient(&client, server->listClients);
             }
         }
     }
@@ -201,17 +194,67 @@ void *sendNetwork(void *arg)
 {
     struct serverInfo *server = arg;
     struct clientInfo *client = server->listClients->sentinel->next;
-    unsigned long long size = 0;
-    int type = 1;
+    unsigned long long datasize = sizeof(struct sockaddr_in);
+    char type = 1;
     size_t headersize = SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG;
-    size_t datasize = 14 + 5;
     char buffh[headersize];
     char buff[datasize];
-    memset(buff, 0, datasize);
-    memset(buffh, 0, headersize);
+
+    memcpy(buffh, &type, SIZE_TYPE_MSG);
+    memcpy(buffh + SIZE_TYPE_MSG, &datasize, SIZE_DATA_LEN_HEADER);
 
     while (server->status == ONLINE)
     {
+        pthread_mutex_lock(&server->lockinfo);
+        memcpy(buff, &server->IPandPort, datasize);
+        pthread_mutex_unlock(&server->lockinfo);
+
+        pthread_mutex_lock(&server->mutexfdtemp);
+        Send(server->fdtemp, buffh, headersize, MSG_MORE);
+        Send(server->fdtemp, buff, datasize, 0);
+        pthread_mutex_unlock(&server->mutexfdtemp);
+
+        for (client = client->sentinel->next; client->next != client->sentinel; client = client->next)
+        {
+            pthread_mutex_lock(&client->lockInfo);
+            if (client->status == CONNECTED)
+            {
+                memcpy(buff, &client->IPandPort, datasize);
+
+                pthread_mutex_lock(&server->mutexfdtemp);
+                Send(server->fdtemp, buffh, headersize, MSG_MORE);
+                Send(server->fdtemp, buff, datasize, 0);
+                pthread_mutex_unlock(&server->mutexfdtemp);
+            }
+            pthread_mutex_unlock(&client->lockInfo);
+        }
+        sleep(2);
+
+        /* memcpy(buffh, &type, SIZE_TYPE_MSG);
+        memcpy(buffh + 1, &size, SIZE_DATA_LEN_HEADER);
+        //printf("%s", buffh);
+        write(server->fdtemp, buffh, headersize);
+        client = client->sentinel->next;
+        for (size_t i = 0; i < listLen(server->listClients); i++)
+        {
+            if (client->status == CONNECTED)
+            {
+                write(server->fdtemp, &((struct sockaddr *)&client->IPandPort)->sa_data, 14);
+                //printf("%s", client->IPandPort.sa_data);
+                sprintf(buff, "%05u", ((struct sockaddr *)&client->IPandPort)->sa_family);
+                //printf("%s", buff);
+                write(server->fdtemp, buff, 5);
+                client = client->next;
+            }
+        }
+        write(server->fdtemp, &server->IPandPort.sa_data, 14);
+        //printf("%s", server->IPandPort.sa_data);
+        sprintf(buff, "%05u", server->IPandPort.sa_family);
+        write(server->fdtemp, buff, 5);
+        //printf("%s\n", buff);
+        pthread_mutex_unlock(&server->mutexfdtemp);
+        sleep(2);
+
         pthread_mutex_lock(&server->mutexfdtemp);
         size = datasize * (listLen(server->listClients) + 1);
         memcpy(buffh, &type, SIZE_TYPE_MSG);
@@ -237,7 +280,7 @@ void *sendNetwork(void *arg)
         write(server->fdtemp, buff, 5);
         //printf("%s\n", buff);
         pthread_mutex_unlock(&server->mutexfdtemp);
-        sleep(2);
+        sleep(2);*/
     }
 
     return NULL;
@@ -245,12 +288,16 @@ void *sendNetwork(void *arg)
 
 int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *firstserver)
 {
-    int printListTerm = 0;
+    int printListTerm = 1;
     int fd1[2];
     int fd2[2];
     pipe(fd1);
     pipe(fd2);
 
+    struct sockaddr_in firstser;
+    inet_pton(AF_INET, firstserver, &firstser);
+    firstser.sin_family = AF_INET;
+    firstser.sin_port = PORT_INT;
     struct serverInfo *serverInf = initServer(fd2[0], fd1[1], IP);
     serverInf->fdtemp = fd2[1];
 
@@ -267,7 +314,7 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     pthread_t sendNetworkThread;
     pthread_t printListThread;
 
-    connectClient(firstserver, serverInf->listClients);
+    connectClient(&firstser, serverInf->listClients);
 
     pthread_create(&serverThread, NULL, server, (void *)serverInf);
     pthread_create(&maintenerThread, NULL, connectionMaintener, (void *)serverInf);

@@ -263,23 +263,19 @@ void *connectionMaintener(void *arg)
 	return NULL;
 }
 
-int connectClient(char *IP, struct clientInfo *list)
+int connectClient(struct sockaddr_in *IP, struct clientInfo *list)
 {
 	if (IP == NULL)
 		return 1;
 
 	int skt;
-	struct sockaddr_in info;
-	info.sin_port = htons(6969);
-	info.sin_family = AF_INET;
-	inet_pton(AF_INET, IP, &info.sin_addr);
 
 	if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		return -1;
 	}
 
-	if (connect(skt, (struct sockaddr *)&info, sizeof(info)) < 0)
+	if (connect(skt, (struct sockaddr *)IP, sizeof(IP)) < 0)
 	{
 		printf("I'm here\n");
 		perror(NULL);
@@ -290,7 +286,7 @@ int connectClient(char *IP, struct clientInfo *list)
 		struct clientInfo *client = initClient(list);
 		pthread_mutex_lock(&client->lockInfo);
 		client->clientSocket = skt;
-		client->IPandPort = info;
+		client->IPandPort = *IP;
 		client->IPLen = sizeof(client->IPandPort);
 		client->status = CONNECTING;
 		pthread_mutex_unlock(&client->lockInfo);
