@@ -93,7 +93,6 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     struct serverInfo *server = malloc(sizeof(struct serverInfo));
     server->listClients = initClientList(fdin, fdoutExtern, fdIntern[1]);
 
-
     pthread_mutex_init(&server->lockinfo, NULL);
     struct sockaddr_in temp;
     struct sockaddr *tempbis = (struct sockaddr *)&temp;
@@ -103,7 +102,7 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     pthread_mutex_lock(&server->lockinfo);
     pthread_mutex_lock(&server->listClients->lockInfo);
     server->listClients->server = server;
-    pthread_mutex_lock(&server->listClients->lockInfo);
+    pthread_mutex_unlock(&server->listClients->lockInfo);
     server->fdInInternComm = fdIntern[0];
     inet_pton(AF_INET, IP, &temp.sin_addr);
     server->IPandPort = *tempbis;
@@ -267,7 +266,7 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     pthread_t internCommsThread;
     pthread_t sendNetworkThread;
     //pthread_t printListThread;
-
+    
     connectClient(firstserver, serverInf->listClients);
 
     pthread_create(&serverThread, NULL, server, (void *)serverInf);
