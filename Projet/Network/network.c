@@ -210,8 +210,8 @@ void *sendNetwork(void *arg)
         pthread_mutex_unlock(&server->lockinfo);
 
         pthread_mutex_lock(&server->mutexfdtemp);
-        Send(server->fdtemp, buffh, headersize, MSG_MORE);
-        Send(server->fdtemp, buff, datasize, 0);
+        write(server->fdtemp, buffh, headersize);
+        write(server->fdtemp, buff, datasize);
         pthread_mutex_unlock(&server->mutexfdtemp);
 
         for (client = client->sentinel->next; client->next != client->sentinel; client = client->next)
@@ -222,8 +222,8 @@ void *sendNetwork(void *arg)
                 memcpy(buff, &client->IPandPort, datasize);
 
                 pthread_mutex_lock(&server->mutexfdtemp);
-                Send(server->fdtemp, buffh, headersize, MSG_MORE);
-                Send(server->fdtemp, buff, datasize, 0);
+                write(server->fdtemp, buffh, headersize);
+                write(server->fdtemp, buff, datasize);
                 pthread_mutex_unlock(&server->mutexfdtemp);
             }
             pthread_mutex_unlock(&client->lockInfo);
@@ -294,10 +294,6 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     pipe(fd1);
     pipe(fd2);
 
-    struct sockaddr_in firstser;
-    inet_pton(AF_INET, firstserver, &firstser);
-    firstser.sin_family = AF_INET;
-    firstser.sin_port = PORT_INT;
     struct serverInfo *serverInf = initServer(fd2[0], fd1[1], IP);
     serverInf->fdtemp = fd2[1];
 
@@ -314,7 +310,14 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     pthread_t sendNetworkThread;
     pthread_t printListThread;
 
-    connectClient(&firstser, serverInf->listClients);
+    if (firstserver != NULL)
+    {
+        struct sockaddr_in firstser;
+        inet_pton(AF_INET, firstserver, &firstser);
+        firstser.sin_family = AF_INET;
+        firstser.sin_port = PORT_INT;
+        connectClient(&firstser, serverInf->listClients);
+    }
 
     pthread_create(&serverThread, NULL, server, (void *)serverInf);
     pthread_create(&maintenerThread, NULL, connectionMaintener, (void *)serverInf);
