@@ -153,7 +153,10 @@ int main(int argc, char **argv)
 	printf("\n\n");
 
 	BLOCKCHAIN_BIN bcbin = blockchainToBin(&newBlockchain);
-	
+
+	sleep(10);
+	SendMessage((char *)bcbin.bin, tst.fd[1], (unsigned long long)bcbin.nbBytes, 2);
+
 	for (size_t i = 0; i < bcbin.nbBytes; i++)
 	{
 		if (i % 20 == 0)
