@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 
+void SendMessage(char *str, int fd);
 int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *firstserver);
 
 /*

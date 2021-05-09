@@ -13,6 +13,23 @@ void Send(int fd, const void *buf, size_t count, int flag)
         err(3, "Error while rewriting");
 }
 
+
+void SendMessage(char *str /*Must be \0 terminated*/, int fd)
+{
+    unsigned long long datasize = strlen(str);
+    char type = 2;
+    size_t headersize = SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG;
+    char buffh[headersize];
+
+    memcpy(buffh, &type, SIZE_TYPE_MSG);
+    memcpy(buffh + SIZE_TYPE_MSG, &datasize, SIZE_DATA_LEN_HEADER);
+
+    write(fd, buffh, headersize);
+    write(fd, str, datasize);
+}
+
+
+
 void *ReWriteForAllThreads(void *arg)
 {
     struct clientInfo *client = arg;
@@ -296,7 +313,7 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     pipe(fd1);
     pipe(fd2);
 
-    struct serverInfo *serverInf = initServer(fd2[0], STDOUT_FILENO/*fd1[1]*/, IP);
+    struct serverInfo *serverInf = initServer(fd2[0], fd1[1], IP);
     serverInf->fdtemp = fd2[1];
 
     pthread_mutex_init(&serverInf->mutexfdtemp, NULL);

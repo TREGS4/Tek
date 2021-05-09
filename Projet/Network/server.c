@@ -276,7 +276,7 @@ int connectClient(struct sockaddr_in *IP, struct clientInfo *list)
 		return -1;
 	}
 
-	if (connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr)) < 0)
+	if (connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0)
 	{
 		printf("I'm here\n");
 		perror(NULL);
