@@ -270,12 +270,13 @@ int connectClient(struct sockaddr_in *IP, struct clientInfo *list)
 
 	int skt;
 
+
 	if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		return -1;
 	}
 
-	if (connect(skt, (struct sockaddr *)IP, sizeof(IP)) < 0)
+	if (connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr)) < 0)
 	{
 		printf("I'm here\n");
 		perror(NULL);

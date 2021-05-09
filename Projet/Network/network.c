@@ -114,7 +114,7 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
 
     server->fdInInternComm = fdIntern[0];
     inet_pton(AF_INET, IP, &server->IPandPort.sin_addr);
-    server->IPandPort.sin_port = PORT_INT;
+    server->IPandPort.sin_port = htons(atoi(PORT));
     server->IPLen = sizeof(server->IPandPort);
     server->status = ONLINE;
     pthread_mutex_unlock(&server->lockinfo);
@@ -313,9 +313,10 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     if (firstserver != NULL)
     {
         struct sockaddr_in firstser;
-        inet_pton(AF_INET, firstserver, &firstser);
+        memset(&firstser, 0, sizeof(struct sockaddr_in));
+        inet_pton(AF_INET, firstserver, &firstser.sin_addr);
         firstser.sin_family = AF_INET;
-        firstser.sin_port = PORT_INT;
+        firstser.sin_port = htons(atoi(PORT));
         connectClient(&firstser, serverInf->listClients);
     }
 

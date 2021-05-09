@@ -15,7 +15,6 @@
 #include <arpa/inet.h>
 
 #define PORT "6969"
-#define PORT_INT 6969
 
 
 // Message part
