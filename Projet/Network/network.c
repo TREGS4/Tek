@@ -90,8 +90,25 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     int fdIntern[2];
     pipe(fdIntern);
 
+<<<<<<< HEAD
     struct serverInfo *server = malloc(sizeof(struct serverInfo));
     server->listClients = initClientList(fdin, fdoutExtern, fdIntern[1]);
+=======
+    pthread_mutex_lock(&client->lockInfo);
+    client->ID = 0;
+    client->server = server;
+    client->sentinel = client;
+    client->status = SENTINEL;
+    client->next = client;
+    client->IPandPort.sin_family = AF_INET;
+    client->prev = NULL;
+
+    client->clientSocket = -1;
+    client->fdTofdin = -1;
+    client->fdinThread = fdin;
+    client->fdoutExtern = STDOUT_FILENO;//fdoutExtern;
+    client->fdoutIntern = fdIntern[1];
+>>>>>>> 7627d40dffb38de5a79e73ae7574721f8eb5fa90
 
 
     pthread_mutex_init(&server->lockinfo, NULL);
