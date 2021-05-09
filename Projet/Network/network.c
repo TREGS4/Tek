@@ -175,6 +175,8 @@ void *internComms(void *arg)
                 nbchr += r;
             }
 
+            client.sin_port = htons(atoi(PORT));
+
             int me = isInList(&client, server->listClients);
             int inlist = itsme(&client, &server->IPandPort);
             //printf("IP: %s\n", buffIP);
