@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 
 	char str[9];
 	char type = 69;
-	unsigned long long size = strlen(data);
+	unsigned long long size = 14;//strlen(data);
 
 	memcpy(str, &type, 1);
 	memcpy(str + 1, &size, 8);
@@ -49,10 +49,10 @@ int main(int argc, char **argv)
 		sleep(7);
 
 		pthread_mutex_lock(&tst.mutext);
-		write(tst.fd[1], str, 10);
-		write(tst.fd[1], data, size);
+		//write(tst.fd[1], str, 10);
+		//write(tst.fd[1], data, size);
 		pthread_mutex_unlock(&tst.mutext);
-		printf("Message send\n");
+		//printf("Message send\n");
 	}
 
 	pthread_join(thread, NULL);

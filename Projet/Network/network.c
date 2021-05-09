@@ -98,7 +98,6 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     struct sockaddr *tempbis = (struct sockaddr *)&temp;
     memset(&temp.sin_addr, 0, sizeof(temp.sin_addr));
 
-
     pthread_mutex_lock(&server->lockinfo);
     pthread_mutex_lock(&server->listClients->lockInfo);
     server->listClients->server = server;
@@ -246,6 +245,7 @@ void *sendNetwork(void *arg)
 
 int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *firstserver)
 {
+    int printListTerm = 0;
     int fd1[2];
     int fd2[2];
     pipe(fd1);
@@ -265,8 +265,8 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     pthread_t closeConnectionThread;
     pthread_t internCommsThread;
     pthread_t sendNetworkThread;
-    //pthread_t printListThread;
-    
+    pthread_t printListThread;
+
     connectClient(firstserver, serverInf->listClients);
 
     pthread_create(&serverThread, NULL, server, (void *)serverInf);
@@ -275,7 +275,8 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     pthread_create(&closeConnectionThread, NULL, closeConnection, (void *)serverInf);
     pthread_create(&internCommsThread, NULL, internComms, (void *)serverInf);
     pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)serverInf);
-    //pthread_create(&printListThread, NULL, printList, (void *)serverInf->listClients);
+    if (printListTerm == 1)
+        pthread_create(&printListThread, NULL, printList, (void *)serverInf->listClients);
 
     pthread_join(serverThread, NULL);
     pthread_join(maintenerThread, NULL);
@@ -283,7 +284,8 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     pthread_join(closeConnectionThread, NULL);
     pthread_join(internCommsThread, NULL);
     pthread_join(sendNetworkThread, NULL);
-    //pthread_join(printListThread, NULL);
+    if (printListTerm == 1)
+        pthread_join(printListThread, NULL);
 
     freeServer(serverInf);
 
