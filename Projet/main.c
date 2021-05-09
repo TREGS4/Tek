@@ -114,8 +114,7 @@ int main(){
 		t3.amount = rand() % 3000 + 1;
 		addTx(&b3.tl, &t3);
 	}
-	
-	
+
 	BLOCKCHAIN newBlockchain = initBlockchain();
 	addBlock(&newBlockchain, b);
 	addBlock(&newBlockchain, b2);
@@ -125,7 +124,50 @@ int main(){
 	printf("\n");
 	
 	verifBlockchain(newBlockchain);
+
+
 	char *json = blockchainToJson(&newBlockchain);
-	printf("%s\n", json);
+	printf("\nBlockchain en format JSON:\n\n%s\n\n\n", json);
 	free(json);
+
+
+
+	/*
+		Print la blockchain en chaine binaire.
+	*/
+	printf("\nBlockchain en format BIN:\n\n");
+	BLOCKCHAIN_BIN bcbin = blockchainToBin(&newBlockchain);
+	for (size_t i = 0; i < bcbin.nbBytes; i++)
+	{
+		if (i % 20 == 0){
+			printf("\n");
+		}
+		printf("%02x ", bcbin.bin[i]);
+	}
+	printf("\n\n");
+	
+	free(bcbin.bin);
+
+
+
+
+	printf("\nTests :\n\n");
+	printTransaction(t3);
+	TRANSACTION_BIN txsbin = txsToBin(&t3);
+	for (size_t i = 0; i < txsbin.nbBytes; i++)
+	{
+		if (i % 20 == 0){
+			printf("\n");
+		}
+		printf("%02x ", txsbin.bin[i]);
+	}
+	printf("\n");
+
+	TRANSACTION t4 = binToTxs(txsbin.bin);
+	printTransaction(t4);
+	free(txsbin.bin);
+
+
+
+	free(newBlockchain.blocks);
 }

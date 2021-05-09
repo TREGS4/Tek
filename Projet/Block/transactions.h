@@ -2,6 +2,7 @@
 #define TRANSACTION_H
 
 #include <stdlib.h>
+#include "../Hash/sha256.h"
 
 #define NB_TRANSACTIONS_PER_BLOCK 10
 
@@ -24,8 +25,18 @@ typedef struct
 } TRANSACTIONS_LIST;
 
 
+typedef struct
+{
+	BYTE *bin;
+	size_t nbBytes;
+} TRANSACTION_BIN;
+
+
 void txsToString(TRANSACTION *txs, char buf[TRANSACTION_SIZE]);
 char *txsToJson(TRANSACTION *t);
+TRANSACTION_BIN txsToBin(TRANSACTION *t);
+TRANSACTION binToTxs(BYTE *bin);
+size_t getSizeOf_txsbin();
 TRANSACTIONS_LIST initListTxs();
 void addTx(TRANSACTIONS_LIST *tl, TRANSACTION *t);
 void clearTxsList(TRANSACTIONS_LIST *tl);
