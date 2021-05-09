@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include "Network/network.h"
 
-
 struct test
 {
 	int fd[2];
@@ -89,6 +88,8 @@ void verifBlockchain(BLOCKCHAIN blockchain)
 
 int main(int argc, char **argv)
 {
+	if (argc > 3)
+		return -1;
 
 	struct test tst;
 	tst.fd[1] = -1;
@@ -228,5 +229,5 @@ int main(int argc, char **argv)
 	free(bc.blocks);
 
 	free(newBlockchain.blocks);
-	pthread_join(thread);
+	pthread_join(thread, NULL);
 }
