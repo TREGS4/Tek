@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	struct test tst;
 	tst.fd[1] = -1;
 	tst.fd[0] = -1;
-	tst.IP = "192.168.1.22"; //argv[1];
+	tst.IP = argv[1];
 	tst.firstserver = argv[2];
 
 	pthread_t thread;
