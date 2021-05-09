@@ -1,4 +1,5 @@
 #include "server.h"
+#include "network_tools.h"
 
 void *read_thread(void *arg)
 {
@@ -11,19 +12,19 @@ void *read_thread(void *arg)
 	unsigned long long size = 0;
 	int type = -1;
 
-	char buffLen[SIZE_ULONGLONG + SIZE_TYPE_MSG + 1];
+	char buffLen[SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG + 1];
 	char buffType[SIZE_TYPE_MSG + 1];
 	char buff[BUFFER_SIZE_SOCKET];
 
 	while (client->status == CONNECTED)
 	{
-		memset(buffLen, 0, SIZE_ULONGLONG + 1);
+		memset(buffLen, 0, SIZE_DATA_LEN_HEADER + 1);
 		memset(buffType, 0, SIZE_TYPE_MSG + 1);
 		memset(buff, 0, BUFFER_SIZE_SOCKET);
 
 		int r = 1;
 
-		size_t nbToRead = SIZE_ULONGLONG + SIZE_TYPE_MSG;
+		size_t nbToRead = SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG;
 		size_t nbchr = 0;
 
 		/*Header part*/
@@ -66,7 +67,7 @@ void *read_thread(void *arg)
 		}
 
 		if (client->status == CONNECTED)
-			write(fdout, buffLen, SIZE_TYPE_MSG + SIZE_ULONGLONG);
+			write(fdout, buffLen, SIZE_TYPE_MSG + SIZE_DATA_LEN_HEADER);
 
 		/*Message part*/
 
