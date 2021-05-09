@@ -288,13 +288,13 @@ void *sendNetwork(void *arg)
 
 int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *firstserver)
 {
-    int printListTerm = 1;
+    int printListTerm = 0;
     int fd1[2];
     int fd2[2];
     pipe(fd1);
     pipe(fd2);
 
-    struct serverInfo *serverInf = initServer(fd2[0], fd1[1], IP);
+    struct serverInfo *serverInf = initServer(fd2[0], STDOUT_FILENO/*fd1[1]*/, IP);
     serverInf->fdtemp = fd2[1];
 
     pthread_mutex_init(&serverInf->mutexfdtemp, NULL);
