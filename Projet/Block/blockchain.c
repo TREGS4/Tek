@@ -64,6 +64,7 @@ BLOCK createGenesis()
 	for (int i = 0; i < SHA256_BLOCK_SIZE; i++){
 		newGenesis.previusHash[i] = 0;
 	}
+	newGenesis.tl = initListTxs();
 	
 	return newGenesis;
 }
@@ -108,4 +109,53 @@ char *blockchainToJson(BLOCKCHAIN *bc)
 	sprintf(json, "%s%s%s", s1, resblock, s2);
 	free(resblock);
 	return json;
+}
+
+
+BLOCKCHAIN_BIN blockchainToBin(BLOCKCHAIN *bc)
+{
+	size_t nbBlocks = bc->blocksNumber;
+	size_t size = sizeof(size_t);
+	size_t total_size = size;
+
+	BYTE *res = malloc(size);
+	size_t cursor = 0;
+	memcpy(res + cursor, &nbBlocks, sizeof(nbBlocks));
+	cursor += sizeof(nbBlocks);
+
+	for (size_t i = 0; i < bc->blocksNumber; i++){
+		BLOCK_BIN blockbin = blockToBin(&bc->blocks[i]);
+		total_size += blockbin.nbBytes;
+		res = realloc(res, total_size);
+		memcpy(res + cursor, blockbin.bin, blockbin.nbBytes);
+		cursor += blockbin.nbBytes;
+		free(blockbin.bin);
+	}
+	BLOCKCHAIN_BIN bcbin = {
+		.bin = res,
+		.nbBytes = total_size,
+	};
+	return bcbin;
+}
+
+
+BLOCKCHAIN binToBlockchain(BYTE *bin){
+	size_t nbBlocks;
+	size_t cursor = 0;
+	memcpy(&nbBlocks, bin + cursor, sizeof(nbBlocks));
+	cursor += sizeof(nbBlocks);
+
+	BLOCKCHAIN bc = {
+		.blocksNumber = nbBlocks,
+	};
+	bc.blocks = malloc(sizeof(BLOCK)*nbBlocks);
+
+	for (size_t i = 0; i < nbBlocks; i++){
+		size_t nbTxs;
+		memcpy(&nbTxs, bin + cursor, sizeof(nbTxs));
+		BLOCK b = binToBlock(bin + cursor);
+		cursor += getSizeOf_blockbin(nbTxs);
+		bc.blocks[i] = b;
+	}
+	return bc;
 }
