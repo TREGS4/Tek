@@ -87,6 +87,9 @@ void *read_thread(void *arg)
 			else
 				nbToRead = BUFFER_SIZE_SOCKET;
 
+			if(type != 1)
+				printf("file descriptor thread: %d\n", fdout);
+
 			write(fdout, buff, r);
 		}
 

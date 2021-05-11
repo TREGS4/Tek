@@ -247,58 +247,6 @@ void *sendNetwork(void *arg)
             pthread_mutex_unlock(&client->lockInfo);
         }
         sleep(2);
-
-        /* memcpy(buffh, &type, SIZE_TYPE_MSG);
-        memcpy(buffh + 1, &size, SIZE_DATA_LEN_HEADER);
-        //printf("%s", buffh);
-        write(server->fdtemp, buffh, headersize);
-        client = client->sentinel->next;
-        for (size_t i = 0; i < listLen(server->listClients); i++)
-        {
-            if (client->status == CONNECTED)
-            {
-                write(server->fdtemp, &((struct sockaddr *)&client->IPandPort)->sa_data, 14);
-                //printf("%s", client->IPandPort.sa_data);
-                sprintf(buff, "%05u", ((struct sockaddr *)&client->IPandPort)->sa_family);
-                //printf("%s", buff);
-                write(server->fdtemp, buff, 5);
-                client = client->next;
-            }
-        }
-        write(server->fdtemp, &server->IPandPort.sa_data, 14);
-        //printf("%s", server->IPandPort.sa_data);
-        sprintf(buff, "%05u", server->IPandPort.sa_family);
-        write(server->fdtemp, buff, 5);
-        //printf("%s\n", buff);
-        pthread_mutex_unlock(&server->mutexfdtemp);
-        sleep(2);
-
-        pthread_mutex_lock(&server->mutexfdtemp);
-        size = datasize * (listLen(server->listClients) + 1);
-        memcpy(buffh, &type, SIZE_TYPE_MSG);
-        memcpy(buffh + 1, &size, SIZE_DATA_LEN_HEADER);
-        //printf("%s", buffh);
-        write(server->fdtemp, buffh, headersize);
-        client = client->sentinel->next;
-        for (size_t i = 0; i < listLen(server->listClients); i++)
-        {
-            if (client->status == CONNECTED)
-            {
-                write(server->fdtemp, &((struct sockaddr *)&client->IPandPort)->sa_data, 14);
-                //printf("%s", client->IPandPort.sa_data);
-                sprintf(buff, "%05u", ((struct sockaddr *)&client->IPandPort)->sa_family);
-                //printf("%s", buff);
-                write(server->fdtemp, buff, 5);
-                client = client->next;
-            }
-        }
-        write(server->fdtemp, &server->IPandPort.sa_data, 14);
-        //printf("%s", server->IPandPort.sa_data);
-        sprintf(buff, "%05u", server->IPandPort.sa_family);
-        write(server->fdtemp, buff, 5);
-        //printf("%s\n", buff);
-        pthread_mutex_unlock(&server->mutexfdtemp);
-        sleep(2);*/
     }
 
     return NULL;
@@ -319,6 +267,9 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     *mutexfd = serverInf->mutexfdtemp;
     *fdin = fd1[0];
     *fdout = fd2[1];
+
+    //write(fd1[1], "test\n", 5);
+    printf("file descriptor network: %d\n", fd1[1]);
 
     pthread_t serverThread;
     pthread_t maintenerThread;

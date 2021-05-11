@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 	pthread_t thread;
 	pthread_t readfd;
 	pthread_create(&thread, NULL, moncul, (void *)&tst);
-	pthread_create(&readfd, NULL, mabite, (void *)&tst);
+	//pthread_create(&readfd, NULL, mabite, (void *)&tst);
 
 	TRANSACTION t =
 		{
@@ -231,11 +231,11 @@ int main(int argc, char **argv)
 
 	while (1)
 	{
-		sleep(10);
+		sleep(1);
 		pthread_mutex_lock(&tst.mutext);
-		SendMessage("Hello world !\n", tst.fd[1], 15, 2);
+		//SendMessage("Hello world !\n", tst.fd[1], 15, 2);
 		//SendMessage((char *)bcbin.bin, tst.fd[1], (unsigned long long)bcbin.nbBytes, 2);
-		printf("Message send\n");
+		//printf("Message send\n");
 		pthread_mutex_unlock(&tst.mutext);
 		BLOCKCHAIN bc = binToBlockchain(bcbin.bin);
 		free(bc.blocks);
