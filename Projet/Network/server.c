@@ -34,7 +34,7 @@ void *read_thread(void *arg)
 			if ((r = read(fdin, &buffLen + nbchr, nbToRead)) <= 0)
 			{
 				pthread_mutex_lock(&client->lockInfo);
-				//client->status = ENDED;
+				client->status = ENDED;
 				pthread_mutex_unlock(&client->lockInfo);
 			}
 
@@ -76,7 +76,7 @@ void *read_thread(void *arg)
 			if ((r = read(fdin, &buff, nbToRead)) <= 0)
 			{
 				pthread_mutex_lock(&client->lockInfo);
-				//client->status = ENDED;
+				client->status = ENDED;
 				pthread_mutex_unlock(&client->lockInfo);
 			}
 

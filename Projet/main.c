@@ -20,7 +20,7 @@ void *moncul(void *arg)
 	struct test *tst = arg;
 
 	network(&tst->fd[0], &tst->fd[1], &tst->mutext, tst->IP, tst->firstserver);
-	
+
 	return NULL;
 }
 
@@ -31,8 +31,8 @@ void *mabite(void *arg)
 	{
 		;
 	}
-	
-	int fdin = tst->fd[0]; 
+
+	int fdin = tst->fd[0];
 	char buffLen[SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG + 1];
 	char buffType[SIZE_TYPE_MSG + 1];
 	char *buff;
@@ -219,8 +219,6 @@ int main(int argc, char **argv)
 
 	BLOCKCHAIN_BIN bcbin = blockchainToBin(&newBlockchain);
 
-	
-
 	for (size_t i = 0; i < bcbin.nbBytes; i++)
 	{
 		if (i % 20 == 0)
@@ -231,16 +229,20 @@ int main(int argc, char **argv)
 	}
 	printf("\n\n");
 
-	sleep(10);
-	pthread_mutex_lock(&tst.mutext);
-	//SendMessage("Hello world !\n", tst.fd[1], 15, 2);
-	//SendMessage((char *)bcbin.bin, tst.fd[1], (unsigned long long)bcbin.nbBytes, 2);
-	printf("Message send\n");
-	pthread_mutex_unlock(&tst.mutext);
-	BLOCKCHAIN bc = binToBlockchain(bcbin.bin);
+	while (1)
+	{
+		sleep(10);
+		pthread_mutex_lock(&tst.mutext);
+		SendMessage("Hello world !\n", tst.fd[1], 15, 2);
+		//SendMessage((char *)bcbin.bin, tst.fd[1], (unsigned long long)bcbin.nbBytes, 2);
+		printf("Message send\n");
+		pthread_mutex_unlock(&tst.mutext);
+		BLOCKCHAIN bc = binToBlockchain(bcbin.bin);
+		free(bc.blocks);
+	}
+
 
 	free(bcbin.bin);
-	free(bc.blocks);
 
 	free(newBlockchain.blocks);
 	pthread_join(thread, NULL);
