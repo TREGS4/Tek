@@ -202,6 +202,7 @@ void *sendNetwork(void *arg)
 
 int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *firstserver)
 {
+    
     int printListTerm = 0;
     int fd1[2];
     int fd2[2];
@@ -215,9 +216,6 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     *mutexfd = serverInf->mutexfdtemp;
     *fdin = fd1[0];
     *fdout = fd2[1];
-
-    //write(fd1[1], "test\n", 5);
-    printf("file descriptor network: %d\n", fd1[1]);
 
     pthread_t serverThread;
     pthread_t reWriteThread;

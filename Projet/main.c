@@ -213,12 +213,12 @@ int grosTest(int argc, char **argv)
 	addBlock(&newBlockchain, b);
 	addBlock(&newBlockchain, b2);
 	addBlock(&newBlockchain, b3);
-	printf("Number of blocks in the blockchain : %lu.\n\n", newBlockchain.blocksNumber);
-	printBlockchain(newBlockchain);
-	printf("\n");
+	//printf("Number of blocks in the blockchain : %lu.\n\n", newBlockchain.blocksNumber);
+	//printBlockchain(newBlockchain);
+	//printf("\n");
 
 	/*BLOCKCHAIN*/
-	printf("\n\n");
+	//printf("\n\n");
 
 	BLOCKCHAIN_BIN bcbin = blockchainToBin(&newBlockchain);
 
@@ -226,11 +226,11 @@ int grosTest(int argc, char **argv)
 	{
 		if (i % 20 == 0)
 		{
-			printf("\n");
+			//printf("\n");
 		}
-		printf("%02x ", bcbin.bin[i]);
+		//printf("%02x ", bcbin.bin[i]);
 	}
-	printf("\n\n");
+	//printf("\n\n");
 
 	while (1)
 	{

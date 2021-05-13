@@ -68,7 +68,9 @@ int addClient(struct sockaddr_in IP, struct clientInfo *clientList)
 {
 	if(itsme(&IP, &clientList->server->IPandPort) == 0 && isInList(&IP, clientList) == 0)
 	{
-		
+		struct clientInfo *client = initClient(clientList);
+		client->IPandPort = IP;
+		client->IPLen = sizeof(struct sockaddr_in);
 	}
 
 	return 1;
