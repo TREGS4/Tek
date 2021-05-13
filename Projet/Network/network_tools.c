@@ -223,8 +223,7 @@ struct clientInfo *addClient(struct sockaddr_in IP, struct clientInfo *clientLis
         client->status = NOTCONNECTED;
 
         pthread_mutex_unlock(&client->lockInfo);
-        printf("Client add\n");
     }
-    
+
     return client;
 }

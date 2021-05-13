@@ -110,6 +110,7 @@ void *client_thread(void *arg)
 	{
 		pthread_mutex_lock(&client->lockInfo);
 		client->status = CONNECTED;
+		pthread_mutex_unlock(&client->lockInfo);
 		pthread_join(client->readThread, NULL);
 	}
 	else
@@ -199,7 +200,7 @@ void *server(void *arg)
 			pthread_mutex_lock(&client->lockInfo);
 			client->clientSocket = fd;
 			pthread_mutex_unlock(&client->lockInfo);
-			
+
 			if (pthread_create(&client->clientThread, NULL, client_thread, (void *)client) == 0)
 				pthread_detach(client->clientThread);
 			else
