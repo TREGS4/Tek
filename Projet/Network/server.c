@@ -199,33 +199,19 @@ void *server(void *arg)
 		len = sizeof(temp);
 
 		fd = accept(skt, (struct sockaddr *)&temp, &len);
-		struct clientInfo *client;
+		struct clientInfo *client = addClient(temp, serInfo->listClients);
 
-		if ((client = isInList(&temp, serInfo->listClients)) == NULL)
-		{
-			client = initClient(serInfo->listClients);
-			pthread_mutex_lock(&client->lockInfo);
-			pthread_mutex_lock(&client->lockWrite);
-			pthread_mutex_lock(&client->lockRead);
-
-			client->IPLen = len;
-			client->IPandPort = temp;
-			client->clientSocket = fd;
-
-			client->status = CONNECTING;
-			pthread_mutex_unlock(&client->lockRead);
-			pthread_mutex_unlock(&client->lockWrite);
-			pthread_mutex_unlock(&client->lockInfo);
-		}
-		else if(client->status == NOTCONNECTED)
+		
+		if(client->status == NOTCONNECTED)
 		{
 			pthread_mutex_lock(&client->lockInfo);
 			client->clientSocket = fd;
 			pthread_mutex_unlock(&client->lockInfo);
+			if (pthread_create(&client->clientThread, NULL, client_thread, (void *)client) == 0)
+				pthread_detach(client->clientThread);
+			else
+				close(fd);
 		}
-
-		if (client->status == NOTCONNECTED && pthread_create(&client->clientThread, NULL, client_thread, (void *)client) == 0)
-			pthread_detach(client->clientThread);
 		else
 			close(fd);
 	}

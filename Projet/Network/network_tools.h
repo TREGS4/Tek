@@ -1,8 +1,66 @@
 #ifndef NETWORK_TOOLS_H
 #define NETWORK_TOOLS_H
 
-#include "server.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <err.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <pthread.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
+#include "informations.h"
+
+struct clientInfo
+{
+    size_t ID;
+    struct sockaddr_in IPandPort;
+    socklen_t IPLen;
+
+    pthread_mutex_t lockInfo;              //lock when modifing everything except file descriptors
+    pthread_mutex_t lockWrite;             //lock when modifing clientSocket
+    pthread_mutex_t lockRead;              //lock when modifing fdInThread or fdTofdin
+    pthread_mutex_t *lockReadGlobalExtern; //lock when writing on fdoutExtern, we need send the whole message before an other thread can write
+    pthread_mutex_t *lockReadGlobalIntern; //lock when writing on fdoutIntern, we need send the whole message before an other thread can write
+
+    int clientSocket;
+    int fdTofdin;
+    int fdinThread;
+    int fdoutExtern;
+    int fdoutIntern;
+
+    int status;
+
+    pthread_t clientThread;
+    pthread_t readThread;
+    pthread_t writeThread;
+
+    struct clientInfo *next;
+    struct clientInfo *prev;
+    struct clientInfo *sentinel;
+    struct serverInfo *server;
+};
+
+struct serverInfo
+{
+    int status;
+
+    int fdInInternComm;
+    int fdtemp;
+
+    pthread_mutex_t lockinfo;
+    pthread_mutex_t mutexfdtemp;
+
+    struct sockaddr_in IPandPort;
+    socklen_t IPLen;
+
+    struct clientInfo *listClients;
+};
 
 //Create a new list of clientInfo, return the sentinel of the list
 //fdin is the read side of the pipe to receive message from the management node
@@ -31,9 +89,11 @@ struct clientInfo *last(struct clientInfo *client);
 int itsme(struct sockaddr_in *first, struct sockaddr_in *second);
 
 //Search the tab in the list, return his pointer if find, Null pointer otherwise
-struct clientInfo * isInList(struct sockaddr_in *tab, struct clientInfo *list);
+struct clientInfo *isInList(struct sockaddr_in *tab, struct clientInfo *list);
 
 //Print the IP and port in the terminal
 void printIP(struct sockaddr_in *IP);
+
+struct clientInfo *addClient(struct sockaddr_in IP, struct clientInfo *clientList);
 
 #endif

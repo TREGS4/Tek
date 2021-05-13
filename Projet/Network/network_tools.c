@@ -181,7 +181,7 @@ int itsme(struct sockaddr_in *first, struct sockaddr_in *second)
     return me;
 }
 
-struct clientInfo * isInList(struct sockaddr_in *tab, struct clientInfo *list)
+struct clientInfo *isInList(struct sockaddr_in *tab, struct clientInfo *list)
 {
     int find = 0;
     struct clientInfo *res = NULL;
@@ -190,7 +190,7 @@ struct clientInfo * isInList(struct sockaddr_in *tab, struct clientInfo *list)
     while (find == 0 && list != list->sentinel)
     {
         find = itsme(tab, &list->IPandPort);
-        if(find)
+        if (find)
             res = list;
         list = list->next;
     }
@@ -207,4 +207,24 @@ void printIP(struct sockaddr_in *IP)
 
     printf("%s:%u\n", buff, port);
     free(buff);
+}
+
+struct clientInfo *addClient(struct sockaddr_in IP, struct clientInfo *clientList)
+{
+    struct clientInfo *client = isInList(&IP, clientList);
+    if (itsme(&IP, &clientList->server->IPandPort) == 0 && client == NULL)
+    {
+
+        client = initClient(clientList->sentinel);
+        pthread_mutex_lock(&client->lockInfo);
+
+        client->IPandPort = IP;
+        client->IPLen = sizeof(struct sockaddr_in);
+        client->status = NOTCONNECTED;
+
+        pthread_mutex_unlock(&client->lockInfo);
+        printf("Client add\n");
+    }
+
+    return client;
 }

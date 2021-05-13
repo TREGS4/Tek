@@ -6,6 +6,6 @@
 
 
 int SendMessage(struct clientInfo *client, char *message);
-int addClient(struct sockaddr_in IP, struct clientInfo *clientList);
+
 
 #endif
