@@ -6,21 +6,31 @@
 
 void *ReWriteForAllThreads(void *arg)
 {
-    struct clientInfo *client = arg;
-    char buff[BUFFER_SIZE_SOCKET];
+    struct serverInfo *server = arg;
+    struct clientInfo *client = server->listClients;
+    unsigned long long len = 0;
+    char buffh[HEADER_SIZE];
+    char *buff;
     int r = 1;
+    unsigned long long nbToRead = 0;
+    unsigned long long nbchr = 0;
 
-    while ((r = read(client->sentinel->fdinThread, &buff, BUFFER_SIZE_SOCKET)) > 0)
+    while ((r = read(client->sentinel->fdinThread, &buffh, HEADER_SIZE)) > 0 && server->status == ONLINE)
     {
-        for (client = client->sentinel->next; client != client->sentinel; client = client->next)
+        memcpy(buffh + SIZE_TYPE_MSG, &len, SIZE_DATA_LEN_HEADER);
+        memcpy(buff, buffh, HEADER_SIZE);
+        buff = malloc(sizeof(char) * len);
+
+        while (server->status == ONLINE && nbToRead > 0)
         {
-            if (client->status == CONNECTED)
-            {
-                pthread_mutex_lock(&client->lockWrite);
-                write(client->fdTofdin, buff, r);
-                pthread_mutex_unlock(&client->lockWrite);
-            }
+            r = read(client->sentinel->fdinThread, buff + HEADER_SIZE + nbchr, nbToRead);
+			nbToRead -= r;
+			nbchr += r;
         }
+
+        pthread_mutex_lock(&server->mutextmessage);
+        SendMessage(client, buff);
+        pthread_mutex_unlock(&server->mutextmessage);
     }
 
     return NULL;
@@ -104,6 +114,7 @@ struct serverInfo *initServer(int fdin, int fdoutExtern, char *IP)
     server->listClients = initClientList(fdin, fdoutExtern, fdIntern[1]);
 
     pthread_mutex_init(&server->lockinfo, NULL);
+    pthread_mutex_init(&server->mutextmessage, NULL);
 
     pthread_mutex_lock(&server->lockinfo);
     pthread_mutex_lock(&server->listClients->lockInfo);
@@ -124,6 +135,7 @@ void freeServer(struct serverInfo *server)
 {
     freeClientList(server->listClients);
     pthread_mutex_destroy(&server->lockinfo);
+    pthread_mutex_destroy(&server->mutextmessage);
     free(server);
 }
 
@@ -214,11 +226,11 @@ void *sendNetwork(void *arg)
         {
             pthread_mutex_lock(&client->lockInfo);
             memcpy(buff + HEADER_SIZE, &client->IPandPort, datasize);
-
-            pthread_mutex_lock(&server->mutexfdtemp);
-            SendMessage(server->listClients, buff);
-            pthread_mutex_unlock(&server->mutexfdtemp);
             pthread_mutex_unlock(&client->lockInfo);
+
+            pthread_mutex_lock(&server->mutextmessage);
+            SendMessage(server->listClients, buff);
+            pthread_mutex_unlock(&server->mutextmessage);
         }
         sleep(2);
     }
@@ -244,7 +256,7 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
 
     pthread_t serverThread;
     pthread_t removeThread;
-    //pthread_t reWriteThread;
+    pthread_t reWriteThread;
     pthread_t internCommsThread;
     pthread_t sendNetworkThread;
     pthread_t printListThread;
@@ -261,7 +273,7 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
 
     pthread_create(&serverThread, NULL, server, (void *)serverInf);
     pthread_create(&removeThread, NULL, removeClientThread, (void *)serverInf);
-    //pthread_create(&reWriteThread, NULL, ReWriteForAllThreads, (void *)serverInf->listClients);
+    pthread_create(&reWriteThread, NULL, ReWriteForAllThreads, (void *)serverInf);
     pthread_create(&internCommsThread, NULL, internComms, (void *)serverInf);
     pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)serverInf);
     if (printListTerm == 1)
@@ -269,7 +281,7 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
 
     pthread_join(serverThread, NULL);
     pthread_join(removeThread, NULL);
-    //pthread_join(reWriteThread, NULL);
+    pthread_join(reWriteThread, NULL);
     pthread_join(internCommsThread, NULL);
     pthread_join(sendNetworkThread, NULL);
     if (printListTerm == 1)

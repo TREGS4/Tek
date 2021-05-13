@@ -109,6 +109,8 @@ int removeClient(struct clientInfo *client)
     client->status = DEAD;
     pthread_mutex_unlock(&client->lockInfo);
 
+
+    //surement probleme ici
     pthread_mutex_lock(&client->lockInfo);
     pthread_mutex_lock(&client->lockRead);
     pthread_mutex_lock(&client->lockWrite);

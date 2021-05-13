@@ -55,6 +55,7 @@ struct serverInfo
 
     pthread_mutex_t lockinfo;
     pthread_mutex_t mutexfdtemp;
+    pthread_mutex_t mutextmessage;
 
     struct sockaddr_in IPandPort;
     socklen_t IPLen;
