@@ -139,7 +139,7 @@ void *client_thread(void *arg)
 	pthread_mutex_unlock(&client->lockRead);
 
 	pthread_mutex_lock(&client->lockInfo);
-	if(client->status == CONNECTED)
+	if(client->status == ENDED)
 		client->status = NOTCONNECTED;
 	pthread_mutex_unlock(&client->lockInfo);
 
@@ -161,7 +161,6 @@ void *server(void *arg)
 	timeout.tv_usec = 0;
 	int connect = 0;
 	int skt;
-	int finish = 0;
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
@@ -195,7 +194,7 @@ void *server(void *arg)
 	if (listen(skt, 5) == -1)
 		err(EXIT_FAILURE, "Error on function listen() in server.c");
 
-	while (!finish)
+	while (serInfo->status == ONLINE)
 	{
 
 		int fd = -1;

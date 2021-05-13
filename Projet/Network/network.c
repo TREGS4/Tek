@@ -36,7 +36,7 @@ void *removeClientThread(void *arg)
     {
         for (client = client->sentinel->next; client != client->sentinel; client = client->next)
         {
-            if (client->status == ERROR || client->status == ENDED)
+            if (client->status == ERROR)
             {
                 toRemove = client;
                 client = client->next;
