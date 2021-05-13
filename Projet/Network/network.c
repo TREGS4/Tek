@@ -29,7 +29,7 @@ void *ReWriteForAllThreads(void *arg)
 void *removeClientThread(void *arg)
 {
     struct serverInfo *server = arg;
-    struct clientInfo *client;
+    struct clientInfo *client = server->listClients;
     struct clientInfo *toRemove;
 
     while(server->status != EXITING)
@@ -228,7 +228,6 @@ void *sendNetwork(void *arg)
 
 int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *firstserver)
 {
-    
     int printListTerm = 1;
     int fd1[2];
     int fd2[2];
