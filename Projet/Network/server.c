@@ -122,10 +122,6 @@ void *client_thread(void *arg)
 		printIP(&client->IPandPort);
 	}
 
-	pthread_mutex_lock(&client->lockInfo);
-	client->status = ENDED;
-	pthread_mutex_unlock(&client->lockInfo);
-
 	pthread_mutex_lock(&client->lockRead);
 	pthread_mutex_lock(&client->lockWrite);
 
@@ -133,6 +129,10 @@ void *client_thread(void *arg)
 
 	pthread_mutex_unlock(&client->lockWrite);
 	pthread_mutex_unlock(&client->lockRead);
+
+	pthread_mutex_lock(&client->lockInfo);
+	client->status = NOTCONNECTED;
+	pthread_mutex_unlock(&client->lockInfo);
 
 	printf("Client disconnected:\n");
 	printIP(&client->IPandPort);
@@ -217,23 +217,17 @@ void *server(void *arg)
 			pthread_mutex_unlock(&client->lockWrite);
 			pthread_mutex_unlock(&client->lockInfo);
 		}
-		else
+		else if(client->status == NOTCONNECTED)
 		{
-			client->clientSocket = fd;
-		}	
-
-		if (pthread_create(&client->clientThread, NULL, client_thread, (void *)client) == 0)
-		{
-			pthread_detach(client->clientThread);
-		}
-		else
-		{
-			//pas bon faaut pas faire comme caje dois pas remove, juste close
 			pthread_mutex_lock(&client->lockInfo);
-			client->status = DEAD;
+			client->clientSocket = fd;
 			pthread_mutex_unlock(&client->lockInfo);
-			removeClient(client);
 		}
+
+		if (client->status == NOTCONNECTED && pthread_create(&client->clientThread, NULL, client_thread, (void *)client) == 0)
+			pthread_detach(client->clientThread);
+		else
+			close(fd);
 	}
 
 	close(skt);

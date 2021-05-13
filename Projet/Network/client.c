@@ -63,8 +63,19 @@ int SendMessageForOneClient(struct clientInfo *client, char *message, unsigned l
 
 int SendMessage(struct clientInfo *clientList, char *message)
 {
+	struct clientInfo *toRemove;
 	for (clientList = clientList->sentinel->next; clientList != clientList->sentinel; clientList = clientList->next)
-		SendMessageForOneClient(clientList, message, sizeMessage(message));
+	{
+		if(SendMessageForOneClient(clientList, message, sizeMessage(message)) < 0)
+		{
+			pthread_mutex_lock(&clientList->lockInfo);
+			clientList->status = DEAD;
+			pthread_mutex_unlock(&clientList->lockInfo);
+			toRemove = clientList;
+			clientList = clientList->next;
+			removeClient(toRemove);
+		}	
+	}	
 
 	return 1;
 }

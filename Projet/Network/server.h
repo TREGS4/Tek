@@ -28,10 +28,11 @@
 #define ENDED 0
 #define CONNECTED 1
 #define CONNECTING 3
-#define SENTINEL 4
-#define ONLINE 5
-#define OFFLINE 6
-#define EXITING 7
+#define NOTCONNECTED 4
+#define SENTINEL 5
+#define ONLINE 6
+#define OFFLINE 7
+#define EXITING 8
 #define NOTUSED 255
 #define DEAD 254
 
