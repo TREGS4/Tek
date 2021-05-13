@@ -29,12 +29,19 @@ void *read_thread(void *arg)
 
 		/*Header part*/
 
-		while (client->status != ERROR && nbToRead > 0)
+		while (client->status != ERROR && client->status != ENDED && nbToRead > 0)
 		{
-			if ((r = read(fdin, &buffLen + nbchr, nbToRead)) <= 0)
+			if ((r = read(fdin, &buffLen + nbchr, nbToRead)) < 0)
 			{
 				pthread_mutex_lock(&client->lockInfo);
 				client->status = ERROR;
+				printf("An error has occured when reading the header on the socket\n");
+				pthread_mutex_unlock(&client->lockInfo);
+			}
+			else if(r == 0)
+			{
+				pthread_mutex_lock(&client->lockInfo);
+				client->status = ENDED;
 				pthread_mutex_unlock(&client->lockInfo);
 			}
 
@@ -71,12 +78,19 @@ void *read_thread(void *arg)
 
 		/*Message part*/
 
-		while (client->status != ERROR && size > 0)
+		while (client->status != ERROR && client->status != ENDED && size > 0)
 		{
-			if ((r = read(fdin, &buff, nbToRead)) <= 0)
+			if ((r = read(fdin, &buff, nbToRead)) < 0)
 			{
 				pthread_mutex_lock(&client->lockInfo);
 				client->status = ERROR;
+				printf("An error has occured when reading the data on the socket\n");
+				pthread_mutex_unlock(&client->lockInfo);
+			}
+			else if(r == 0)
+			{
+				pthread_mutex_lock(&client->lockInfo);
+				client->status = ENDED;
 				pthread_mutex_unlock(&client->lockInfo);
 			}
 
