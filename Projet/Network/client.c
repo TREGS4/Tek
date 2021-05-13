@@ -66,11 +66,12 @@ int SendMessage(struct clientInfo *clientList, char *message)
 
 int addClient(struct sockaddr_in IP, struct clientInfo *clientList)
 {
-	if(itsme(&IP, &clientList->server->IPandPort) == 0 && isInList(&IP, clientList) == 0)
+	if(itsme(&IP, &clientList->server->IPandPort) == 0 && isInList(&IP, clientList) == NULL)
 	{
 		struct clientInfo *client = initClient(clientList);
 		client->IPandPort = IP;
 		client->IPLen = sizeof(struct sockaddr_in);
+		printf("Client add\n");
 	}
 
 	return 1;

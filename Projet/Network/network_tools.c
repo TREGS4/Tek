@@ -184,7 +184,7 @@ int itsme(struct sockaddr_in *first, struct sockaddr_in *second)
 struct clientInfo * isInList(struct sockaddr_in *tab, struct clientInfo *list)
 {
     int find = 0;
-    struct clientInfo *res;
+    struct clientInfo *res = NULL;
     list = list->sentinel->next;
 
     while (find == 0 && list != list->sentinel)

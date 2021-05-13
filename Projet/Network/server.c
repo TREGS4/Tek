@@ -229,6 +229,7 @@ void *server(void *arg)
 		}
 		else
 		{
+			//pas bon faaut pas faire comme caje dois pas remove, juste close
 			pthread_mutex_lock(&client->lockInfo);
 			client->status = DEAD;
 			pthread_mutex_unlock(&client->lockInfo);
