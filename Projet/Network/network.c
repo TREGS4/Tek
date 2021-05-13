@@ -44,6 +44,9 @@ void *printList(void *arg)
             case CONNECTING:
                 printf("%lu is connecting\n", client->ID);
                 break;
+            case NOTCONNECTED:
+                printf("%lu is not connected\n", client->ID);
+                break;
             case ENDED:
                 printf("%lu is ended\n", client->ID);
                 break;

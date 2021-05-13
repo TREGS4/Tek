@@ -225,6 +225,6 @@ struct clientInfo *addClient(struct sockaddr_in IP, struct clientInfo *clientLis
         pthread_mutex_unlock(&client->lockInfo);
         printf("Client add\n");
     }
-
+    
     return client;
 }
