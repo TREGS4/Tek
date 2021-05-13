@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 
 	sleep(10);
 	pthread_mutex_lock(&tst.mutext);
-	//SendMessage("Hello world !\n", tst.fd[1], 15, 2);
+	SendMessage("Hello world !\n", tst.fd[1], 15, 2);
 	//SendMessage((char *)bcbin.bin, tst.fd[1], (unsigned long long)bcbin.nbBytes, 2);
 	printf("Message send\n");
 	pthread_mutex_unlock(&tst.mutext);

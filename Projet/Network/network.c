@@ -14,7 +14,7 @@ void Send(int fd, const void *buf, size_t count, int flag)
 }
 
 
-void SendMessage(char *str /*Must be \0 terminated*/, int fd, unsigned long long len, char type)
+void SendMessage(char *str, int fd, unsigned long long len, char type)
 {
     unsigned long long datasize = len;
     size_t headersize = SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG;
