@@ -29,64 +29,30 @@ void *moncul(void *arg)
 void *mabite(void *arg)
 {
 	struct test *tst = arg;
-	while (tst->fd[0] == -1)
-	{
-		;
-	}
 
-	int fdin = tst->fd[0];
-	char buffLen[SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG + 1];
-	char buffType[SIZE_TYPE_MSG + 1];
-	char *buff;
-	int r = 1;
-	int type;
-	unsigned long long size;
+    unsigned long long len = 0;
+    char buffh[HEADER_SIZE];
+    char *buff;
+    int r = 1;
+    unsigned long long nbToRead = 0;
+    unsigned long long nbchr = 0;
 
-	while (1)
-	{
+    while ((r = read(tst->fd[0], &buffh, HEADER_SIZE)) > 0)
+    {
+        memcpy(buffh + SIZE_TYPE_MSG, &len, SIZE_DATA_LEN_HEADER);
+        buff = malloc(sizeof(char) * len);
 
-		memset(buffLen, 0, SIZE_DATA_LEN_HEADER + 1);
-		memset(buffType, 0, SIZE_TYPE_MSG + 1);
-
-		size_t nbToRead = SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG;
-		size_t nbchr = 0;
-
-		/*Header part*/
-
-		while (nbToRead > 0)
-		{
-			r = read(fdin, &buffLen + nbchr, nbToRead);
+        while (nbToRead > 0)
+        {
+            r = read(tst->fd[0], buff + HEADER_SIZE + nbchr, nbToRead);
 			nbToRead -= r;
 			nbchr += r;
-		}
+        }
 
-		for (size_t i = 0; i < SIZE_TYPE_MSG; i++)
-			buffType[i] = buffLen[i];
+        write(STDOUT_FILENO, buff, len);
+    }
 
-		type = buffLen[0];
-		printf("The type of the message is %d\n", type);
-		memcpy(&size, &buffLen[SIZE_TYPE_MSG], 8);
-		buff = malloc(sizeof(char) * size);
-		nbToRead = size;
-		nbchr = 0;
-
-		while (nbToRead > 0)
-		{
-			r = read(fdin, &buff + nbchr, nbToRead);
-			nbToRead -= r;
-			nbchr += r;
-		}
-
-		for (size_t i = 0; i < size; i++)
-		{
-			if (i % 20 == 0)
-			{
-				printf("\n");
-			}
-			printf("%02x ", buff[i]);
-		}
-		printf("\n\n");
-	}
+	return NULL;
 }
 
 void printTransaction(TRANSACTION t)
@@ -165,7 +131,7 @@ int grosTest(int argc, char **argv)
 	pthread_t thread;
 	pthread_t readfd;
 	pthread_create(&thread, NULL, moncul, (void *)&tst);
-	//pthread_create(&readfd, NULL, mabite, (void *)&tst);
+	pthread_create(&readfd, NULL, mabite, (void *)&tst);
 
 	TRANSACTION t =
 		{

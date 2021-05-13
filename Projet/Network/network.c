@@ -19,7 +19,7 @@ void *ReWriteForAllThreads(void *arg)
     {
         memcpy(buffh + SIZE_TYPE_MSG, &len, SIZE_DATA_LEN_HEADER);
         memcpy(buff, buffh, HEADER_SIZE);
-        buff = malloc(sizeof(char) * len);
+        buff = malloc(sizeof(char) * (HEADER_SIZE + len));
 
         while (server->status == ONLINE && nbToRead > 0)
         {
