@@ -1,4 +1,4 @@
-
+#include "server.h"
 #include "client.h"
 
 void Send(int fd, const void *buf, size_t count, int flag)
@@ -44,8 +44,13 @@ int connectClient(struct sockaddr_in *IP)
 int SendMessageForOneClient(struct clientInfo *client, char *message, unsigned long long len)
 {
 	int skt = -1;
+	struct sockaddr_in clienttemp;
 
-	if ((skt = connectClient(&client->IPandPort)) < 0)
+    clienttemp.sin_addr = client->IPandPort.sin_addr;
+    clienttemp.sin_family = client->IPandPort.sin_family;
+    clienttemp.sin_port = htons(atoi(PORT));
+
+	if ((skt = connectClient(&clienttemp)) < 0)
 	{
 		printf("Error while creating the socket\n");
 		return -1;

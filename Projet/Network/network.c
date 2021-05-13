@@ -60,6 +60,7 @@ void *printList(void *arg)
                 printf("%lu is in an unknown state\n", client->ID);
                 break;
             }
+            printIP(&client->IPandPort);
         }
         printf("\n\n");
         sleep(2);
@@ -147,13 +148,11 @@ void *internComms(void *arg)
 
             client.sin_port = htons(atoi(PORT));
 
-            struct clientInfo *me = isInList(&client, server->listClients);
-            int inlist = itsme(&client, &server->IPandPort);
             //printf("IP: %s\n", buffIP);
             //printf("%d\n", me);
             //printf("%d\n", inlist);
 
-            if (inlist == 0 && me == NULL)
+            if (itsme(&client, &server->IPandPort) == 0 &&  isInList(&client, server->listClients) == NULL)
             {
                 addClient(client, server->listClients);
             }
@@ -203,7 +202,7 @@ void *sendNetwork(void *arg)
 int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *firstserver)
 {
     
-    int printListTerm = 0;
+    int printListTerm = 1;
     int fd1[2];
     int fd2[2];
     pipe(fd1);

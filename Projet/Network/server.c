@@ -111,7 +111,7 @@ void *client_thread(void *arg)
 		pthread_mutex_lock(&client->lockInfo);
 		client->status = CONNECTED;
 		pthread_mutex_unlock(&client->lockInfo);
-		printf("Server connnected:\n");
+		printf("Client connnected:\n");
 		printIP(&client->IPandPort);
 		printf("\n\n");
 		pthread_join(client->readThread, NULL);
@@ -137,7 +137,6 @@ void *client_thread(void *arg)
 	printf("Client disconnected:\n");
 	printIP(&client->IPandPort);
 	printf("\n\n");
-	removeClient(client);
 
 	return NULL;
 }
