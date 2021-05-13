@@ -181,21 +181,18 @@ int itsme(struct sockaddr_in *first, struct sockaddr_in *second)
     return me;
 }
 
-struct clientInfo * isInList(struct sockaddr_in *tab, struct clientInfo *list)
+int isInList(struct sockaddr_in *tab, struct clientInfo *list)
 {
     int find = 0;
-    struct clientInfo *res;
     list = list->sentinel->next;
 
     while (find == 0 && list != list->sentinel)
     {
         find = itsme(tab, &list->IPandPort);
-        if(find)
-            res = list;
         list = list->next;
     }
 
-    return res;
+    return find;
 }
 
 void printIP(struct sockaddr_in *IP)

@@ -87,7 +87,7 @@ void *read_thread(void *arg)
 			else
 				nbToRead = BUFFER_SIZE_SOCKET;
 
-			if (type != 1)
+			if(type != 1)
 				printf("file descriptor thread: %d\n", fdout);
 
 			write(fdout, buff, r);
@@ -102,29 +102,42 @@ void *read_thread(void *arg)
 	return NULL;
 }
 
+void *write_thread(void *arg)
+{
+	//printf("in write thread server\n");
+	struct clientInfo *client = arg;
+	int fdin = client->fdinThread;
+	int fdout = client->clientSocket;
+
+	char buff[BUFFER_SIZE_SOCKET];
+	int r = 1;
+
+	while (client->status != ENDED && (r = read(fdin, &buff, BUFFER_SIZE_SOCKET)) > 0)
+		write(fdout, buff, r);
+
+	return NULL;
+}
+
 void *client_thread(void *arg)
 {
 	struct clientInfo *client = arg;
 
-	if (pthread_create(&client->readThread, NULL, read_thread, arg) == 0)
-	{
-		pthread_mutex_lock(&client->lockInfo);
-		client->status = CONNECTED;
-		pthread_mutex_unlock(&client->lockInfo);
-		printf("Server connnected:\n");
-		printIP(&client->IPandPort);
-		printf("\n\n");
-		pthread_join(client->readThread, NULL);
-	}
-	else
-	{
-		printf("Error while create the read thread for :\n");
-		printIP(&client->IPandPort);
-	}
+	pthread_create(&client->writeThread, NULL, write_thread, arg);
+	pthread_create(&client->readThread, NULL, read_thread, arg);
+
+	printf("Server connnected:\n");
+	printIP(&client->IPandPort);
+	printf("\n\n");
+
+	pthread_join(client->readThread, NULL);
+	//printf("read thread ended !\n");
 
 	pthread_mutex_lock(&client->lockInfo);
 	client->status = ENDED;
 	pthread_mutex_unlock(&client->lockInfo);
+
+	pthread_join(client->writeThread, NULL);
+	//printf("write thread ended !\n");
 
 	pthread_mutex_lock(&client->lockRead);
 	pthread_mutex_lock(&client->lockWrite);
@@ -193,49 +206,94 @@ void *server(void *arg)
 
 	while (!finish)
 	{
-
+		struct clientInfo *client = initClient(serInfo->listClients);
 		int fd = -1;
 		struct sockaddr_in temp;
 		socklen_t len = 0;
 		len = sizeof(temp);
 
 		fd = accept(skt, (struct sockaddr *)&temp, &len);
-		struct clientInfo *client;
 
-		if ((client = isInList(&temp, serInfo->listClients)) == NULL)
-		{
-			client = initClient(serInfo->listClients);
-			pthread_mutex_lock(&client->lockInfo);
-			pthread_mutex_lock(&client->lockWrite);
-			pthread_mutex_lock(&client->lockRead);
+		pthread_mutex_lock(&client->lockInfo);
+		pthread_mutex_lock(&client->lockWrite);
+		pthread_mutex_lock(&client->lockRead);
 
-			client->IPLen = len;
-			client->IPandPort = temp;
-			client->clientSocket = fd;
+		client->IPLen = len;
+		client->IPandPort = temp;
+		client->clientSocket = fd;
 
-			client->status = CONNECTING;
-			pthread_mutex_unlock(&client->lockRead);
-			pthread_mutex_unlock(&client->lockWrite);
-			pthread_mutex_unlock(&client->lockInfo);
-		}
-		else
-		{
-			client->clientSocket = fd;
-		}	
-
-		if (pthread_create(&client->clientThread, NULL, client_thread, (void *)client) == 0)
-		{
-			pthread_detach(client->clientThread);
-		}
-		else
-		{
-			pthread_mutex_lock(&client->lockInfo);
-			client->status = DEAD;
-			pthread_mutex_unlock(&client->lockInfo);
-			removeClient(client);
-		}
+		client->status = CONNECTING;
+		pthread_mutex_unlock(&client->lockRead);
+		pthread_mutex_unlock(&client->lockWrite);
+		pthread_mutex_unlock(&client->lockInfo);
 	}
 
 	close(skt);
 	return NULL;
+}
+
+void *connectionMaintener(void *arg)
+{
+	struct serverInfo *server = arg;
+	struct clientInfo *client = server->listClients;
+	int res = 1;
+
+	while (res)
+	{
+		for (client = client->sentinel->next; client != client->sentinel; client = client->next)
+		{
+			if (client->status == CONNECTING)
+			{
+				if (pthread_create(&client->clientThread, NULL, client_thread, (void *)client) == 0)
+				{
+					pthread_mutex_lock(&client->lockInfo);
+					client->status = CONNECTED;
+					pthread_mutex_unlock(&client->lockInfo);
+				}
+				else
+				{
+					pthread_mutex_lock(&client->lockInfo);
+					client->status = DEAD;
+					pthread_mutex_unlock(&client->lockInfo);
+					client = client->next;
+					removeClient(client->prev);
+				}
+			}
+		}
+		sleep(0.1);
+	}
+
+	return NULL;
+}
+
+int connectClient(struct sockaddr_in *IP, struct clientInfo *list)
+{
+	if (IP == NULL)
+		return 1;
+
+	int skt;
+
+	if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	{
+		return -1;
+	}
+
+	if (connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0)
+	{
+		printf("I'm here\n");
+		perror(NULL);
+		return -1;
+	}
+	else
+	{
+		struct clientInfo *client = initClient(list);
+		pthread_mutex_lock(&client->lockInfo);
+		client->clientSocket = skt;
+		client->IPandPort = *IP;
+		client->IPLen = sizeof(client->IPandPort);
+		client->status = CONNECTING;
+		pthread_mutex_unlock(&client->lockInfo);
+	}
+
+	return 1;
 }

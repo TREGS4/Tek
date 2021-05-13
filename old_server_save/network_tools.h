@@ -30,8 +30,8 @@ struct clientInfo *last(struct clientInfo *client);
 //Compare to sockaddr_in, if there are equals return 1, 0 otherwise
 int itsme(struct sockaddr_in *first, struct sockaddr_in *second);
 
-//Search the tab in the list, return his pointer if find, Null pointer otherwise
-struct clientInfo * isInList(struct sockaddr_in *tab, struct clientInfo *list);
+//Search the tab in the list, return 1 if find, 0 otherwise
+int isInList(struct sockaddr_in *tab, struct clientInfo *list);
 
 //Print the IP and port in the terminal
 void printIP(struct sockaddr_in *IP);

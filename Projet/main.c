@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include "Network/network.h"
 #include "Network/server.h"
+#include <signal.h>
+
 
 struct test
 {
@@ -62,6 +64,7 @@ void *mabite(void *arg)
 			buffType[i] = buffLen[i];
 
 		type = buffLen[0];
+		printf("The type of the message is %d\n", type);
 		memcpy(&size, &buffLen[SIZE_TYPE_MSG], 8);
 		buff = malloc(sizeof(char) * size);
 		nbToRead = size;
@@ -149,7 +152,7 @@ void verifBlockchain(BLOCKCHAIN blockchain)
 	printf("-------------End of verification-------------\n");
 }
 
-int main(int argc, char **argv)
+int grosTest(int argc, char **argv)
 {
 	if (argc > 3)
 		return -1;
@@ -247,4 +250,10 @@ int main(int argc, char **argv)
 	free(newBlockchain.blocks);
 	pthread_join(thread, NULL);
 	pthread_join(readfd, NULL);
+}
+
+
+int main(int argc, char **argv)
+{
+	grosTest(argc, argv);
 }

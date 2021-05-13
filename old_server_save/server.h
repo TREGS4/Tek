@@ -82,5 +82,7 @@ struct serverInfo
 };
 
 void *server(void *arg);
+void *connectionMaintener(void *arg);
+int connectClient(struct sockaddr_in *IP, struct clientInfo *list);
 
 #endif
