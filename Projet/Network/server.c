@@ -38,7 +38,7 @@ void *read_thread(void *arg)
 				printf("An error has occured when reading the header on the socket\n");
 				pthread_mutex_unlock(&client->lockInfo);
 			}
-			else if(r == 0)
+			else if (r == 0)
 			{
 				pthread_mutex_lock(&client->lockInfo);
 				client->status = ENDED;
@@ -87,7 +87,7 @@ void *read_thread(void *arg)
 				printf("An error has occured when reading the data on the socket\n");
 				pthread_mutex_unlock(&client->lockInfo);
 			}
-			else if(r == 0)
+			else if (r == 0)
 			{
 				pthread_mutex_lock(&client->lockInfo);
 				client->status = ENDED;
@@ -138,14 +138,11 @@ void *client_thread(void *arg)
 	pthread_mutex_unlock(&client->lockWrite);
 	pthread_mutex_unlock(&client->lockRead);
 
-	if (client->status == ERROR)
-		removeClient(client);
-	else
-	{
-		pthread_mutex_lock(&client->lockInfo);
+	pthread_mutex_lock(&client->lockInfo);
+	if(client->status == CONNECTED)
 		client->status = NOTCONNECTED;
-		pthread_mutex_unlock(&client->lockInfo);
-	}
+	pthread_mutex_unlock(&client->lockInfo);
+
 	return NULL;
 }
 

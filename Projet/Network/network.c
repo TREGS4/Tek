@@ -26,6 +26,30 @@ void *ReWriteForAllThreads(void *arg)
     return NULL;
 }
 
+void *removeClientThread(void *arg)
+{
+    struct serverInfo *server = arg;
+    struct clientInfo *client;
+    struct clientInfo *toRemove;
+
+    while(server->status != EXITING)
+    {
+        for (client = client->sentinel->next; client != client->sentinel; client = client->next)
+        {
+            if (client->status == ERROR || client->status == ENDED)
+            {
+                toRemove = client;
+                client = client->next;
+                removeClient(toRemove);
+            }
+        }
+        sleep(0.5);
+    }
+
+    return NULL;
+}
+
+
 void *printList(void *arg)
 {
     struct clientInfo *client = arg;
@@ -220,7 +244,8 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     *fdout = fd2[1];
 
     pthread_t serverThread;
-    pthread_t reWriteThread;
+    pthread_t removeThread;
+    //pthread_t reWriteThread;
     pthread_t internCommsThread;
     pthread_t sendNetworkThread;
     pthread_t printListThread;
@@ -236,14 +261,16 @@ int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *fir
     }
 
     pthread_create(&serverThread, NULL, server, (void *)serverInf);
-    pthread_create(&reWriteThread, NULL, ReWriteForAllThreads, (void *)serverInf->listClients);
+    pthread_create(&removeThread, NULL, removeClientThread, (void *)serverInf);
+    //pthread_create(&reWriteThread, NULL, ReWriteForAllThreads, (void *)serverInf->listClients);
     pthread_create(&internCommsThread, NULL, internComms, (void *)serverInf);
     pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)serverInf);
     if (printListTerm == 1)
         pthread_create(&printListThread, NULL, printList, (void *)serverInf->listClients);
 
     pthread_join(serverThread, NULL);
-    pthread_join(reWriteThread, NULL);
+    pthread_join(removeThread, NULL);
+    //pthread_join(reWriteThread, NULL);
     pthread_join(internCommsThread, NULL);
     pthread_join(sendNetworkThread, NULL);
     if (printListTerm == 1)
