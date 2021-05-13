@@ -29,12 +29,12 @@ void *read_thread(void *arg)
 
 		/*Header part*/
 
-		while (client->status != ENDED && nbToRead > 0)
+		while (client->status != ERROR && nbToRead > 0)
 		{
 			if ((r = read(fdin, &buffLen + nbchr, nbToRead)) <= 0)
 			{
 				pthread_mutex_lock(&client->lockInfo);
-				client->status = ENDED;
+				client->status = ERROR;
 				pthread_mutex_unlock(&client->lockInfo);
 			}
 
@@ -71,12 +71,12 @@ void *read_thread(void *arg)
 
 		/*Message part*/
 
-		while (client->status != ENDED && size > 0)
+		while (client->status != ERROR && size > 0)
 		{
 			if ((r = read(fdin, &buff, nbToRead)) <= 0)
 			{
 				pthread_mutex_lock(&client->lockInfo);
-				client->status = ENDED;
+				client->status = ERROR;
 				pthread_mutex_unlock(&client->lockInfo);
 			}
 
@@ -86,9 +86,6 @@ void *read_thread(void *arg)
 				nbToRead = size;
 			else
 				nbToRead = BUFFER_SIZE_SOCKET;
-
-			if (type != 1)
-				printf("file descriptor thread: %d\n", fdout);
 
 			write(fdout, buff, r);
 		}
@@ -127,10 +124,14 @@ void *client_thread(void *arg)
 	pthread_mutex_unlock(&client->lockWrite);
 	pthread_mutex_unlock(&client->lockRead);
 
-	pthread_mutex_lock(&client->lockInfo);
-	client->status = NOTCONNECTED;
-	pthread_mutex_unlock(&client->lockInfo);
-
+	if (client->status == ERROR)
+		removeClient(client);
+	else
+	{
+		pthread_mutex_lock(&client->lockInfo);
+		client->status = NOTCONNECTED;
+		pthread_mutex_unlock(&client->lockInfo);
+	}
 	return NULL;
 }
 
@@ -194,8 +195,7 @@ void *server(void *arg)
 		fd = accept(skt, (struct sockaddr *)&temp, &len);
 		struct clientInfo *client = addClient(temp, serInfo->listClients);
 
-		
-		if(client->status == NOTCONNECTED)
+		if (client->status == NOTCONNECTED)
 		{
 			pthread_mutex_lock(&client->lockInfo);
 			client->clientSocket = fd;
