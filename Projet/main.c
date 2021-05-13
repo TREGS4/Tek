@@ -1,9 +1,11 @@
 #include "Block/block.h"
 #include "Block/transactions.h"
 #include "Block/blockchain.h"
+#include "Block/account.h"
 #include "Hash/sha256.h"
 #include <stdio.h>
 #include <stdlib.h>
+
 
 void printTransaction(TRANSACTION t) 
 {
@@ -70,11 +72,10 @@ void verifBlockchain(BLOCKCHAIN blockchain)
 
 
 int main(){
-
 	TRANSACTION t = 
 	{
 		.sender = "Adrien",
-		.receiver = "Paul",
+		.receiver = "Tom",
 		.amount = 104
 	};
 	
@@ -93,7 +94,7 @@ int main(){
 	};
 	
 	BLOCK b;
-	b.tl = initListTxs();	
+	b.tl = initListTxs();
 	for (int i = 0; i < 3; i++)
 	{
 		t.amount = rand() % 3000 + 1;
@@ -123,19 +124,15 @@ int main(){
 	printf("Number of blocks in the blockchain : %lu.\n\n", newBlockchain.blocksNumber);
 	printBlockchain(newBlockchain);
 	printf("\n");
-	
-	verifBlockchain(newBlockchain);
 
+
+	verifBlockchain(newBlockchain);
 
 	char *json = blockchainToJson(&newBlockchain);
 	printf("\nBlockchain en format JSON:\n\n%s\n\n\n", json);
 	free(json);
 
 
-
-	/*
-		Print la blockchain en chaine binaire.
-	*/
 	printf("\nBlockchain en format BIN:\n\n");
 	BLOCKCHAIN_BIN bcbin = blockchainToBin(&newBlockchain);
 	for (size_t i = 0; i < bcbin.nbBytes; i++)
@@ -149,12 +146,10 @@ int main(){
 	
 	free(bcbin.bin);
 
-
-
-
+	
 	printf("\nTests :\n\n");
 
-	/*TXS*/
+
 	printTransaction(newBlockchain.blocks[1].tl.transactions[0]);
 	TRANSACTION_BIN txsbin = txsToBin(&newBlockchain.blocks[1].tl.transactions[0]);
 	for (size_t i = 0; i < txsbin.nbBytes; i++)
@@ -169,11 +164,11 @@ int main(){
 	TRANSACTION t4 = binToTxs(txsbin.bin);
 	printTransaction(t4);
 	free(txsbin.bin);
+	
 
-	/*BLOCK*/
 	printf("\n\n");
-	printBlock(newBlockchain.blocks[2]);
-	BLOCK_BIN blockbin = blockToBin(&newBlockchain.blocks[2]);
+	printBlock(newBlockchain.blocks[1]);
+	BLOCK_BIN blockbin = blockToBin(&newBlockchain.blocks[1]);
 	for (size_t i = 0; i < blockbin.nbBytes; i++)
 	{
 		if (i % 20 == 0){
@@ -188,7 +183,7 @@ int main(){
 	free(blockbin.bin);
 
 
-	/*BLOCKCHAIN*/
+
 	printf("\n\n");
 	printBlockchain(newBlockchain);
 	bcbin = blockchainToBin(&newBlockchain);
@@ -207,6 +202,11 @@ int main(){
 	free(bc.blocks);
 
 
-	
+	ACCOUNT acc = generate_account();
+	printf("acc key size: %ld\n", acc.size);
+	printf("pem = \n%s\n", acc.publicKey_pem);
+
+
+
 	free(newBlockchain.blocks);
 }

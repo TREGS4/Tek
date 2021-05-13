@@ -31,12 +31,11 @@ size_t getSizeOf_txsbin(){
 }
 TRANSACTION_BIN txsToBin(TRANSACTION *t)
 {
-	TRANSACTION *res = calloc(1, getSizeOf_txsbin());
-	*res = *t;
 	TRANSACTION_BIN txsbin = {
-		.bin = (BYTE*)res,
 		.nbBytes = getSizeOf_txsbin(),
 	};
+	txsbin.bin = calloc(1, getSizeOf_txsbin());
+	memcpy(txsbin.bin, t, getSizeOf_txsbin());
 	return txsbin;
 }
 
@@ -56,8 +55,10 @@ TRANSACTIONS_LIST initListTxs()
 	};
 	
 	newTransactionsList.transactions = malloc(sizeof(TRANSACTION) * newTransactionsList.capacity);
-	if (newTransactionsList.transactions == NULL)
+	if (newTransactionsList.transactions == NULL){
+		printf("error initListTxs\n");
 		exit(1);
+	}
 
 	return newTransactionsList;
 }

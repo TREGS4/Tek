@@ -3,8 +3,7 @@
 
 #include <stdlib.h>
 #include "../Hash/sha256.h"
-
-#define NB_TRANSACTIONS_PER_BLOCK 10
+#include "./account.h"
 
 #define TRANSACTION_USER_SIZE 20
 #define TRANSACTION_AMOUNT_SIZE 24

@@ -24,12 +24,12 @@ typedef struct {
 	WORD datalen;
 	unsigned long long bitlen;
 	WORD state[8];
-} SHA256_CTX;
+} SHA256_CTXX;
 
 /*********************** FUNCTION DECLARATIONS **********************/
-void sha256_init(SHA256_CTX *ctx);
-void sha256_update(SHA256_CTX *ctx, const BYTE data[], size_t len);
-void sha256_final(SHA256_CTX *ctx, BYTE hash[]);
+void sha256_init(SHA256_CTXX *ctx);
+void sha256_update(SHA256_CTXX *ctx, const BYTE data[], size_t len);
+void sha256_final(SHA256_CTXX *ctx, BYTE hash[]);
 void sha256(const BYTE *txt, BYTE buf[SHA256_BLOCK_SIZE]);
 void sha256ToAscii(BYTE hash[SHA256_BLOCK_SIZE], char buf[SHA256_BLOCK_SIZE * 2]);
 
