@@ -131,7 +131,7 @@ int grosTest(int argc, char **argv)
 	pthread_t thread;
 	pthread_t readfd;
 	pthread_create(&thread, NULL, moncul, (void *)&tst);
-	pthread_create(&readfd, NULL, mabite, (void *)&tst);
+	//pthread_create(&readfd, NULL, mabite, (void *)&tst);
 
 	TRANSACTION t =
 		{
@@ -198,10 +198,21 @@ int grosTest(int argc, char **argv)
 	}
 	//printf("\n\n");
 
+	char *data = "Hello world !\n";
+	int type = 2;
+	unsigned long long len = strlen(data);
+	char buff[HEADER_SIZE + len];
+	
+	
+	memcpy(buff, &type, SIZE_TYPE_MSG);
+	memcpy(buff + SIZE_TYPE_MSG, &len, SIZE_DATA_LEN_HEADER);
+	memcpy(buff + HEADER_SIZE, data, len);
+
 	while (1)
 	{
 		sleep(1);
 		pthread_mutex_lock(&tst.mutext);
+		//write(tst.fd[1], buff, HEADER_SIZE + len);
 		//SendMessage("Hello world !\n", tst.fd[1], 15, 2);
 		//SendMessage((char *)bcbin.bin, tst.fd[1], (unsigned long long)bcbin.nbBytes, 2);
 		//printf("Message send\n");

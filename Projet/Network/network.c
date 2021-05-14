@@ -14,13 +14,14 @@ void *ReWriteForAllThreads(void *arg)
     int r = 1;
     unsigned long long nbToRead = 0;
     unsigned long long nbchr = 0;
-
+printf("here");
     while ((r = read(client->sentinel->fdinThread, &buffh, HEADER_SIZE)) > 0 && server->status == ONLINE)
     {
         memcpy(buffh + SIZE_TYPE_MSG, &len, SIZE_DATA_LEN_HEADER);
         memcpy(buff, buffh, HEADER_SIZE);
         buff = malloc(sizeof(char) * (HEADER_SIZE + len));
 
+        
         while (server->status == ONLINE && nbToRead > 0)
         {
             r = read(client->sentinel->fdinThread, buff + HEADER_SIZE + nbchr, nbToRead);
@@ -240,7 +241,7 @@ void *sendNetwork(void *arg)
 
 int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *firstserver)
 {
-    int printListTerm = 1;
+    int printListTerm = 0;
     int fd1[2];
     int fd2[2];
     pipe(fd1);

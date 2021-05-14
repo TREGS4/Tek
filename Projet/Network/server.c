@@ -1,6 +1,25 @@
 #include "server.h"
 #include "network_tools.h"
 
+void printData(int type, unsigned long long len, char *buff)
+{
+	size_t taille = (3 + 10 + 21 + len)*10;
+	char *message = malloc(taille);
+	memset(message, 0, taille);
+	sprintf(message, "Type: %d\nSize: %llu\nData: ", type, len);
+	size_t offset = strlen(message);
+
+	for(size_t i = 0; i < len * 3; i += 3)
+	{
+		sprintf(message + offset + i, "%02x ", buff[i]);
+	}
+	message[strlen(message)] = '\n';
+	message[strlen(message)] = '\n';
+
+	printf(message);
+}
+
+
 void *read_thread(void *arg)
 {
 	//printf("in read thread server\n");
@@ -15,6 +34,10 @@ void *read_thread(void *arg)
 	char buffLen[SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG + 1];
 	char buffType[SIZE_TYPE_MSG + 1];
 	char buff[BUFFER_SIZE_SOCKET];
+
+	//debug
+	unsigned long long sizecopie;
+
 
 	while (client->status == CONNECTED)
 	{
@@ -54,6 +77,7 @@ void *read_thread(void *arg)
 
 		type = buffLen[0];
 		memcpy(&size, &buffLen[SIZE_TYPE_MSG], 8);
+		sizecopie = size;
 
 		if (size < BUFFER_SIZE_SOCKET)
 			nbToRead = size;
@@ -108,6 +132,8 @@ void *read_thread(void *arg)
 			pthread_mutex_unlock(client->lockReadGlobalExtern);
 		if (writingIntern == 1)
 			pthread_mutex_unlock(client->lockReadGlobalIntern);
+
+		printData(type, sizecopie, buff);
 	}
 
 	return NULL;
