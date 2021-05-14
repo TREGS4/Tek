@@ -3,13 +3,13 @@
 
 void printData(int type, unsigned long long len, char *buff)
 {
-	size_t taille = (3 + 10 + 21 + len)*10;
+	size_t taille = (3 + 10 + 21 + len) * 10;
 	char *message = malloc(taille);
 	memset(message, 0, taille);
 	sprintf(message, "Type: %d\nSize: %llu\nData: ", type, len);
 	size_t offset = strlen(message);
 
-	for(size_t i = 0; i < len * 3; i += 3)
+	for (size_t i = 0; i < len * 3; i += 3)
 	{
 		sprintf(message + offset + i, "%02x ", buff[i]);
 	}
@@ -19,156 +19,70 @@ void printData(int type, unsigned long long len, char *buff)
 	printf(message);
 }
 
-
 void *read_thread(void *arg)
 {
-	//printf("in read thread server\n");
-	struct clientInfo *client = arg;
-	int fdin = client->clientSocket;
-	int fdout = client->fdoutExtern;
-	int writingExtern = 0;
-	int writingIntern = 0;
-	unsigned long long size = 0;
-	int type = -1;
+	struct connection *client = arg;
+	unsigned long long sizeData = 0;
+	int type = 0;
+	char headerBuff[HEADER_SIZE];
+	char *dataBuff;
+	int problem = 0;
+	int fdout = -1;
+	size_t nbCharToRead = HEADER_SIZE;
+	size_t offset = 0;
+	int r = 0;
 
-	char buffLen[SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG + 1];
-	char buffType[SIZE_TYPE_MSG + 1];
-	char buff[BUFFER_SIZE_SOCKET];
+	//peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
+	//comportement inconnu dans ce cas la
 
-	//debug
-	unsigned long long sizecopie;
-
-
-	while (client->status == CONNECTED)
+	while (problem == 0 && nbCharToRead)
 	{
-		memset(buffLen, 0, SIZE_DATA_LEN_HEADER + 1);
-		memset(buffType, 0, SIZE_TYPE_MSG + 1);
-		memset(buff, 0, BUFFER_SIZE_SOCKET);
-
-		int r = 1;
-
-		size_t nbToRead = SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG;
-		size_t nbchr = 0;
-
-		/*Header part*/
-
-		while (client->status != ERROR && client->status != ENDED && nbToRead > 0)
-		{
-			if ((r = read(fdin, &buffLen + nbchr, nbToRead)) < 0)
-			{
-				pthread_mutex_lock(&client->lockInfo);
-				client->status = ERROR;
-				printf("An error has occured when reading the header on the socket\n");
-				pthread_mutex_unlock(&client->lockInfo);
-			}
-			else if (r == 0)
-			{
-				pthread_mutex_lock(&client->lockInfo);
-				client->status = ENDED;
-				pthread_mutex_unlock(&client->lockInfo);
-			}
-
-			nbToRead -= r;
-			nbchr += r;
-		}
-
-		for (size_t i = 0; i < SIZE_TYPE_MSG; i++)
-			buffType[i] = buffLen[i];
-
-		type = buffLen[0];
-		memcpy(&size, &buffLen[SIZE_TYPE_MSG], 8);
-		sizecopie = size;
-
-		if (size < BUFFER_SIZE_SOCKET)
-			nbToRead = size;
-		else
-			nbToRead = BUFFER_SIZE_SOCKET;
-
-		if (type == 1) //block the corresponding mutex for intern or extern message and setup the correct fdout
-		{
-			pthread_mutex_lock(client->lockReadGlobalIntern);
-			writingIntern = 1;
-			fdout = client->fdoutIntern;
-		}
-		else
-		{
-			pthread_mutex_lock(client->lockReadGlobalExtern);
-			writingExtern = 1;
-			fdout = client->fdoutExtern;
-		}
-
-		if (client->status == CONNECTED)
-			write(fdout, buffLen, SIZE_TYPE_MSG + SIZE_DATA_LEN_HEADER);
-
-		/*Message part*/
-
-		while (client->status != ERROR && client->status != ENDED && size > 0)
-		{
-			if ((r = read(fdin, &buff, nbToRead)) < 0)
-			{
-				pthread_mutex_lock(&client->lockInfo);
-				client->status = ERROR;
-				printf("An error has occured when reading the data on the socket\n");
-				pthread_mutex_unlock(&client->lockInfo);
-			}
-			else if (r == 0)
-			{
-				pthread_mutex_lock(&client->lockInfo);
-				client->status = ENDED;
-				pthread_mutex_unlock(&client->lockInfo);
-			}
-
-			size -= r;
-
-			if (size > BUFFER_SIZE_SOCKET)
-				nbToRead = size;
-			else
-				nbToRead = BUFFER_SIZE_SOCKET;
-
-			write(fdout, buff, r);
-		}
-
-		if (writingExtern == 1)
-			pthread_mutex_unlock(client->lockReadGlobalExtern);
-		if (writingIntern == 1)
-			pthread_mutex_unlock(client->lockReadGlobalIntern);
-
-		printData(type, sizecopie, buff);
+		r = read(client->socket, headerBuff + offset, nbCharToRead);
+		nbCharToRead -= r;
+		if (r <= 0)
+			problem = 1;
 	}
 
-	return NULL;
-}
+	memcpy(&type, headerBuff, SIZE_TYPE_MSG);
+	memcpy(&sizeData, headerBuff + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
+	nbCharToRead = sizeData;
+	dataBuff = malloc(sizeof(char) * sizeData);
 
-void *client_thread(void *arg)
-{
-	struct clientInfo *client = arg;
-
-	if (pthread_create(&client->readThread, NULL, read_thread, arg) == 0)
+	while (problem == 0 && nbCharToRead)
 	{
-		pthread_mutex_lock(&client->lockInfo);
-		client->status = CONNECTED;
-		pthread_mutex_unlock(&client->lockInfo);
-		pthread_join(client->readThread, NULL);
+		r = read(client->socket, dataBuff, nbCharToRead);
+		nbCharToRead -= r;
+		if (r <= 0)
+			problem = 1;
+	}
+
+	if (problem == 0)
+	{
+		if (type == 1)
+		{
+			fdout = client->server->fdoutIntern;
+			pthread_mutex_lock(&client->server->lockReadGlobalIntern);
+		}
+		else
+		{
+			fdout = client->server->fdoutExtern;
+			pthread_mutex_lock(&client->server->lockReadGlobalExtern);
+		}
+
+		write(fdout, headerBuff, HEADER_SIZE);
+		write(fdout, dataBuff, sizeData);
+
+		if (type == 1)
+			pthread_mutex_unlock(&client->server->lockReadGlobalIntern);
+		else
+			pthread_mutex_unlock(&client->server->lockReadGlobalExtern);
 	}
 	else
-	{
-		printf("Error while create the read thread for :\n");
-		printIP(&client->IPandPort);
-	}
+		printf("Error while receinving data in read_thread\nError with function read or not enough bytes received\n");
 
-	pthread_mutex_lock(&client->lockRead);
-	pthread_mutex_lock(&client->lockWrite);
-
-	close(client->clientSocket);
-
-	pthread_mutex_unlock(&client->lockWrite);
-	pthread_mutex_unlock(&client->lockRead);
-
-	pthread_mutex_lock(&client->lockInfo);
-	if(client->status == ENDED)
-		client->status = NOTCONNECTED;
-	pthread_mutex_unlock(&client->lockInfo);
-
+	close(client->socket);
+	free(client);
+	free(dataBuff);
 	return NULL;
 }
 
@@ -177,14 +91,11 @@ void *client_thread(void *arg)
 	When connection is receive, a fork is made for the client.
 	Each fork contain two thread for transmit and receive data simultanously.
 */
-void *server(void *arg)
+void *Server(void *arg)
 {
-	struct serverInfo *serInfo = arg;
+	struct server *server = arg;
 	struct addrinfo hints;
 	struct addrinfo *res;
-	struct timeval timeout;
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 0;
 	int connect = 0;
 	int skt;
 	memset(&hints, 0, sizeof(struct addrinfo));
@@ -201,7 +112,6 @@ void *server(void *arg)
 
 		if (skt >= 0)
 		{
-			setsockopt(skt, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 			setsockopt(skt, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value));
 
 			if (bind(skt, res->ai_addr, res->ai_addrlen) == 0)
@@ -220,30 +130,21 @@ void *server(void *arg)
 	if (listen(skt, 5) == -1)
 		err(EXIT_FAILURE, "Error on function listen() in server.c");
 
-	while (serInfo->status == ONLINE)
+	while (server->status == ONLINE)
 	{
+		struct connection *client = malloc(sizeof(struct connection));
+		pthread_t thread;
+		client->server = server;
 
-		int fd = -1;
-		struct sockaddr_in temp;
-		socklen_t len = 0;
-		len = sizeof(temp);
+		client->socket = accept(skt, NULL, NULL);
 
-		fd = accept(skt, (struct sockaddr *)&temp, &len);
-		struct clientInfo *client = addClient(temp, serInfo->listClients);
-
-		if (client->status == NOTCONNECTED)
-		{
-			pthread_mutex_lock(&client->lockInfo);
-			client->clientSocket = fd;
-			pthread_mutex_unlock(&client->lockInfo);
-
-			if (pthread_create(&client->clientThread, NULL, client_thread, (void *)client) == 0)
-				pthread_detach(client->clientThread);
-			else
-				close(fd);
-		}
+		if (pthread_create(&thread, NULL, read_thread, (void *)client) == 0)
+			pthread_detach(thread);
 		else
-			close(fd);
+		{
+			close(client->socket);
+			free(client);
+		}
 	}
 
 	close(skt);

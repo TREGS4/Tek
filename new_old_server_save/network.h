@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 
-int network(int *fdin, int *fdout, char *IP, char *firstserver);
+int network(int *fdin, int *fdout, pthread_mutex_t *mutexfd, char *IP, char *firstserver);
 
 /*
 Potentiels problèmes / choses à régler:

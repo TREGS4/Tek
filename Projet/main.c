@@ -12,7 +12,6 @@
 struct test
 {
 	int fd[2];
-	pthread_mutex_t mutext;
 	char *IP;
 	char *firstserver;
 };
@@ -21,7 +20,7 @@ void *moncul(void *arg)
 {
 	struct test *tst = arg;
 
-	network(&tst->fd[0], &tst->fd[1], &tst->mutext, tst->IP, tst->firstserver);
+	network(&tst->fd[0], &tst->fd[1], tst->IP, tst->firstserver);
 
 	return NULL;
 }
@@ -29,28 +28,62 @@ void *moncul(void *arg)
 void *mabite(void *arg)
 {
 	struct test *tst = arg;
+	int fdin = tst->fd[0];
+    unsigned long long sizeData = 0;
+    int type = 0;
+    char headerBuff[HEADER_SIZE];
+    char *messageBuff;
+    int problem;
+    size_t nbCharToRead;
+    size_t offset;
+    int r;
 
-    unsigned long long len = 0;
-    char buffh[HEADER_SIZE];
-    char *buff;
-    int r = 1;
-    unsigned long long nbToRead = 0;
-    unsigned long long nbchr = 0;
+    //peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
+    //comportement inconnu dans ce cas la
 
-    while ((r = read(tst->fd[0], &buffh, HEADER_SIZE)) > 0)
+    while (1)
     {
-        memcpy(buffh + SIZE_TYPE_MSG, &len, SIZE_DATA_LEN_HEADER);
-        buff = malloc(sizeof(char) * len);
+		fdin = tst->fd[0];
+        offset = 0;
+        r = 0;
+        nbCharToRead = HEADER_SIZE;
+        problem = 0;
 
-        while (nbToRead > 0)
+        while (problem == 0 && nbCharToRead)
         {
-            r = read(tst->fd[0], buff + HEADER_SIZE + nbchr, nbToRead);
-			nbToRead -= r;
-			nbchr += r;
+            r = read(fdin, headerBuff + offset, nbCharToRead);
+            nbCharToRead -= r;
+            if (r <= 0)
+                problem = 1;
         }
 
-        write(STDOUT_FILENO, buff, len);
+        memcpy(&type, headerBuff, SIZE_TYPE_MSG);
+        memcpy(&sizeData, headerBuff + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
+        messageBuff = malloc(sizeof(char) * (HEADER_SIZE + sizeData));
+        memcpy(messageBuff, headerBuff, HEADER_SIZE);
+
+        nbCharToRead = sizeData;
+
+        while (problem == 0 && nbCharToRead)
+        {
+            r = read(fdin, messageBuff + offset, nbCharToRead);
+            nbCharToRead -= r;
+
+            if (r > 0)
+                offset += r;
+            else
+                problem = 1;
+        }
+
+        if (problem == 0)
+            printData(type, sizeData, messageBuff);
+        else
+            printf("Error while receinving data in Main\nError with function read or not enough bytes received\n");
+
+        free(messageBuff);
     }
+
+    return NULL;
 
 	return NULL;
 }
@@ -131,7 +164,7 @@ int grosTest(int argc, char **argv)
 	pthread_t thread;
 	pthread_t readfd;
 	pthread_create(&thread, NULL, moncul, (void *)&tst);
-	//pthread_create(&readfd, NULL, mabite, (void *)&tst);
+	pthread_create(&readfd, NULL, mabite, (void *)&tst);
 
 	TRANSACTION t =
 		{
@@ -211,12 +244,10 @@ int grosTest(int argc, char **argv)
 	while (1)
 	{
 		sleep(1);
-		pthread_mutex_lock(&tst.mutext);
 		//write(tst.fd[1], buff, HEADER_SIZE + len);
 		//SendMessage("Hello world !\n", tst.fd[1], 15, 2);
 		//SendMessage((char *)bcbin.bin, tst.fd[1], (unsigned long long)bcbin.nbBytes, 2);
 		//printf("Message send\n");
-		pthread_mutex_unlock(&tst.mutext);
 		BLOCKCHAIN bc = binToBlockchain(bcbin.bin);
 		free(bc.blocks);
 	}

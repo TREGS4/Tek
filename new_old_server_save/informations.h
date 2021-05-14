@@ -3,10 +3,6 @@
 
 #define PORT "6969"
 
-//Boolean part
-#define TRUE 1
-#define FALSE 0
-
 // Message part
 #define BUFFER_SIZE_SOCKET 512
 #define SIZE_DATA_LEN_HEADER 8

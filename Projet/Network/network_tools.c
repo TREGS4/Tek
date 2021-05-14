@@ -1,142 +1,66 @@
 #include "network_tools.h"
 
-struct clientInfo *initClientList(int fdin, int fdoutExtern, int fdoutIntern)
+struct clientInfo *initClientList(pthread_mutex_t *lockKnownServers, pthread_mutex_t *lockReadGlobalIntern, pthread_mutex_t *lockReadGlobalExtern)
 {
-    struct clientInfo *client = malloc(sizeof(struct clientInfo));
-    client->lockReadGlobalExtern = malloc(sizeof(pthread_mutex_t));
-    client->lockReadGlobalIntern = malloc(sizeof(pthread_mutex_t));
-    pthread_mutex_init(&client->lockInfo, NULL);
-    pthread_mutex_init(&client->lockRead, NULL);
-    pthread_mutex_init(&client->lockWrite, NULL);
-    pthread_mutex_init(client->lockReadGlobalExtern, NULL);
-    pthread_mutex_init(client->lockReadGlobalIntern, NULL);
+    struct clientInfo *sentinel = malloc(sizeof(struct clientInfo));
+    sentinel->sentinel = sentinel;
+    sentinel->prev = NULL;
+    sentinel->next = sentinel;
+    sentinel->isSentinel = TRUE;
+    sentinel->lockList = lockKnownServers;
+    sentinel->lockReadGlobalIntern = lockReadGlobalIntern;
+    sentinel->lockReadGlobalExtern = lockReadGlobalExtern;
 
-    pthread_mutex_lock(&client->lockInfo);
-    client->ID = 0;
-    client->sentinel = client;
-    client->status = SENTINEL;
-    client->next = client;
-    client->IPandPort.sin_family = AF_INET;
-    client->prev = NULL;
-
-    client->clientSocket = -1;
-    client->fdTofdin = -1;
-    client->fdinThread = fdin;
-    client->fdoutExtern = fdoutExtern;
-    client->fdoutIntern = fdoutIntern;
-
-    pthread_mutex_unlock(&client->lockInfo);
-
-    return client;
+    return sentinel;
 }
 
 void freeClientList(struct clientInfo *clientList)
 {
-    struct clientInfo *sentinel = clientList->sentinel;
-    struct clientInfo *temp = sentinel->next;
-    struct clientInfo *temp2 = temp->next;
+    clientList = clientList->sentinel;
 
-    while (temp != sentinel)
-    {
-        removeClient(temp);
-        temp = temp2;
-        temp2 = temp2->next;
-    }
+    pthread_mutex_lock(clientList->lockList);
+    while (clientList->next->isSentinel == FALSE)
+        removeClient(clientList->next);
+    pthread_mutex_unlock(clientList->lockList);
 
-    close(sentinel->fdoutIntern);
-    close(sentinel->fdoutExtern);
-    close(sentinel->fdinThread);
-
-    pthread_mutex_destroy(&sentinel->lockInfo);
-    pthread_mutex_destroy(&sentinel->lockWrite);
-    pthread_mutex_destroy(&sentinel->lockRead);
-    pthread_mutex_destroy(sentinel->lockReadGlobalExtern);
-    pthread_mutex_destroy(sentinel->lockReadGlobalIntern);
-
-    free(sentinel->lockReadGlobalExtern);
-    free(sentinel->lockReadGlobalIntern);
-    free(sentinel);
+    free(clientList);
 }
 
-struct clientInfo *initClient(struct clientInfo *prev)
+struct clientInfo *addClient(struct clientInfo *list, struct sockaddr_in IP)
 {
-    prev = last(prev);
     struct clientInfo *client = malloc(sizeof(struct clientInfo));
 
-    pthread_mutex_init(&client->lockInfo, NULL);
-    pthread_mutex_init(&client->lockWrite, NULL);
-    pthread_mutex_init(&client->lockRead, NULL);
+    client->isSentinel = FALSE;
+    client->IP = IP;
 
-    pthread_mutex_lock(&client->lockInfo);
+    pthread_mutex_lock(list->lockList);
+    client->next = list->next;
+    client->prev = list;
+    list->next = client;
+    if (client->next != NULL)
+        client->next->prev = client;
 
-    client->ID = (rand() + 1) * (rand() + 1);
-    client->sentinel = prev->sentinel;
-    client->server = client->sentinel->server;
-    client->lockReadGlobalExtern = client->sentinel->lockReadGlobalExtern;
-    client->lockReadGlobalIntern = client->sentinel->lockReadGlobalIntern;
-    client->status = NOTUSED;
-    client->next = client->sentinel;
-    client->IPandPort.sin_family = AF_INET;
-    client->prev = prev;
-
-    client->clientSocket = -1;
-
-    int tab[2];
-    pipe(tab);
-
-    client->fdTofdin = tab[1];
-    client->fdinThread = tab[0];
-    client->fdoutExtern = client->sentinel->fdoutExtern;
-    client->fdoutIntern = client->sentinel->fdoutIntern;
-    pthread_mutex_unlock(&client->lockInfo);
-
-    pthread_mutex_lock(&prev->lockInfo);
-    prev->next = client;
-    pthread_mutex_unlock(&prev->lockInfo);
+    client->sentinel = list->sentinel;
+    client->lockList = list->lockList;
+    client->lockReadGlobalIntern = list->lockReadGlobalIntern;
+    client->lockReadGlobalExtern = list->lockReadGlobalExtern;
+    pthread_mutex_unlock(list->lockList);
 
     return client;
 }
 
 int removeClient(struct clientInfo *client)
 {
-    if (client->ID == 0)
+    if (client->isSentinel == TRUE)
     {
         printf("Can't remove the sentinel\n");
         return EXIT_FAILURE;
     }
 
-    pthread_mutex_lock(&client->lockInfo);
-    client->status = DEAD;
-    pthread_mutex_unlock(&client->lockInfo);
-
-
-    //surement probleme ici
-    pthread_mutex_lock(&client->lockInfo);
-    pthread_mutex_lock(&client->lockRead);
-    pthread_mutex_lock(&client->lockWrite);
-    pthread_mutex_lock(&client->prev->lockInfo);
-    if (client->next != client->sentinel)
-    {
-        pthread_mutex_lock(&client->next->lockInfo);
-        client->next->prev = client->prev;
-        pthread_mutex_unlock(&client->next->lockInfo);
-    }
-
+    pthread_mutex_lock(client->lockList);
     client->prev->next = client->next;
-    pthread_mutex_unlock(&client->prev->lockInfo);
-    pthread_mutex_unlock(&client->lockInfo);
-    pthread_mutex_unlock(&client->lockRead);
-    pthread_mutex_unlock(&client->lockWrite);
-
-    pthread_join(client->clientThread, NULL);
-
-    close(client->fdTofdin);
-    close(client->fdinThread);
-    close(client->clientSocket);
-
-    pthread_mutex_destroy(&client->lockInfo);
-    pthread_mutex_destroy(&client->lockWrite);
-    pthread_mutex_destroy(&client->lockRead);
+    client->next->prev = client->prev;
+    pthread_mutex_unlock(client->lockList);
 
     free(client);
 
@@ -146,13 +70,10 @@ int removeClient(struct clientInfo *client)
 size_t listLen(struct clientInfo *client)
 {
     size_t res = 0;
-    client = client->sentinel->next;
 
-    while (client != client->sentinel)
+    for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
     {
-        if (client->status == CONNECTED)
-            res++;
-        client = client->next;
+        res++;
     }
 
     return res;
@@ -160,15 +81,15 @@ size_t listLen(struct clientInfo *client)
 
 struct clientInfo *last(struct clientInfo *client)
 {
-    while (client->next != client->sentinel)
+    while (client->next->isSentinel == FALSE)
         client = client->next;
 
     return client;
 }
 
-int itsme(struct sockaddr_in *first, struct sockaddr_in *second)
+int sameIP(struct sockaddr_in *first, struct sockaddr_in *second)
 {
-    int me = 1;
+    int me = TRUE;
     char buff[16];
     char buff2[16];
     memset(buff, 0, 16);
@@ -183,21 +104,14 @@ int itsme(struct sockaddr_in *first, struct sockaddr_in *second)
     return me;
 }
 
-struct clientInfo *isInList(struct sockaddr_in *tab, struct clientInfo *list)
+struct clientInfo *FindClient(struct sockaddr_in *tab, struct clientInfo *list)
 {
-    int find = 0;
-    struct clientInfo *res = NULL;
-    list = list->sentinel->next;
-
-    while (find == 0 && list != list->sentinel)
+    for (list = list->sentinel->next; list->isSentinel == FALSE && sameIP(tab, &list->IP) == FALSE; list = list->next)
     {
-        find = itsme(tab, &list->IPandPort);
-        if (find)
-            res = list;
-        list = list->next;
+        ;
     }
 
-    return res;
+    return list;
 }
 
 void printIP(struct sockaddr_in *IP)
@@ -209,23 +123,4 @@ void printIP(struct sockaddr_in *IP)
 
     printf("%s:%u\n", buff, port);
     free(buff);
-}
-
-struct clientInfo *addClient(struct sockaddr_in IP, struct clientInfo *clientList)
-{
-    struct clientInfo *client = isInList(&IP, clientList);
-    if (itsme(&IP, &clientList->server->IPandPort) == 0 && client == NULL)
-    {
-
-        client = initClient(clientList->sentinel);
-        pthread_mutex_lock(&client->lockInfo);
-
-        client->IPandPort = IP;
-        client->IPLen = sizeof(struct sockaddr_in);
-        client->status = NOTCONNECTED;
-
-        pthread_mutex_unlock(&client->lockInfo);
-    }
-
-    return client;
 }

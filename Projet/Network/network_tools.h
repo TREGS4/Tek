@@ -16,66 +16,63 @@
 
 #include "informations.h"
 
+//A new structure is created for each new known IP adress
 struct clientInfo
 {
-    size_t ID;
-    struct sockaddr_in IPandPort;
-    socklen_t IPLen;
+    //IP adress of the element, can also contain family and port
+    struct sockaddr_in IP;
 
-    pthread_mutex_t lockInfo;              //lock when modifing everything except file descriptors
-    pthread_mutex_t lockWrite;             //lock when modifing clientSocket
-    pthread_mutex_t lockRead;              //lock when modifing fdInThread or fdTofdin
-    pthread_mutex_t *lockReadGlobalExtern; //lock when writing on fdoutExtern, we need send the whole message before an other thread can write
-    pthread_mutex_t *lockReadGlobalIntern; //lock when writing on fdoutIntern, we need send the whole message before an other thread can write
+    //TRUE is the it's the sentinel, FALSE otherwise
+    short isSentinel;
 
-    int clientSocket;
-    int fdTofdin;
-    int fdinThread;
-    int fdoutExtern;
-    int fdoutIntern;
-
-    int status;
-
-    pthread_t clientThread;
-    pthread_t readThread;
-    pthread_t writeThread;
-
+    //Pointer to the next, previous and sentinel element
+    //prev of sentinel is always NULL
+    //next of the last element is always NULL
     struct clientInfo *next;
     struct clientInfo *prev;
     struct clientInfo *sentinel;
-    struct serverInfo *server;
+
+    //Pointer to the server's mutex
+    pthread_mutex_t *lockList;
+    pthread_mutex_t *lockReadGlobalIntern;
+    pthread_mutex_t *lockReadGlobalExtern;
 };
 
-struct serverInfo
+//One structure is initialised when starting, it contains all the informations for each part of the network code
+struct server
 {
+    //Status of the server
     int status;
 
-    int fdInInternComm;
-    int fdtemp;
+    //The two write files descriptor for intern and extern communications
+    int fdoutExtern;
+    int fdoutIntern;
 
-    pthread_mutex_t lockinfo;
-    pthread_mutex_t mutexfdtemp;
-    pthread_mutex_t mutextmessage;
+    //The two read files descriptor for intern and extern communications
+    int fdinExtern;
+    int fdinIntern;
 
-    struct sockaddr_in IPandPort;
-    socklen_t IPLen;
+    //The sentinel to the list of known server
+    struct clientInfo *KnownServers;
 
-    struct clientInfo *listClients;
+    //lock when writing on fdoutExtern, we need send the whole message before an other thread can write
+    pthread_mutex_t lockReadGlobalExtern;
+
+    //lock when writing on fdoutIntern, we need send the whole message before an other thread can write
+    pthread_mutex_t lockReadGlobalIntern;
+
+    //lock when using/modifing the list of known servers
+    pthread_mutex_t lockKnownServers;     
 };
 
 //Create a new list of clientInfo, return the sentinel of the list
-//fdin is the read side of the pipe to receive message from the management node
-//fdoutExtern is the write side of the pipe to send message to the management node
-//fdoutIntern is the write side of the pipe to network (internal ones) communications
-struct clientInfo *initClientList(int fdin, int fdoutExtern, int fdoutIntern);
+struct clientInfo *initClientList(pthread_mutex_t *lockKnownServers, pthread_mutex_t *lockReadGlobalIntern, pthread_mutex_t *lockReadGlobalExtern);
 
-//Remove all the client and free the list create with initClientList
+//Remove all the client and free the sentinel
 void freeClientList(struct clientInfo *clientList);
 
-//Create a new client, return it's pointer and add it to the list, the list must not NULL
-//Set everything correctly except the socket's file descriptor (set to -1)
-//The status of this new client is set to NOTUSED
-struct clientInfo *initClient(struct clientInfo *clients);
+//add the new element is the list, not necessarily at the end
+struct clientInfo *addClient(struct clientInfo *list, struct sockaddr_in IP);
 
 //Remove the client from the list
 int removeClient(struct clientInfo *client);
@@ -86,15 +83,15 @@ size_t listLen(struct clientInfo *client);
 //Return a pointer to the last client of the list
 struct clientInfo *last(struct clientInfo *client);
 
-//Compare to sockaddr_in, if there are equals return 1, 0 otherwise
-int itsme(struct sockaddr_in *first, struct sockaddr_in *second);
+//Compare to sockaddr_in, if there are equals return TRUE, FALSE otherwise
+int sameIP(struct sockaddr_in *first, struct sockaddr_in *second);
 
 //Search the tab in the list, return his pointer if find, Null pointer otherwise
-struct clientInfo *isInList(struct sockaddr_in *tab, struct clientInfo *list);
+struct clientInfo *FindClient(struct sockaddr_in *tab, struct clientInfo *list);
 
 //Print the IP and port in the terminal
 void printIP(struct sockaddr_in *IP);
 
-struct clientInfo *addClient(struct sockaddr_in IP, struct clientInfo *clientList);
+
 
 #endif

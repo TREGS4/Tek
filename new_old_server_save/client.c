@@ -15,7 +15,7 @@ void Send(int fd, const void *buf, size_t count, int flag)
 /*Return the size of the date in byte + the size of the headar in byte*/
 unsigned long long sizeMessage(char *message)
 {
-	unsigned long long size = 0;
+	unsigned long long size;
 	memcpy(&size, message + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
 	return size + HEADER_SIZE;
 }
@@ -40,13 +40,13 @@ int connectClient(struct sockaddr_in *IP)
 	return skt;
 }
 
-int SendMessageForOneClient(struct clientInfo *client, char *message, unsigned long long messageLength)
+int SendMessageForOneClient(struct clientInfo *client, char *message, unsigned long long len)
 {
 	int skt = -1;
 	struct sockaddr_in clienttemp;
 
-	clienttemp.sin_addr = client->IP.sin_addr;
-	clienttemp.sin_family = client->IP.sin_family;
+	clienttemp.sin_addr = client->IPandPort.sin_addr;
+	clienttemp.sin_family = client->IPandPort.sin_family;
 	clienttemp.sin_port = htons(atoi(PORT));
 
 	if ((skt = connectClient(&clienttemp)) < 0)
@@ -55,20 +55,20 @@ int SendMessageForOneClient(struct clientInfo *client, char *message, unsigned l
 		return -1;
 	}
 
-	Send(skt, message, messageLength, 0);
+	Send(skt, message, len, 0);
 	close(skt);
 	return 0;
 }
 
 int SendMessage(struct clientInfo *clientList, char *message)
 {
-	for (clientList = clientList->sentinel->next; clientList->isSentinel == FALSE; clientList = clientList->next)
+	for (clientList = clientList->sentinel->next; clientList != clientList->sentinel; clientList = clientList->next)
 	{
 		if (SendMessageForOneClient(clientList, message, sizeMessage(message)) < 0)
 		{
-			struct clientInfo *temp = clientList;
-			clientList = clientList->next;
-			removeClient(temp);
+			pthread_mutex_lock(&clientList->lockInfo);
+			clientList->status = ERROR;
+			pthread_mutex_unlock(&clientList->lockInfo);
 		}
 	}
 
