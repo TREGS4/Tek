@@ -11,7 +11,7 @@ void printData(int type, unsigned long long len, char *buff)
 
 	for (size_t i = 0; i < len * 3; i += 3)
 	{
-		sprintf(message + offset + i, "%02x ", buff[i]);
+		sprintf(message + offset + i, "%02x ", buff[i/3]);
 	}
 	message[strlen(message)] = '\n';
 	message[strlen(message)] = '\n';
@@ -79,6 +79,9 @@ void *read_thread(void *arg)
 	}
 	else
 		printf("Error while receinving data in read_thread\nError with function read or not enough bytes received\n");
+
+	printf("Reception :\n");
+	printData(type, sizeData, dataBuff);
 
 	close(client->socket);
 	free(client);

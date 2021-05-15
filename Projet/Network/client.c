@@ -1,4 +1,5 @@
 #include "client.h"
+#include "server.h"
 
 void Send(int fd, const void *buf, size_t count, int flag)
 {
@@ -55,6 +56,8 @@ int SendMessageForOneClient(struct clientInfo *client, char *message, unsigned l
 		return -1;
 	}
 
+	printf("Send:\n");
+	printData(1, messageLength, message);
 	Send(skt, message, messageLength, 0);
 	close(skt);
 	return 0;

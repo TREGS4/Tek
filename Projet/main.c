@@ -164,7 +164,7 @@ int grosTest(int argc, char **argv)
 	pthread_t thread;
 	pthread_t readfd;
 	pthread_create(&thread, NULL, moncul, (void *)&tst);
-	pthread_create(&readfd, NULL, mabite, (void *)&tst);
+	//pthread_create(&readfd, NULL, mabite, (void *)&tst);
 
 	TRANSACTION t =
 		{
@@ -231,7 +231,7 @@ int grosTest(int argc, char **argv)
 	}
 	//printf("\n\n");
 
-	char *data = "Hello world !\n";
+	char *data = "cing elit. Proin eros eros, dictum et ligula sit amet, placerat placerat diam. Curabitur id urna quis tellus accumsan molestie. Ut elementum congue eleifend. Donec auctor purus vulputate tortor faucibus rutrum. Nam pretium blandit purus a vulputate. Duis dolor neque, blandit id neque quis, dictum interdum est. Nam sit amet varius orci, id sollicitudin odio. Mauris dignissim ultrices sem, in ullamcorper mi eleifend id.Suspendisse non ligula tortor. Fusce blandit odio eget urna iaculis euismod. Nulla sollicitudin rutrum imperdiet. Mauris laoreet convallis quam a feugiat. Nullam vitae facilisis nulla. Praesent quis ligula risus. Pellentesque vel velit ipsum. Duis convallis non mauris sit amet lacinia. Morbi non tellus ac felis tempus pellentesque. Donec ultrices lobortis enim in egestas. Cras non dapibus lectus, at eleifend neque. Morbi sit amet mi ipsum.Donec feugiat nisi sagittis ultrices scelerisque. Phasellus augue ligula, bibendum ut efficitur molestie, sodales at nisi. Donec placerat justo iaculis odio dapibus, in euismod neque interdum. Donec fringilla sem et eros ornare porttitor ac at risus. Sed maximus nec nunc at tempor. Aliquam non egestas lectus, et ullamcorper arcu. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vestibulum malesuada tempor tellus eu dictum. Integer ex nibh, ultricies et sapien ac, elementum mollis elit. Morbi sit amet mi feugiat, efficitur sapien et, tincidunt arcu. Integer eu nunc tincidunt nulla tincidunt vehicula. Nunc dui felis, mollis quis arcu at, fermentum vulputate dui. Quisque et tellus non elit gravida imperdiet. Aenean tortor velit, viverra sit amet rhoncus in, tincidunt vitae nisl.Pellentesque nec vehicula orci, egestas consequat ipsum. Phasellus blandit lorem sed quam malesuada bibendum. In ornare varius sagittis. Mauris metus tortor, rutrum sit amet semper non, auctor et libero. Nam eleifend massa quis neque scelerisque vestibulum. Etiam velit urna, placerat vel aliquet ac, varius sed diam. Ut sit amet libero eu ligula.\n";
 	int type = 2;
 	unsigned long long len = strlen(data);
 	char buff[HEADER_SIZE + len];
@@ -244,7 +244,8 @@ int grosTest(int argc, char **argv)
 	while (1)
 	{
 		sleep(1);
-		//write(tst.fd[1], buff, HEADER_SIZE + len);
+		printData(type, len + HEADER_SIZE, buff);
+		write(tst.fd[1], buff, HEADER_SIZE + len);
 		//SendMessage("Hello world !\n", tst.fd[1], 15, 2);
 		//SendMessage((char *)bcbin.bin, tst.fd[1], (unsigned long long)bcbin.nbBytes, 2);
 		//printf("Message send\n");

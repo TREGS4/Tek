@@ -41,7 +41,7 @@ void *SendForAllClients(void *arg)
 
         while (problem == 0 && nbCharToRead)
         {
-            r = read(server->fdinExtern, messageBuff + offset, nbCharToRead);
+            r = read(server->fdinExtern, messageBuff + HEADER_SIZE + offset, nbCharToRead);
             nbCharToRead -= r;
 
             if (r > 0)
@@ -194,18 +194,26 @@ void *sendNetwork(void *arg)
     char type = 1;
     unsigned long long dataSize = 0;
     char *messageBuff;
+    size_t offset = 0;
 
     while (server->status == ONLINE)
     {
+        dataSize = 0;
+        offset = 0;
+
         pthread_mutex_lock(&server->lockKnownServers);
-        dataSize = listLen(server->KnownServers);
-        messageBuff = malloc(sizeof(char) * dataSize);
+        dataSize = listLen(server->KnownServers) * sizeStructSockaddr_in;
+        messageBuff = malloc(sizeof(char) * (dataSize + HEADER_SIZE));
 
         memcpy(messageBuff, &type, SIZE_TYPE_MSG);
         memcpy(messageBuff + SIZE_TYPE_MSG, &dataSize, SIZE_DATA_LEN_HEADER);
 
         for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
-            memcpy(messageBuff + HEADER_SIZE, &client->IP, sizeStructSockaddr_in);
+        {
+            memcpy(messageBuff + HEADER_SIZE + offset, &client->IP, sizeStructSockaddr_in);
+            offset += sizeStructSockaddr_in;
+        }
+            
 
         pthread_mutex_unlock(&server->lockKnownServers);
         SendMessage(client, messageBuff);
