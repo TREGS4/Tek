@@ -23,19 +23,7 @@ void *NetworkThread(void *arg)
 	return NULL;
 }
 
-void *PrintMessage(void *arg)
-{
-	struct server *server = arg;
-	
-	while (server->status == ONLINE)
-	{
-		MESSAGE message = shared_queue_pop(server->IncomingMessages);
-		write(STDOUT_FILENO, message.data, message.sizeData);
-		DestroyMessage(message);
-	}
-	
-	return NULL;
-}
+
 
 
 void printTransaction(TRANSACTION t)
@@ -100,6 +88,29 @@ void verifBlockchain(BLOCKCHAIN blockchain)
 
 	printf("-------------End of verification-------------\n");
 }
+
+void *PrintMessage(void *arg)
+{
+	struct server *server = arg;
+	
+	while (server->status == ONLINE)
+	{
+		MESSAGE message = shared_queue_pop(server->IncomingMessages);
+		if(message.type == 3)
+		{
+			BLOCKCHAIN bc = binToBlockchain((BYTE *)message.data);
+			printBlockchain(bc);
+			free(bc.blocks);
+		}
+		else
+			write(STDOUT_FILENO, message.data, message.sizeData);
+		DestroyMessage(message);
+	}
+	
+	return NULL;
+}
+
+
 
 int grosTest(int argc, char **argv)
 {
@@ -191,10 +202,8 @@ int grosTest(int argc, char **argv)
 	while (1)
 	{
 		sleep(1);
-		MESSAGE message = CreateMessage(type, strlen(datatest), datatest);
-		shared_queue_push(server->OutgoingMessages, message);
-		BLOCKCHAIN bc = binToBlockchain(bcbin.bin);
-		free(bc.blocks);
+		//MESSAGE message = CreateMessage(3, bcbin.nbBytes, bcbin.bin);
+		//shared_queue_push(server->OutgoingMessages, message);
 	}
 
 
