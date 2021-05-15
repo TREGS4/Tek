@@ -173,8 +173,8 @@ int grosTest(int argc, char **argv)
 	while (1)
 	{
 		sleep(1);
-		MESSAGE message = CreateMessage(type, strlen(datatest), datatest);
-		shared_queue_push(server->OutgoingMessages, message);
+		//MESSAGE message = CreateMessage(type, strlen(datatest), datatest);
+		//shared_queue_push(server->OutgoingMessages, message);
 		//printf("Message send\n");
 		BLOCKCHAIN bc = binToBlockchain(bcbin.bin);
 		free(bc.blocks);

@@ -124,20 +124,17 @@ void addServerFromMessage(MESSAGE message, struct server *server)
     //peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
     //comportement inconnu dans ce cas la
 
-    while (server->status == ONLINE)
-    {
-        nbstruct = sizeData / sizeStructSockaddr_in;
+    nbstruct = sizeData / sizeStructSockaddr_in;
 
-        for (size_t i = 0; i < nbstruct; i++)
-        {
-            offset += sizeStructSockaddr_in;
-            memcpy(&temp, message.data + offset, sizeStructSockaddr_in);
-            
-            pthread_mutex_lock(&server->lockKnownServers);
-            if (FindClient(&temp, server->KnownServers) == NULL)
-                addClient(server->KnownServers, temp);
-            pthread_mutex_unlock(&server->lockKnownServers);
-        }
+    for (size_t i = 0; i < nbstruct; i++)
+    {
+        offset += sizeStructSockaddr_in;
+        memcpy(&temp, message.data + offset, sizeStructSockaddr_in);
+
+        pthread_mutex_lock(&server->lockKnownServers);
+        if (FindClient(&temp, server->KnownServers) == NULL)
+            addClient(server->KnownServers, temp);
+        pthread_mutex_unlock(&server->lockKnownServers);
     }
 }
 

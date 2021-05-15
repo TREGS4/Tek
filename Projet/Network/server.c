@@ -31,7 +31,7 @@ void *read_thread(void *arg)
 	nbCharToRead = sizeData;
 	dataBuff = malloc(sizeof(char) * (sizeData + HEADER_SIZE));
 	memcpy(dataBuff, headerBuff, HEADER_SIZE);
-
+	
 	offset = 0;
 	while (problem == 0 && nbCharToRead)
 	{
@@ -42,7 +42,7 @@ void *read_thread(void *arg)
 		else
 			offset += r;
 	}
-
+	
 	if (problem == 0)
 	{
 		MESSAGE message = BinToMessage(dataBuff);
