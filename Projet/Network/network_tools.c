@@ -115,8 +115,7 @@ void printIP(struct sockaddr_in *IP)
 
 void addServerFromMessage(MESSAGE message, struct server *server)
 {
-    unsigned long long sizeData = 0;
-    size_t offset;
+    size_t offset = 0;
     size_t nbstruct;
     size_t sizeStructSockaddr_in = sizeof(struct sockaddr_in);
     struct sockaddr_in temp;
@@ -124,17 +123,17 @@ void addServerFromMessage(MESSAGE message, struct server *server)
     //peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
     //comportement inconnu dans ce cas la
 
-    nbstruct = sizeData / sizeStructSockaddr_in;
+    nbstruct = message.sizeData / sizeStructSockaddr_in;
 
     for (size_t i = 0; i < nbstruct; i++)
     {
-        offset += sizeStructSockaddr_in;
         memcpy(&temp, message.data + offset, sizeStructSockaddr_in);
 
         pthread_mutex_lock(&server->lockKnownServers);
         if (FindClient(&temp, server->KnownServers) == NULL)
             addClient(server->KnownServers, temp);
         pthread_mutex_unlock(&server->lockKnownServers);
+        offset += sizeStructSockaddr_in;
     }
 }
 
