@@ -1,24 +1,6 @@
 #include "server.h"
 #include "network_tools.h"
 
-void printData(int type, unsigned long long len, char *buff)
-{
-	size_t taille = (3 + 10 + 21 + len) * 10;
-	char *message = malloc(taille);
-	memset(message, 0, taille);
-	sprintf(message, "Type: %d\nSize: %llu\nData: ", type, len);
-	size_t offset = strlen(message);
-
-	for (size_t i = 0; i < len * 3; i += 3)
-	{
-		sprintf(message + offset + i, "%02x ", buff[i/3]);
-	}
-	message[strlen(message)] = '\n';
-	message[strlen(message)] = '\n';
-
-	printf(message);
-}
-
 void *read_thread(void *arg)
 {
 	struct connection *client = arg;
@@ -27,10 +9,9 @@ void *read_thread(void *arg)
 	char headerBuff[HEADER_SIZE];
 	char *dataBuff;
 	int problem = 0;
-	int fdout = -1;
 	size_t nbCharToRead = HEADER_SIZE;
 	size_t offset = 0;
-	int r = 0;
+	int r;
 
 	//peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
 	//comportement inconnu dans ce cas la
@@ -41,47 +22,48 @@ void *read_thread(void *arg)
 		nbCharToRead -= r;
 		if (r <= 0)
 			problem = 1;
+		else
+			offset += r;
 	}
 
 	memcpy(&type, headerBuff, SIZE_TYPE_MSG);
 	memcpy(&sizeData, headerBuff + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
 	nbCharToRead = sizeData;
-	dataBuff = malloc(sizeof(char) * sizeData);
+	dataBuff = malloc(sizeof(char) * (sizeData + HEADER_SIZE));
+	memcpy(dataBuff, headerBuff, HEADER_SIZE);
 
+	offset = 0;
 	while (problem == 0 && nbCharToRead)
 	{
-		r = read(client->socket, dataBuff, nbCharToRead);
+		r = read(client->socket, dataBuff + HEADER_SIZE + offset, nbCharToRead);
 		nbCharToRead -= r;
 		if (r <= 0)
 			problem = 1;
+		else
+			offset += r;
 	}
 
 	if (problem == 0)
 	{
+		MESSAGE message = BinToMessage(dataBuff);
+		if (message.type != 1)
+		{
+			printf("Reception :\n");
+			printMessage(message);
+		}
+
 		if (type == 1)
 		{
-			fdout = client->server->fdoutIntern;
-			pthread_mutex_lock(&client->server->lockReadGlobalIntern);
+			addServerFromMessage(message, client->server);
+			DestroyMessage(message);
 		}
 		else
 		{
-			fdout = client->server->fdoutExtern;
-			pthread_mutex_lock(&client->server->lockReadGlobalExtern);
+			shared_queue_push(client->server->IncomingMessages, message);
 		}
-
-		write(fdout, headerBuff, HEADER_SIZE);
-		write(fdout, dataBuff, sizeData);
-
-		if (type == 1)
-			pthread_mutex_unlock(&client->server->lockReadGlobalIntern);
-		else
-			pthread_mutex_unlock(&client->server->lockReadGlobalExtern);
 	}
 	else
 		printf("Error while receinving data in read_thread\nError with function read or not enough bytes received\n");
-
-	printf("Reception :\n");
-	printData(type, sizeData, dataBuff);
 
 	close(client->socket);
 	free(client);

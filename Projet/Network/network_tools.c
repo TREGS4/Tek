@@ -1,15 +1,12 @@
 #include "network_tools.h"
 
-struct clientInfo *initClientList(pthread_mutex_t *lockKnownServers, pthread_mutex_t *lockReadGlobalIntern, pthread_mutex_t *lockReadGlobalExtern)
+struct clientInfo *initClientList()
 {
     struct clientInfo *sentinel = malloc(sizeof(struct clientInfo));
     sentinel->sentinel = sentinel;
     sentinel->prev = NULL;
     sentinel->next = sentinel;
     sentinel->isSentinel = TRUE;
-    sentinel->lockList = lockKnownServers;
-    sentinel->lockReadGlobalIntern = lockReadGlobalIntern;
-    sentinel->lockReadGlobalExtern = lockReadGlobalExtern;
 
     return sentinel;
 }
@@ -18,10 +15,8 @@ void freeClientList(struct clientInfo *clientList)
 {
     clientList = clientList->sentinel;
 
-    pthread_mutex_lock(clientList->lockList);
     while (clientList->next->isSentinel == FALSE)
         removeClient(clientList->next);
-    pthread_mutex_unlock(clientList->lockList);
 
     free(clientList);
 }
@@ -33,7 +28,6 @@ struct clientInfo *addClient(struct clientInfo *list, struct sockaddr_in IP)
     client->isSentinel = FALSE;
     client->IP = IP;
 
-    pthread_mutex_lock(list->lockList);
     client->next = list->next;
     client->prev = list;
     list->next = client;
@@ -41,10 +35,6 @@ struct clientInfo *addClient(struct clientInfo *list, struct sockaddr_in IP)
         client->next->prev = client;
 
     client->sentinel = list->sentinel;
-    client->lockList = list->lockList;
-    client->lockReadGlobalIntern = list->lockReadGlobalIntern;
-    client->lockReadGlobalExtern = list->lockReadGlobalExtern;
-    pthread_mutex_unlock(list->lockList);
 
     return client;
 }
@@ -57,10 +47,8 @@ int removeClient(struct clientInfo *client)
         return EXIT_FAILURE;
     }
 
-    pthread_mutex_lock(client->lockList);
     client->prev->next = client->next;
     client->next->prev = client->prev;
-    pthread_mutex_unlock(client->lockList);
 
     free(client);
 
@@ -123,4 +111,69 @@ void printIP(struct sockaddr_in *IP)
 
     printf("%s:%u\n", buff, port);
     free(buff);
+}
+
+void addServerFromMessage(MESSAGE message, struct server *server)
+{
+    unsigned long long sizeData = 0;
+    size_t offset;
+    size_t nbstruct;
+    size_t sizeStructSockaddr_in = sizeof(struct sockaddr_in);
+    struct sockaddr_in temp;
+
+    //peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
+    //comportement inconnu dans ce cas la
+
+    while (server->status == ONLINE)
+    {
+        nbstruct = sizeData / sizeStructSockaddr_in;
+
+        for (size_t i = 0; i < nbstruct; i++)
+        {
+            offset += sizeStructSockaddr_in;
+            memcpy(&temp, message.data + offset, sizeStructSockaddr_in);
+            
+            pthread_mutex_lock(&server->lockKnownServers);
+            if (FindClient(&temp, server->KnownServers) == NULL)
+                addClient(server->KnownServers, temp);
+            pthread_mutex_unlock(&server->lockKnownServers);
+        }
+    }
+}
+
+void *sendNetwork(void *arg)
+{
+    struct server *server = arg;
+    struct clientInfo *client = server->KnownServers;
+    size_t sizeStructSockaddr_in = sizeof(struct sockaddr_in);
+    char type = 1;
+    unsigned long long dataSize = 0;
+    char *messageBuff;
+    size_t offset = 0;
+
+    while (server->status == ONLINE)
+    {
+        dataSize = 0;
+        offset = 0;
+
+        pthread_mutex_lock(&server->lockKnownServers);
+        dataSize = listLen(server->KnownServers) * sizeStructSockaddr_in;
+        messageBuff = malloc(sizeof(char) * dataSize);
+
+        for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
+        {
+            memcpy(messageBuff + offset, &client->IP, sizeStructSockaddr_in);
+            offset += sizeStructSockaddr_in;
+        }
+
+        pthread_mutex_unlock(&server->lockKnownServers);
+
+        MESSAGE message = CreateMessage(type, dataSize, messageBuff);
+        shared_queue_push(server->OutgoingMessages, message);
+
+        free(messageBuff);
+        sleep(2);
+    }
+
+    return NULL;
 }

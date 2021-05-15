@@ -41,7 +41,7 @@ int connectClient(struct sockaddr_in *IP)
 	return skt;
 }
 
-int SendMessageForOneClient(struct clientInfo *client, char *message, unsigned long long messageLength)
+int SendMessageForOneClient(struct clientInfo *client, MESSAGE message)
 {
 	int skt = -1;
 	struct sockaddr_in clienttemp;
@@ -56,18 +56,24 @@ int SendMessageForOneClient(struct clientInfo *client, char *message, unsigned l
 		return -1;
 	}
 
-	printf("Send:\n");
-	printData(1, messageLength, message);
-	Send(skt, message, messageLength, 0);
+	if (message.type != 1)
+	{
+		printf("Send:\n");
+		printMessage(message);
+	}
+
+	char *binMessage = MessageToBin(message);
+	Send(skt, binMessage, HEADER_SIZE + message.sizeData, 0);
+	free(binMessage);
 	close(skt);
 	return 0;
 }
 
-int SendMessage(struct clientInfo *clientList, char *message)
+int SendMessage(struct clientInfo *clientList, MESSAGE message)
 {
 	for (clientList = clientList->sentinel->next; clientList->isSentinel == FALSE; clientList = clientList->next)
 	{
-		if (SendMessageForOneClient(clientList, message, sizeMessage(message)) < 0)
+		if (SendMessageForOneClient(clientList, message) < 0)
 		{
 			struct clientInfo *temp = clientList;
 			clientList = clientList->next;
@@ -77,5 +83,3 @@ int SendMessage(struct clientInfo *clientList, char *message)
 
 	return 1;
 }
-
-

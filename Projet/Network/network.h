@@ -5,7 +5,12 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 
-int network(int *fdin, int *fdout, char *IP, char *firstserver);
+#include "server.h"
+#include "network_tools.h"
+
+int Network(struct server *server, char *IP, char *firstserver);
+struct server *initServer();
+void freeServer(struct server *server);
 
 /*
 Potentiels problèmes / choses à régler:

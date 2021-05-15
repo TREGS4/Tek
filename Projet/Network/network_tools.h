@@ -31,11 +31,6 @@ struct clientInfo
     struct clientInfo *next;
     struct clientInfo *prev;
     struct clientInfo *sentinel;
-
-    //Pointer to the server's mutex
-    pthread_mutex_t *lockList;
-    pthread_mutex_t *lockReadGlobalIntern;
-    pthread_mutex_t *lockReadGlobalExtern;
 };
 
 //One structure is initialised when starting, it contains all the informations for each part of the network code
@@ -43,30 +38,19 @@ struct server
 {
     //Status of the server
     int status;
-
-    //The two write files descriptor for intern and extern communications
-    int fdoutExtern;
-    int fdoutIntern;
-
-    //The two read files descriptor for intern and extern communications
-    int fdinExtern;
-    int fdinIntern;
+    
+    shared_queue *OutgoingMessages;
+    shared_queue *IncomingMessages;
 
     //The sentinel to the list of known server
     struct clientInfo *KnownServers;
 
-    //lock when writing on fdoutExtern, we need send the whole message before an other thread can write
-    pthread_mutex_t lockReadGlobalExtern;
-
-    //lock when writing on fdoutIntern, we need send the whole message before an other thread can write
-    pthread_mutex_t lockReadGlobalIntern;
-
     //lock when using/modifing the list of known servers
-    pthread_mutex_t lockKnownServers;     
+    pthread_mutex_t lockKnownServers;
 };
 
 //Create a new list of clientInfo, return the sentinel of the list
-struct clientInfo *initClientList(pthread_mutex_t *lockKnownServers, pthread_mutex_t *lockReadGlobalIntern, pthread_mutex_t *lockReadGlobalExtern);
+struct clientInfo *initClientList();
 
 //Remove all the client and free the sentinel
 void freeClientList(struct clientInfo *clientList);
@@ -91,6 +75,10 @@ struct clientInfo *FindClient(struct sockaddr_in *tab, struct clientInfo *list);
 
 //Print the IP and port in the terminal
 void printIP(struct sockaddr_in *IP);
+
+void addServerFromMessage(MESSAGE message, struct server *server);
+
+void *sendNetwork(void *arg);
 
 
 

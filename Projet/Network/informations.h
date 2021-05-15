@@ -1,6 +1,8 @@
 #ifndef INFORMATIONS_H
 #define INFORMATIONS_H
 
+#include "queue/shared_queue.h"
+
 #define PORT "6969"
 
 //Boolean part
@@ -10,7 +12,7 @@
 // Message part
 #define BUFFER_SIZE_SOCKET 512
 #define SIZE_DATA_LEN_HEADER 8
-#define SIZE_TYPE_MSG 1
+#define SIZE_TYPE_MSG sizeof(char)
 #define HEADER_SIZE SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG
 
 //Status part

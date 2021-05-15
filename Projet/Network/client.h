@@ -5,7 +5,7 @@
 #include "network_tools.h"
 
 
-int SendMessage(struct clientInfo *client, char *message);
+int SendMessage(struct clientInfo *clientList, MESSAGE message);
 
 
 #endif
