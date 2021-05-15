@@ -95,9 +95,10 @@ struct clientInfo *FindClient(struct sockaddr_in *tab, struct clientInfo *list)
     {
         if(sameIP(tab, &list->IP) == TRUE)
             res = list;
+        list = list->next;
     }
 
-    return list;
+    return res;
 }
 
 void printIP(struct sockaddr_in *IP)

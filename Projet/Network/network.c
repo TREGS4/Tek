@@ -55,7 +55,7 @@ void *SendOutgoinMessages(void *arg)
 
 int Network(struct server *server, char *IP, char *firstserver)
 {
-    int printListTerm = FALSE;
+    int printListTerm = TRUE;
 
     pthread_t serverThread;
     pthread_t sendOutgoingMessageThread;
