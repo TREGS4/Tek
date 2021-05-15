@@ -55,7 +55,7 @@ void *SendOutgoinMessages(void *arg)
 
 int Network(struct server *server, char *IP, char *firstserver)
 {
-    int printListTerm = TRUE;
+    int printListTerm = FALSE;
 
     pthread_t serverThread;
     pthread_t sendOutgoingMessageThread;
@@ -98,8 +98,6 @@ int Network(struct server *server, char *IP, char *firstserver)
     pthread_join(sendNetworkThread, NULL);
     if (printListTerm == 1)
         pthread_join(printListThread, NULL);
-
-    freeServer(server);
 
     return EXIT_SUCCESS;
 }

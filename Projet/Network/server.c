@@ -46,11 +46,6 @@ void *read_thread(void *arg)
 	if (problem == 0)
 	{
 		MESSAGE message = BinToMessage(dataBuff);
-		if (message.type == 1)
-		{
-			printf("Reception :\n");
-			printMessage(message, &client->IP);
-		}
 
 		if (type == 1)
 		{
