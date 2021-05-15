@@ -56,12 +56,6 @@ int SendMessageForOneClient(struct clientInfo *client, MESSAGE message)
 		return -1;
 	}
 
-	if (message.type != 1)
-	{
-		printf("Send:\n");
-		printMessage(message);
-	}
-
 	char *binMessage = MessageToBin(message);
 	Send(skt, binMessage, HEADER_SIZE + message.sizeData, 0);
 	free(binMessage);
