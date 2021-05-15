@@ -46,10 +46,10 @@ void *read_thread(void *arg)
 	if (problem == 0)
 	{
 		MESSAGE message = BinToMessage(dataBuff);
-		if (message.type != 1)
+		if (message.type == 1)
 		{
 			printf("Reception :\n");
-			printMessage(message);
+			printMessage(message, &client->IP);
 		}
 
 		if (type == 1)
@@ -120,8 +120,9 @@ void *Server(void *arg)
 		struct connection *client = malloc(sizeof(struct connection));
 		pthread_t thread;
 		client->server = server;
+		socklen_t temp = sizeof(client->IP);
 
-		client->socket = accept(skt, NULL, NULL);
+		client->socket = accept(skt, (struct sockaddr *)&client->IP, &temp);
 
 		if (pthread_create(&thread, NULL, read_thread, (void *)client) == 0)
 			pthread_detach(thread);

@@ -3,6 +3,7 @@
 struct clientInfo *initClientList()
 {
     struct clientInfo *sentinel = malloc(sizeof(struct clientInfo));
+    memset(&sentinel->IP, 0, sizeof(struct sockaddr_in));
     sentinel->sentinel = sentinel;
     sentinel->prev = NULL;
     sentinel->next = sentinel;
@@ -77,26 +78,23 @@ struct clientInfo *last(struct clientInfo *client)
 
 int sameIP(struct sockaddr_in *first, struct sockaddr_in *second)
 {
-    int me = TRUE;
-    char buff[16];
-    char buff2[16];
-    memset(buff, 0, 16);
-    memset(buff, 0, 16);
-    inet_ntop(AF_INET, &first->sin_addr, buff, 16);
-    inet_ntop(AF_INET, &second->sin_addr, buff2, 16);
-
-    for (size_t i = 0; i <= 15 && me == 1; i++)
-        if (((buff[i] >= '0' && buff[i] <= '9') || buff[i] == '.') && ((buff2[i] >= '0' && buff2[i] <= '9') || buff2[i] == '.'))
-            me = buff[i] == buff2[i];
+    int me = FALSE;
+    
+    if(memcmp(&first->sin_addr, &second->sin_addr, sizeof(struct in_addr)) == 0)
+        me = TRUE;
 
     return me;
 }
 
 struct clientInfo *FindClient(struct sockaddr_in *tab, struct clientInfo *list)
 {
-    for (list = list->sentinel->next; list->isSentinel == FALSE && sameIP(tab, &list->IP) == FALSE; list = list->next)
+    struct clientInfo *res = NULL;
+    list = list->sentinel->next;
+
+    while(res == NULL && list->isSentinel == FALSE)
     {
-        ;
+        if(sameIP(tab, &list->IP) == TRUE)
+            res = list;
     }
 
     return list;
@@ -128,6 +126,7 @@ void addServerFromMessage(MESSAGE message, struct server *server)
     for (size_t i = 0; i < nbstruct; i++)
     {
         memcpy(&temp, message.data + offset, sizeStructSockaddr_in);
+        temp.sin_port = htons(atoi(PORT));
 
         pthread_mutex_lock(&server->lockKnownServers);
         if (FindClient(&temp, server->KnownServers) == NULL)

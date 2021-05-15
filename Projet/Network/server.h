@@ -6,6 +6,7 @@
 struct connection
 {
     int socket;
+    struct sockaddr_in IP;
     struct server *server;
 };
 

@@ -44,21 +44,33 @@ void DestroyMessage(MESSAGE message)
     free(message.data);
 }
 
-void printMessage(MESSAGE message)
+void printMessage(MESSAGE message, struct sockaddr_in *IP)
 {
-	size_t taille = (3 + 10 + 21 + message.sizeData) * 10;
-    char *display = malloc(sizeof(char) * taille);
+	size_t taille = (3 + 10 + 21 + message.sizeData + sizeof(struct sockaddr_in)) * 10;
+    char display [taille];
+    char *mess = "Type: %d\nSize: %llu\nFrom: %s\nData: ";
+
     memset(display, 0, taille);
 
-	sprintf(display, "Type: %d\nSize: %llu\nData: ", message.type, message.sizeData);
+    char buffIP[16];
+    memset(buffIP, 0, 16);
+
+    if(IP != NULL)
+    {
+        inet_ntop(AF_INET, &IP->sin_addr, buffIP, 16);
+    }
+
+	sprintf(display, mess, message.type, message.sizeData, buffIP);
 	size_t offset = strlen(display);
 
+    
 	for (size_t i = 0; i < message.sizeData * 3; i += 3)
 	{
 		sprintf(display + offset + i, "%02x ", message.data[i/3]);
 	}
 	display[strlen(display)] = '\n';
 	display[strlen(display)] = '\n';
+    
 
 	printf(display);
 }
