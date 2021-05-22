@@ -219,13 +219,11 @@ int grosTest(int argc, char **argv)
 	
 	char *data3 = blockchainToJson(&newBlockchain);
 
-	MESSAGE message = CreateMessage(type, strlen(datatest), datatest);
-	shared_queue_push(server->OutgoingMessages, message);
 	while (1)
 	{
+		//MESSAGE message = CreateMessage(type, strlen(datatest), datatest);
+		//shared_queue_push(server->OutgoingMessages, message);
 		sleep(1);
-		MESSAGE message = CreateMessage(type, strlen(datatest), datatest);
-		shared_queue_push(server->OutgoingMessages, message);
 	}
 
 	free(data3);

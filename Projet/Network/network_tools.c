@@ -159,12 +159,10 @@ void addServerFromMessage(MESSAGE message, struct server *server)
         offset += size;
         
         printf("Addr: %s\nPort: %s\n", temp.hostname, temp.port);
-    printf("JUSTE AVANT LE SECOND MEMCPY\n");
         pthread_mutex_lock(&server->lockKnownServers);
         if (FindClient(temp, server->KnownServers) == NULL)
             addClient(server->KnownServers, temp);
         pthread_mutex_unlock(&server->lockKnownServers);
-        printf("JUSTE APRES LE SECOND MEMCPY\n");
 
         printf("offset: %lu\n", offset);
     }
