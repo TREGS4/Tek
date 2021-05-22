@@ -26,12 +26,15 @@ void *read_thread(void *arg)
 			offset += r;
 	}
 
-	memcpy(&type, headerBuff, SIZE_TYPE_MSG);
-	memcpy(&sizeData, headerBuff + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
-	nbCharToRead = sizeData;
-	dataBuff = malloc(sizeof(char) * (sizeData + HEADER_SIZE));
-	memcpy(dataBuff, headerBuff, HEADER_SIZE);
-	
+	if (problem == 0)
+	{
+		memcpy(&type, headerBuff, SIZE_TYPE_MSG);
+		memcpy(&sizeData, headerBuff + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
+		nbCharToRead = sizeData;
+		dataBuff = malloc(sizeof(char) * (sizeData + HEADER_SIZE));
+		memcpy(dataBuff, headerBuff, HEADER_SIZE);
+	}
+
 	offset = 0;
 	while (problem == 0 && nbCharToRead)
 	{
@@ -42,7 +45,7 @@ void *read_thread(void *arg)
 		else
 			offset += r;
 	}
-	
+
 	if (problem == 0)
 	{
 		MESSAGE message = BinToMessage(dataBuff);
@@ -86,7 +89,7 @@ void *Server(void *arg)
 	hints.ai_flags = AI_PASSIVE;
 
 	port = ntohs(server->IP.sin_port);
-    snprintf(portStr, 6, "%u", port);
+	snprintf(portStr, 6, "%u", port);
 
 	getaddrinfo(NULL, portStr, &hints, &res);
 
