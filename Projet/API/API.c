@@ -29,7 +29,7 @@ void resend(int fd, const void *buf, size_t count,int flag)
 
 void temptransaction_cmd(int client_socket_id, TRANSACTIONS_LIST* transaction_list)
 {
-	char *message
+	char *message;
 }
 
 void server_cmd(int client_socket_id, struct server* server_list)
