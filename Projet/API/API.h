@@ -26,7 +26,7 @@ struct WORK_ARG {
 	 struct server *server_list;
 	 TRANSACTIONS_LIST* transaction_list;
 } ;
-
+int API(BLOCKCHAIN* block_list, struct server* server_list ,TRANSACTIONS_LIST* transaction_list  );
 
 
 #endif

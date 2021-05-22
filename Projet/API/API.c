@@ -4,15 +4,6 @@
 #define BUFFER_SIZE 500
 
 
-/*char *serverToJson(struct server_list* server_list)
-{
-	//TODO
-}*/
-
-/*char *ttxsToJson(TRANSACTIONS_LIST* transaction_list)
-{
- 	//TODO
-}*/
 
 void resend(int fd, const void *buf, size_t count,int flag)
 {
@@ -29,7 +20,9 @@ void resend(int fd, const void *buf, size_t count,int flag)
 
 void temptransaction_cmd(int client_socket_id, TRANSACTIONS_LIST* transaction_list)
 {
-	char *message;
+	char *message = tlToJson (transaction_list);
+	resend (client_socket_id,message,strlen(message),0);
+	free(message);
 }
 
 void server_cmd(int client_socket_id, struct server* server_list)
@@ -37,15 +30,16 @@ void server_cmd(int client_socket_id, struct server* server_list)
 	size_t len = listLen (server_list->KnownServers->sentinel);
 	char *str1 = "{\"size\":%ld}";
 	char *message = malloc(sizeof(char)*(strlen(str1)+10));
-	sprintf(message,str1,len);
-	
+	sprintf(message,str1,len);	
 	resend (client_socket_id,message,strlen(message),0);
+	free(message);
 }
 
 void blockchain_cmd(int client_socket_id, BLOCKCHAIN* block_list)
 {
-	char *txt = blockchainToJson(block_list);
-	resend(client_socket_id,txt,strlen(txt),0);
+	char *message = blockchainToJson(block_list);
+	resend(client_socket_id,message,strlen(message),0);
+	free(message);
 }
 
 void add_transaction_cmd(int client_socket_id, gchar* resource,TRANSACTIONS_LIST* transaction_list)
@@ -54,6 +48,7 @@ void add_transaction_cmd(int client_socket_id, gchar* resource,TRANSACTIONS_LIST
 	addTx(transaction_list,&transaction);
 	char *message = "{\"success\":\"ok\"}";
 	resend(client_socket_id,message,strlen(message),0);
+	free(message);
 }
 
 // Define the thread function.
@@ -93,32 +88,37 @@ void* worker(void* arg)
         printf("%d: %s\n", client_socket_id, resource);
 
         //Send message status
-        char message[] = "HTTP/1.1 200 OK\r\n\r\n";
-        send(client_socket_id, message, strlen(message), MSG_MORE);
+        char message200[] = "HTTP/1.1 200 OK\r\n\r\n";
+	char message404[] = "HTTP/1.1 404 Not Found\r\n\r\n";
+
         
         //Compute and send content message depending on requested resource
         
         //Treat update command
-        if(strcmp(resource, "send_transaction_list") == 0) temptransaction_cmd(client_socket_id,transaction_list);
-        else
+        if(strcmp(resource, "send_transaction_list") == 0) 
+	{
+		send(client_socket_id, message200, strlen(message200), MSG_MORE);
+		temptransaction_cmd(client_socket_id,transaction_list);
+	}
+        else if (strcmp(resource, "send_server_count") == 0)
         {
-            // Treat set command
-            if(g_str_has_prefix(resource, "send_server_list") == TRUE) server_cmd(client_socket_id, server_list);
-            else
-            {
-                // Treat grid command
-                if(g_str_has_prefix(resource, "send_blockchain_list") == TRUE) blockchain_cmd(client_socket_id, block_list);
-                else
-                {
-                    // Treat restart command
-                    if(strcmp(resource, "add_transaction") == 0) add_transaction_cmd(client_socket_id,resource,transaction_list);
-                    else {
-			   //TODO message error;
-	                 }
-		}
-            }
-        }
-	
+		send(client_socket_id, message200, strlen(message200), MSG_MORE);
+		server_cmd(client_socket_id, server_list);
+	}
+	else if (strcmp(resource, "send_blockchain_list") == 0)
+	{
+		send(client_socket_id, message200, strlen(message200), MSG_MORE);
+		blockchain_cmd(client_socket_id, block_list);
+	}
+	else if (strcmp(resource, "add_transaction") == 0)
+	{
+		send(client_socket_id, message200, strlen(message200), MSG_MORE);
+		add_transaction_cmd(client_socket_id,resource,transaction_list);
+	}
+        else
+	{
+		send(client_socket_id, message404, strlen(message404), 0);   
+	}
         g_free(resource);
 
         //Close client sockets
@@ -231,6 +231,4 @@ int API(BLOCKCHAIN* block_list, struct server* server_list ,TRANSACTIONS_LIST* t
 }
 
 
-int main()
-{
-}
+
