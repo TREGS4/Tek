@@ -23,6 +23,35 @@ char *txsToJson(TRANSACTION *t)
 	free(res);
 	return json;
 }
+char *tlToJson(TRANSACTIONS_LIST *tl)
+{
+	char *s1 = "{\"transactions\":[";
+	char *s2 = "]}";
+	size_t size = strlen(s1) + strlen(s2);
+
+	char *json = NULL;
+
+	size_t nbTxs = tl->size;
+	char *restxs = NULL;
+	size_t txssize = 0;
+	for (size_t i = 0; i < nbTxs; i++){
+		char *txsjson = txsToJson(&tl->transactions[i]);
+		size_t t = txssize + strlen(txsjson) + 1;
+		restxs = realloc(restxs, t);
+		sprintf(restxs + txssize,"%s,",txsjson);
+		txssize += strlen(txsjson) + 1;
+		free(txsjson);
+	}
+	json = calloc(size + txssize + 1, sizeof(char));
+	if (restxs != NULL){
+		sprintf(json, "%s%s%s", s1, restxs, s2);
+		free(restxs);
+	}else{
+		sprintf(json, "%s%s", s1, s2);
+	}
+
+	return json;
+}
 
 
 

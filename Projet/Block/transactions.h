@@ -33,6 +33,7 @@ typedef struct
 
 void txsToString(TRANSACTION *txs, char buf[TRANSACTION_SIZE]);
 char *txsToJson(TRANSACTION *t);
+char *tlToJson(TRANSACTIONS_LIST *tl);
 TRANSACTION_BIN txsToBin(TRANSACTION *t);
 TRANSACTION binToTxs(BYTE *bin);
 size_t getSizeOf_txsbin();
