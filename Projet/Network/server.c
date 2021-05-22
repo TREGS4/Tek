@@ -9,6 +9,7 @@ void *read_thread(void *arg)
 	char headerBuff[HEADER_SIZE];
 	char *dataBuff;
 	int problem = 0;
+	int ended = 0;
 	size_t nbCharToRead = HEADER_SIZE;
 	size_t offset = 0;
 	int r;
@@ -21,17 +22,24 @@ void *read_thread(void *arg)
 		r = read(client->socket, headerBuff + offset, nbCharToRead);
 		nbCharToRead -= r;
 		if (r <= 0)
+		{
 			problem = 1;
+			if (r == 0)
+				ended = 1;
+		}	
 		else
 			offset += r;
 	}
 
-	memcpy(&type, headerBuff, SIZE_TYPE_MSG);
-	memcpy(&sizeData, headerBuff + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
-	nbCharToRead = sizeData;
-	dataBuff = malloc(sizeof(char) * (sizeData + HEADER_SIZE));
-	memcpy(dataBuff, headerBuff, HEADER_SIZE);
-	
+	if (problem == 0)
+	{
+		memcpy(&type, headerBuff, SIZE_TYPE_MSG);
+		memcpy(&sizeData, headerBuff + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
+		nbCharToRead = sizeData;
+		dataBuff = malloc(sizeof(char) * (sizeData + HEADER_SIZE));
+		memcpy(dataBuff, headerBuff, HEADER_SIZE);
+	}
+
 	offset = 0;
 	while (problem == 0 && nbCharToRead)
 	{
@@ -42,22 +50,23 @@ void *read_thread(void *arg)
 		else
 			offset += r;
 	}
-	
+
 	if (problem == 0)
 	{
 		MESSAGE message = BinToMessage(dataBuff);
 
-		if (type == 1)
+		switch (type)
 		{
+		case TYPE_NETWORK:
 			addServerFromMessage(message, client->server);
 			DestroyMessage(message);
-		}
-		else
-		{
+			break;
+		default:
 			shared_queue_push(client->server->IncomingMessages, message);
+			break;
 		}
 	}
-	else
+	else if(ended == 0)
 		printf("Error while receinving data in read_thread\nError with function read or not enough bytes received\n");
 
 	close(client->socket);
@@ -78,12 +87,17 @@ void *Server(void *arg)
 	struct addrinfo *res;
 	int connect = 0;
 	int skt;
+	char portStr[6] = DEFAULT_PORT;
+	unsigned short port = 0;
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	getaddrinfo(NULL, PORT, &hints, &res);
+	port = ntohs(server->IP.sin_port);
+	snprintf(portStr, 6, "%u", port);
+
+	getaddrinfo(NULL, portStr, &hints, &res);
 
 	while (res != NULL && connect == 0)
 	{
@@ -110,7 +124,11 @@ void *Server(void *arg)
 	if (listen(skt, 5) == -1)
 		err(EXIT_FAILURE, "Error on function listen() in server.c");
 
-	while (server->status == ONLINE)
+	pthread_mutex_lock(&server->lockStatus);
+	server->status = ONLINE;
+	pthread_mutex_unlock(&server->lockStatus);
+
+	while (server->status != EXITING)
 	{
 		struct connection *client = malloc(sizeof(struct connection));
 		pthread_t thread;

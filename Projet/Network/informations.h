@@ -3,7 +3,7 @@
 
 #include "queue/shared_queue.h"
 
-#define PORT "6969"
+#define DEFAULT_PORT "6969"
 
 //Boolean part
 #ifndef TRUE 
@@ -20,6 +20,10 @@
 #define SIZE_TYPE_MSG sizeof(char)
 #define HEADER_SIZE SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG
 
+//Type of message
+#define TYPE_NETWORK 1
+#define TYPE_TEST 255
+
 //Status part
 #define ERROR -1
 #define ENDED 0
@@ -30,6 +34,7 @@
 #define ONLINE 6
 #define OFFLINE 7
 #define EXITING 8
+#define STARTING 9
 #define NOTUSED 255
 #define DEAD 254
 
