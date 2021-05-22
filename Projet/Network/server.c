@@ -58,7 +58,7 @@ void *read_thread(void *arg)
 		switch (type)
 		{
 		case TYPE_NETWORK:
-			//addServerFromMessage(message, client->server);
+			addServerFromMessage(message, client->server);
 			DestroyMessage(message);
 			break;
 		default:

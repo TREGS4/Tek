@@ -28,9 +28,7 @@ int connectClient(struct address address)
 	if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		return -1;
 
-	printf("Addr: %s\nPort: %s\n", address.hostname, address.port);
 	struct sockaddr_in IP = GetIPfromHostname(address);
-	printIP(&IP);
 
 	if (connect(skt, (struct sockaddr *)&IP, sizeof(struct sockaddr_in)) < 0)
 	{

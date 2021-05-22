@@ -115,10 +115,12 @@ struct clientInfo *FindClient(struct address addr, struct clientInfo *list)
     struct clientInfo *res = NULL;
     list = list->sentinel->next;
 
+    printf("Len: %lu\n", strlen(addr.hostname));
+    printf("Addr: %s\nPort: %s\n", addr.hostname, addr.port);
     while (res == NULL && list->isSentinel == FALSE)
     {
         if (sameIP(addr, list->address) == TRUE)
-            res = list;
+           res = list;
         list = list->next;
     }
 
@@ -151,6 +153,7 @@ void addServerFromMessage(MESSAGE message, struct server *server)
         
         struct address temp;
         memcpy(&size, message.data + offset, HEADER_HOSTNAME_SIZE);
+        printf("Size: %u\n", size);
         temp.hostname = malloc(sizeof(char) * (size - PORT_SIZE - 1));
         
         offset += HEADER_HOSTNAME_SIZE;
@@ -161,7 +164,7 @@ void addServerFromMessage(MESSAGE message, struct server *server)
         printf("Addr: %s\nPort: %s\n", temp.hostname, temp.port);
         pthread_mutex_lock(&server->lockKnownServers);
         if (FindClient(temp, server->KnownServers) == NULL)
-            addClient(server->KnownServers, temp);
+        ;   //addClient(server->KnownServers, temp); 
         pthread_mutex_unlock(&server->lockKnownServers);
 
         printf("offset: %lu\n", offset);

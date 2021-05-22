@@ -69,8 +69,10 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     pthread_t sendNetworkThread;
     pthread_t printListThread;
 
-    server->address.hostname = hostname;
+    server->address.hostname = calloc(1, strlen(hostname) + 1);
+    memcpy(server->address.hostname, hostname, strlen(hostname));
     memset(server->address.port, 0, PORT_SIZE + 1);
+
 
     if (port != NULL)
         memcpy(server->address.port, port, strlen(port));
@@ -94,7 +96,8 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     if (hostnameFirstServer != NULL)
     {
         struct address address;
-        address.hostname = hostnameFirstServer;
+        address.hostname = calloc(1, strlen(hostnameFirstServer) + 1);
+        memcpy(address.hostname, hostnameFirstServer, strlen(hostnameFirstServer));
         memset(address.port, 0, PORT_SIZE + 1);
 
         if (portFirstServer != NULL)
