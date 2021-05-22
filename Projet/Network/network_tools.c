@@ -144,7 +144,7 @@ void addServerFromMessage(MESSAGE message, struct server *server)
 
     //peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
     //comportement inconnu dans ce cas la
-    printf("sizeData: %llu\nData: %s\n", message.sizeData, message.data);
+    printf("sizeData: %llu\n", message.sizeData);
 
     while(offset < message.sizeData)
     {
@@ -166,6 +166,8 @@ void addServerFromMessage(MESSAGE message, struct server *server)
 
         printf("offset: %lu\n", offset);
     }
+
+    printf("\n\n\n");
 }
 
 void *sendNetwork(void *arg)
@@ -201,6 +203,7 @@ void *sendNetwork(void *arg)
 
         pthread_mutex_unlock(&server->lockKnownServers);
 
+        printf("SizeData before sending: %llu\n", dataSize);
         MESSAGE message = CreateMessage(type, dataSize, messageBuff);
         shared_queue_push(server->OutgoingMessages, message);
 

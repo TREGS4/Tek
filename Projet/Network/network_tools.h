@@ -100,4 +100,6 @@ void *sendNetwork(void *arg);
 struct sockaddr_in GetIPfromHostname(struct address address);
 
 
+void printIP(struct sockaddr_in *IP);
+
 #endif
