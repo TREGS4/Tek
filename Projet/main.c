@@ -207,6 +207,10 @@ int main(){
 	printf("pem = \n%s\n", acc.publicKey_pem);
 
 
+	char *jsffon = tlToJson(&newBlockchain.blocks[0].tl);
+	printf("\n%s\n", jsffon);
+	free(jsffon);
+
 
 	free(newBlockchain.blocks);
 }
