@@ -9,6 +9,7 @@ void *read_thread(void *arg)
 	char headerBuff[HEADER_SIZE];
 	char *dataBuff;
 	int problem = 0;
+	int ended = 0;
 	size_t nbCharToRead = HEADER_SIZE;
 	size_t offset = 0;
 	int r;
@@ -21,7 +22,11 @@ void *read_thread(void *arg)
 		r = read(client->socket, headerBuff + offset, nbCharToRead);
 		nbCharToRead -= r;
 		if (r <= 0)
+		{
 			problem = 1;
+			if (r == 0)
+				ended = 1;
+		}	
 		else
 			offset += r;
 	}
@@ -50,17 +55,18 @@ void *read_thread(void *arg)
 	{
 		MESSAGE message = BinToMessage(dataBuff);
 
-		if (type == 1)
+		switch (type)
 		{
+		case TYPE_NETWORK:
 			addServerFromMessage(message, client->server);
 			DestroyMessage(message);
-		}
-		else
-		{
+			break;
+		default:
 			shared_queue_push(client->server->IncomingMessages, message);
+			break;
 		}
 	}
-	else
+	else if(ended == 0)
 		printf("Error while receinving data in read_thread\nError with function read or not enough bytes received\n");
 
 	close(client->socket);

@@ -15,6 +15,10 @@
 #define SIZE_TYPE_MSG sizeof(char)
 #define HEADER_SIZE SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG
 
+//Type of message
+#define TYPE_NETWORK 1
+#define TYPE_TEST 255
+
 //Status part
 #define ERROR -1
 #define ENDED 0
