@@ -100,6 +100,7 @@ void *PrintMessage(void *arg)
 		{
 			BLOCKCHAIN bc = binToBlockchain((BYTE *)message.data);
 			printBlockchain(bc);
+			printf("La taille du message est de %llu\n", message.sizeData);
 			free(bc.blocks);
 		}
 		else
@@ -198,15 +199,18 @@ int grosTest(int argc, char **argv)
 	char *datatest = "Je suis la pute de Pierre\n";
 	int type = 2;
 	
+	char *data3 = blockchainToJson(&newBlockchain);
 
+	MESSAGE message = CreateMessage(1, strlen(data3), data3);
+	shared_queue_push(server->OutgoingMessages, message);
 	while (1)
 	{
 		sleep(1);
-		//MESSAGE message = CreateMessage(3, bcbin.nbBytes, bcbin.bin);
-		//shared_queue_push(server->OutgoingMessages, message);
+		MESSAGE message = CreateMessage(3, strlen(data3), data3);
+		shared_queue_push(server->OutgoingMessages, message);
 	}
 
-
+	free(data3);
 	free(bcbin.bin);
 	free(newBlockchain.blocks);
 	pthread_join(networkthread, NULL);
