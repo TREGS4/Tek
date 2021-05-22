@@ -87,17 +87,12 @@ void *Server(void *arg)
 	struct addrinfo *res;
 	int connect = 0;
 	int skt;
-	char portStr[6] = DEFAULT_PORT;
-	unsigned short port = 0;
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	port = ntohs(server->IP.sin_port);
-	snprintf(portStr, 6, "%u", port);
-
-	getaddrinfo(NULL, portStr, &hints, &res);
+	getaddrinfo(NULL, server->address.port, &hints, &res);
 
 	while (res != NULL && connect == 0)
 	{

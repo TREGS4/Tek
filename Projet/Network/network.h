@@ -8,7 +8,7 @@
 #include "server.h"
 #include "network_tools.h"
 
-int Network(struct server *server, char *IP, char *port, char *firstserver, char *portFirstServer);
+int Network(struct server *server, char *hostname, char *port, char *hostnameFirstServer, char *portFirstServer);
 struct server *initServer();
 void freeServer(struct server *server);
 

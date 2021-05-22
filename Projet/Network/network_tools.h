@@ -16,17 +16,21 @@
 
 #include "informations.h"
 
+//contains the hostname and the port of a client
+struct address
+{
+    //hostname of the client, null terminated
+    char *hostname;
+
+    //port of the client
+    char port[PORT_SIZE + 1];
+};
+
+
 //A new structure is created for each new known IP adress
 struct clientInfo
 {
-    //IP adress of the element, can also contain family and port
-    struct sockaddr_in IP;
-
-    //hostname of the client, null terminated, can be null if no hostname
-    char *hostname;
-
-    //port of the server
-    char port[5];
+    struct address address;
 
     //TRUE is the it's the sentinel, FALSE otherwise
     short isSentinel;
@@ -44,7 +48,8 @@ struct server
 {
     //Status of the server
     int status;
-    struct sockaddr_in IP;
+    
+    struct address address;
     
     shared_queue *OutgoingMessages;
     shared_queue *IncomingMessages;
@@ -68,7 +73,7 @@ void freeClientList(struct clientInfo *clientList);
 //add the new element is the list, not necessarily at the end
 //Before adding try to connect, if it fails it does not add the client and return NULL
 //return the pointer of the new client otherwise.
-struct clientInfo *addClient(struct clientInfo *list, struct sockaddr_in IP);
+struct clientInfo *addClient(struct clientInfo *list, struct address address);
 
 //Remove the client from the list
 int removeClient(struct clientInfo *client);
@@ -85,12 +90,14 @@ int sameIP(struct sockaddr_in *first, struct sockaddr_in *second);
 //Search the tab in the list, return his pointer if find, Null pointer otherwise
 struct clientInfo *FindClient(struct sockaddr_in *tab, struct clientInfo *list);
 
-//Print the IP and port in the terminal
-void printIP(struct sockaddr_in *IP);
+//Print the hostname and port in the terminal
+void printHostname(struct address address);
 
 void addServerFromMessage(MESSAGE message, struct server *server);
 
 void *sendNetwork(void *arg);
+
+struct sockaddr_in GetIPfromHostname(struct address address);
 
 
 #endif

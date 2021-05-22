@@ -7,7 +7,7 @@ void *printList(void *arg)
     while (server->status != EXITING)
     {
         for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
-            printIP(&client->IP);
+            printHostname(client->address);
         printf("\n\n");
         sleep(2);
     }
@@ -57,7 +57,7 @@ void *SendOutgoinMessages(void *arg)
     return NULL;
 }
 
-int Network(struct server *server, char *IP, char *port, char *firstserver, char *portFirstServer)
+int Network(struct server *server, char *hostname, char *port, char *hostnameFirstServer, char *portFirstServer)
 {
     int printListTerm = FALSE;
 
@@ -66,16 +66,8 @@ int Network(struct server *server, char *IP, char *port, char *firstserver, char
     pthread_t sendNetworkThread;
     pthread_t printListThread;
 
-    struct sockaddr_in serverIP;
-    memset(&serverIP, 0, sizeof(struct sockaddr_in));
-    inet_pton(AF_INET, IP, &serverIP.sin_addr);
-    serverIP.sin_family = AF_INET;
-    if(port != NULL)
-        serverIP.sin_port = htons(atoi(port));
-    else
-        serverIP.sin_port = htons(atoi(DEFAULT_PORT));
-
-    server->IP = serverIP;
+    server->address.hostname = hostname;
+    memcpy(&server->address.port, port, PORT_SIZE + 1);
 
     pthread_create(&serverThread, NULL, Server, (void *)server);
     pthread_create(&sendOutgoingMessageThread, NULL, SendOutgoinMessages, (void *)server);
@@ -89,21 +81,21 @@ int Network(struct server *server, char *IP, char *port, char *firstserver, char
         sleep(0.01);
 
     pthread_mutex_lock(&server->lockKnownServers);
-    addClient(server->KnownServers, serverIP);
+    addClient(server->KnownServers, server->address);
     pthread_mutex_unlock(&server->lockKnownServers);
 
-    if (firstserver != NULL)
+    if (hostnameFirstServer != NULL)
     {
-        struct sockaddr_in firstser;
-        memset(&firstser, 0, sizeof(struct sockaddr_in));
-        inet_pton(AF_INET, firstserver, &firstser.sin_addr);
-        firstser.sin_family = AF_INET;
+        struct address address;
+        address.hostname = hostname;
+
         if(portFirstServer != NULL)
-            firstser.sin_port = htons(atoi(portFirstServer));
+            memcpy(&address.port, portFirstServer, PORT_SIZE + 1);
         else
-            firstser.sin_port = htons(atoi(DEFAULT_PORT));
+            memcpy(&address.port, DEFAULT_PORT, PORT_SIZE + 1);
+
         pthread_mutex_lock(&server->lockKnownServers);
-        addClient(server->KnownServers, firstser);
+        addClient(server->KnownServers, address);
         pthread_mutex_unlock(&server->lockKnownServers);
     }
     else
