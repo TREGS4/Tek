@@ -24,6 +24,20 @@ void freeClientList(struct clientInfo *clientList)
 
 struct clientInfo *addClient(struct clientInfo *list, struct sockaddr_in IP)
 {
+    int skt = -1;   
+    if((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        perror("Can't create the socket, while trying to test the client before add it");
+        return NULL;
+    }
+
+	if (connect(skt, (struct sockaddr *)&IP, sizeof(struct sockaddr_in)) < 0)
+	{
+		perror("Can't add the client");
+		return NULL;
+	}
+
+    close(skt);
     struct clientInfo *client = malloc(sizeof(struct clientInfo));
 
     client->isSentinel = FALSE;
@@ -44,7 +58,7 @@ int removeClient(struct clientInfo *client)
 {
     if (client->isSentinel == TRUE)
     {
-        printf("Can't remove the sentinel\n");
+        fprintf(stderr, "Can't remove the sentinel\n");
         return EXIT_FAILURE;
     }
 
@@ -127,7 +141,6 @@ void addServerFromMessage(MESSAGE message, struct server *server)
     for (size_t i = 0; i < nbstruct; i++)
     {
         memcpy(&temp, message.data + offset, sizeStructSockaddr_in);
-        temp.sin_port = htons(atoi(PORT));
 
         pthread_mutex_lock(&server->lockKnownServers);
         if (FindClient(&temp, server->KnownServers) == NULL)
@@ -147,7 +160,7 @@ void *sendNetwork(void *arg)
     char *messageBuff;
     size_t offset = 0;
 
-    while (server->status == ONLINE)
+    while (server->status != EXITING)
     {
         dataSize = 0;
         offset = 0;

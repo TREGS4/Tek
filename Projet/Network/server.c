@@ -78,12 +78,17 @@ void *Server(void *arg)
 	struct addrinfo *res;
 	int connect = 0;
 	int skt;
+	char portStr[6] = DEFAULT_PORT;
+	unsigned short port = 0;
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	getaddrinfo(NULL, PORT, &hints, &res);
+	port = ntohs(server->IP.sin_port);
+    snprintf(portStr, 6, "%u", port);
+
+	getaddrinfo(NULL, portStr, &hints, &res);
 
 	while (res != NULL && connect == 0)
 	{
@@ -110,7 +115,11 @@ void *Server(void *arg)
 	if (listen(skt, 5) == -1)
 		err(EXIT_FAILURE, "Error on function listen() in server.c");
 
-	while (server->status == ONLINE)
+	pthread_mutex_lock(&server->lockStatus);
+	server->status = ONLINE;
+	pthread_mutex_unlock(&server->lockStatus);
+
+	while (server->status != EXITING)
 	{
 		struct connection *client = malloc(sizeof(struct connection));
 		pthread_t thread;

@@ -38,6 +38,7 @@ struct server
 {
     //Status of the server
     int status;
+    struct sockaddr_in IP;
     
     shared_queue *OutgoingMessages;
     shared_queue *IncomingMessages;
@@ -47,6 +48,9 @@ struct server
 
     //lock when using/modifing the list of known servers
     pthread_mutex_t lockKnownServers;
+
+    //lock when using/modifing the status of the server
+    pthread_mutex_t lockStatus;
 };
 
 //Create a new list of clientInfo, return the sentinel of the list
@@ -56,6 +60,8 @@ struct clientInfo *initClientList();
 void freeClientList(struct clientInfo *clientList);
 
 //add the new element is the list, not necessarily at the end
+//Before adding try to connect, if it fails it does not add the client and return NULL
+//return the pointer of the new client otherwise.
 struct clientInfo *addClient(struct clientInfo *list, struct sockaddr_in IP);
 
 //Remove the client from the list
@@ -79,7 +85,6 @@ void printIP(struct sockaddr_in *IP);
 void addServerFromMessage(MESSAGE message, struct server *server);
 
 void *sendNetwork(void *arg);
-
 
 
 #endif

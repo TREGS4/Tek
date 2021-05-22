@@ -44,17 +44,9 @@ int connectClient(struct sockaddr_in *IP)
 int SendMessageForOneClient(struct clientInfo *client, MESSAGE message)
 {
 	int skt = -1;
-	struct sockaddr_in clienttemp;
 
-	clienttemp.sin_addr = client->IP.sin_addr;
-	clienttemp.sin_family = client->IP.sin_family;
-	clienttemp.sin_port = htons(atoi(PORT));
-
-	if ((skt = connectClient(&clienttemp)) < 0)
-	{
-		printf("Error while creating the socket\n");
+	if ((skt = connectClient(&client->IP)) < 0)
 		return -1;
-	}
 
 	char *binMessage = MessageToBin(message);
 	Send(skt, binMessage, HEADER_SIZE + message.sizeData, 0);
