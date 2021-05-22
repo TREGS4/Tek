@@ -22,6 +22,12 @@ struct clientInfo
     //IP adress of the element, can also contain family and port
     struct sockaddr_in IP;
 
+    //hostname of the client, null terminated, can be null if no hostname
+    char *hostname;
+
+    //port of the server
+    char port[5];
+
     //TRUE is the it's the sentinel, FALSE otherwise
     short isSentinel;
 

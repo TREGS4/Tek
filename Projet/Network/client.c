@@ -31,6 +31,37 @@ int connectClient(struct sockaddr_in *IP)
 	if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		return -1;
 
+	struct addrinfo hints, *res;
+	char portStr[6] = DEFAULT_PORT;
+	unsigned short port = 0;
+	int value = 1;
+
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	
+	setsockopt(skt, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value));
+
+	port = ntohs(server->IP.sin_port);
+	snprintf(portStr, 6, "%u", port);
+
+	getaddrinfo(NULL, portStr, &hints, &res);
+
+	while (res != NULL && connect == 0)
+	{
+		if (skt >= 0)
+		{
+			if (bind(skt, res->ai_addr, res->ai_addrlen) == 0)
+				connect = 1;
+			else
+				close(skt);
+		}
+		else
+			res = res->ai_next;
+	}
+
+	freeaddrinfo(res);
+
 	if (connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0)
 	{
 		printf("Connect client error:\n");
