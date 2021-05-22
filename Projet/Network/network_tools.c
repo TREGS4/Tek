@@ -148,22 +148,24 @@ void addServerFromMessage(MESSAGE message, struct server *server)
 
     while(offset < message.sizeData)
     {
-        printf("here\n");
+        
         struct address temp;
         memcpy(&size, message.data + offset, HEADER_HOSTNAME_SIZE);
         temp.hostname = malloc(sizeof(char) * (size - PORT_SIZE - 1));
+        
         offset += HEADER_HOSTNAME_SIZE;
-
+        
         memcpy(&temp, message.data + offset, size);
         offset += size;
         
         printf("Addr: %s\nPort: %s\n", temp.hostname, temp.port);
-
+    printf("JUSTE AVANT LE SECOND MEMCPY\n");
         pthread_mutex_lock(&server->lockKnownServers);
         if (FindClient(temp, server->KnownServers) == NULL)
             addClient(server->KnownServers, temp);
         pthread_mutex_unlock(&server->lockKnownServers);
-        
+        printf("JUSTE APRES LE SECOND MEMCPY\n");
+
         printf("offset: %lu\n", offset);
     }
 }
@@ -193,8 +195,9 @@ void *sendNetwork(void *arg)
         {
             uint16_t size = strlen(client->address.hostname) + 1 + PORT_SIZE + 1;
             memcpy(messageBuff + offset, &size, HEADER_HOSTNAME_SIZE);
+            offset += HEADER_HOSTNAME_SIZE;
 
-            memcpy(messageBuff + offset + HEADER_HOSTNAME_SIZE, &client->address, size);
+            memcpy(messageBuff + offset, &client->address, size);
             offset += size;
         }
 
