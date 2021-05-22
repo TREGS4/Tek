@@ -51,7 +51,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct sockaddr_in IP)
 
     client->sentinel = list->sentinel;
 
-    return client;
+    return NULL;
 }
 
 int removeClient(struct clientInfo *client)
