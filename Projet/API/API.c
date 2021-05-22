@@ -1,145 +1,63 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <netdb.h>
-#include <signal.h>
-#include <unistd.h>
-#include <err.h>
-#include <semaphore.h>
-#include <gmodule.h>
-#include <glib.h>
-#include <glib/gprintf.h>
+#include "API.h"
+
 
 #define BUFFER_SIZE 500
 
-// Grid of the game.
-// "_" represents an empty cell.
-// "x" represents the cross.
-// "o" represents the nought.
-char grid[] = "_________";
 
-// Current number of players.
-int player_count = 0;
-
-// Semaphore to protect player_count management
-sem_t lock;
-
-// Restart pressed.
-int restart_pressed = 0;
-
-// Update command
-void update_cmd(int client_socket_id)
+char *serverToJson(struct *server_list server_list)
 {
-    //Send grid as message content
-    if (write(client_socket_id, grid, 9) != 9)
-    {
-        fprintf(stderr, "partial/failed write\n");
-    }
+	//TODO
 }
 
-// Set command
-void set_cmd(int client_socket_id, gchar* resource)
+char *ttxsToJson(*TRANSACTIONS_LIST transaction_list)
 {
-    grid[atoi(resource+5)] = resource[4];
-    update_cmd(client_socket_id);
+ 	//TODO
+}
+void resend(int fd, const void *buf, size_t count,int flag)
+{
+   ssize_t send1 = send(fd,buf,count,flag);
+   if (send1 == -1) 
+   	return err(1, "Error writing");
+   
+   while (send1 < (ssize_t) count) 
+	{
+	     send1 += send(fd,buf+send, count-send,flag);
+	}
 }
 
-// Get resource
-void get_www_resource(int client_socket_id, gchar* resource)
-{
-    gchar* file_content;
-    gsize response_size;
-    GError* error = NULL;
-    
-    gchar* resource_path = malloc((strlen(resource) + 4) * sizeof(char));
-    sprintf(resource_path, "www/%s", resource);
 
-    //Read resource file content
-    if(g_file_get_contents(resource_path, &file_content, &response_size, &error) == FALSE)
-    {
-        if(player_count < 2)
-        {
-        printf("trc");
-            strcpy(resource_path, "www/new_player.html");
-        }
-        else
-        {
-            strcpy(resource_path, "www/busy.html");
-        }
-        g_file_get_contents(resource_path, &file_content, &response_size, &error);
-    }
-    
-    //Send message content
-    if (write(client_socket_id, file_content, response_size) != ((int) response_size))
-    {
-        fprintf(stderr, "partial/failed write\n");
-    }
-    
-    if(error != NULL) g_error_free(error);
-    g_free(file_content);
-    g_free(resource_path);
+void temptransaction_cmd(int client_socket_id, *TRANSACTIONS_LIST transaction _list)
+{
+	//TODO
 }
 
-// Grid command
-void grid_cmd(int client_socket_id, gchar* resource)
+void server_cmd(int client_socket_id, struct *server server_list)
 {
-    sem_wait(&lock);
-
-    int name_size = strlen(resource) - 14;
-    char player_name[name_size];
-    strcpy(player_name, resource+14);
-
-    char symbol;
-    if(player_count == 0) symbol = 'x';
-    if(player_count == 1) symbol = 'o';
-
-    if(player_count > 1) get_www_resource(client_socket_id, "busy.html");
-    else
-    {
-        player_count++;
-        
-        gchar* file_content;
-        gsize response_size;
-        GError* error = NULL;
-        
-        g_file_get_contents("www/grid.html", &file_content, &response_size, &error);
-        
-        char* response = g_strdup_printf(file_content, symbol, player_name);
-        response_size = strlen(response);
-        
-        if (write(client_socket_id, response, response_size) != ((int) response_size))
-        {
-            fprintf(stderr, "partial/failed write\n");
-        }
-        
-        if(error != NULL) g_error_free(error);
-        g_free(file_content);
-        free(response);
-    }
-    
-    sem_post(&lock);
+	//TODO
 }
 
-void restart_cmd(int client_socket_id)
+void blockchain_cmd(int client_socket_id, *BLOCKCHAIN block_list)
 {
-    sem_wait(&lock);
+	char *txt = blockchainToJson(block_list);
+	resend(client_socket_id,txt,strlen(txt),0);
+}
 
-    if(restart_pressed == 0)
-    {
-        strcpy(grid, "_________");
-        restart_pressed++;
-    }
-    else restart_pressed = 0;
-
-    update_cmd(client_socket_id);
-
-    sem_post(&lock);
+void add_transaction_cmd(int client_socket_id, gchar* resource,*TRANSACTIONS_LIST transaction _list)
+{
+	char *transaction = binToTxs( (BYTE*) resource);
+	addTx(transaction _list,transaction);
+	resend(client_socket_id,"ok",2,0);
 }
 
 // Define the thread function.
 void* worker(void* arg)
 {
-    int client_socket_id = *((int*) arg);
+    struct *WORK_ARG work_arg = (struct WORK_ARG) arg;
+    int client_socket_id = work_arg->client_socket_id;
+    *BLOCKCHAIN block_list= work_arg->block_list;
+    struct *server server_list = work_arg->server_list;
+    *TRANSACTIONS_LIST transaction _list = work_arg->transaction_list;
+    
     ssize_t request_size;
     char request[BUFFER_SIZE];
 
@@ -174,36 +92,37 @@ void* worker(void* arg)
         //Compute and send content message depending on requested resource
         
         //Treat update command
-        if(strcmp(resource, "update") == 0) update_cmd(client_socket_id);
+        if(strcmp(resource, "send_transaction_list") == 0) temptransaction_cmd(client_socket_id,transaction_list);
         else
         {
             // Treat set command
-            if(g_str_has_prefix(resource, "set_") == TRUE) set_cmd(client_socket_id, resource);
+            if(g_str_has_prefix(resource, "send_server_list") == TRUE) server_cmd(client_socket_id, server_list);
             else
             {
                 // Treat grid command
-                if(g_str_has_prefix(resource, "grid?nickname=") == TRUE) grid_cmd(client_socket_id, resource);
+                if(g_str_has_prefix(resource, "send_blockchain_list") == TRUE) blockchain_cmd(client_socket_id, block_list);
                 else
                 {
                     // Treat restart command
-                    if(strcmp(resource, "restart") == 0) restart_cmd(client_socket_id);
-                    else get_www_resource(client_socket_id, resource);
+                    if(strcmp(resource, "add_transaction") == 0) add_transaction_cmd(client_socket_id,resource);
+                    else //TODO message error;
                 }
             }
         }
-
+	
         g_free(resource);
 
         //Close client sockets
         close(client_socket_id);
+	
     }
-
+    free(work_arg);
     g_string_free(full_request, TRUE);
     
     return NULL;
 }
 
-int main()
+int API(struct *BLOCKCHAIN block_list, struct *server server_list , struct *TRANSACTIONS_LIST transaction_list  )
 {
     struct addrinfo hints;
     struct addrinfo *addr_list, *addr;
@@ -287,9 +206,14 @@ int main()
 
         int thread;
         pthread_t thread_id;
+	struct *WORK_ARG work_arg = malloc(sizeof(struct WORK_ARG));
+	work_arg->client_socket_id = client_socket_id;
+	work_arg->block_list = block_list;
+	work_arg->server_list = server_list;
+	work_Arg->transaction_list = transaction_list; 
 
         // - Create and execute the thread.
-        thread = pthread_create(&thread_id, NULL, &(worker), (void*)&client_socket_id);
+        thread = pthread_create(&thread_id, NULL, &(worker), (void*) work_arg);
         if(thread != 0)
         {
             fprintf(stderr, "hello: Can't create thread.\n");
@@ -301,4 +225,9 @@ int main()
     close(socket_id);
     
     sem_destroy(&lock);
+}
+
+
+int main()
+{
 }

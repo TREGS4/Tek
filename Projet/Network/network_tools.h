@@ -49,6 +49,7 @@ struct server
     pthread_mutex_t lockKnownServers;
 };
 
+
 //Create a new list of clientInfo, return the sentinel of the list
 struct clientInfo *initClientList();
 
