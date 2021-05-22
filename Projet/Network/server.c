@@ -142,5 +142,6 @@ void *Server(void *arg)
 	}
 
 	close(skt);
+
 	return NULL;
 }

@@ -7,7 +7,10 @@ void *printList(void *arg)
     while (server->status != EXITING)
     {
         for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
-            printHostname(client->address);
+        {
+            ;//printHostname(client->address);
+        }
+            
         printf("\n\n");
         sleep(2);
     }
@@ -67,19 +70,27 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     pthread_t printListThread;
 
     server->address.hostname = hostname;
-    memcpy(&server->address.port, port, PORT_SIZE + 1);
+    memset(server->address.port, 0, PORT_SIZE + 1);
 
+    if(port != NULL)
+        memcpy(server->address.port, port, strlen(port));
+    else
+        memcpy(server->address.port, DEFAULT_PORT, strlen(DEFAULT_PORT));
+  
     pthread_create(&serverThread, NULL, Server, (void *)server);
     pthread_create(&sendOutgoingMessageThread, NULL, SendOutgoinMessages, (void *)server);
     pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)server);
 
+    
     if (printListTerm == TRUE)
         pthread_create(&printListThread, NULL, printList, (void *)server);
 
 
-    while (server->status != ONLINE)
-        sleep(0.01);
 
+    while (server->status != ONLINE)
+       sleep(0.01);
+
+    
     pthread_mutex_lock(&server->lockKnownServers);
     addClient(server->KnownServers, server->address);
     pthread_mutex_unlock(&server->lockKnownServers);
@@ -88,11 +99,12 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     {
         struct address address;
         address.hostname = hostname;
+        memset(address.port, 0, PORT_SIZE + 1);
 
-        if(portFirstServer != NULL)
-            memcpy(&address.port, portFirstServer, PORT_SIZE + 1);
+        if(port != NULL)
+            memcpy(address.port, portFirstServer, strlen(portFirstServer));
         else
-            memcpy(&address.port, DEFAULT_PORT, PORT_SIZE + 1);
+            memcpy(address.port, DEFAULT_PORT, strlen(DEFAULT_PORT));
 
         pthread_mutex_lock(&server->lockKnownServers);
         addClient(server->KnownServers, address);

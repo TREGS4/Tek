@@ -85,10 +85,10 @@ size_t listLen(struct clientInfo *client);
 struct clientInfo *last(struct clientInfo *client);
 
 //Compare to sockaddr_in, if there are equals return TRUE, FALSE otherwise
-int sameIP(struct sockaddr_in *first, struct sockaddr_in *second);
+int sameIP(struct address addr1, struct address addr2);
 
 //Search the tab in the list, return his pointer if find, Null pointer otherwise
-struct clientInfo *FindClient(struct sockaddr_in *tab, struct clientInfo *list);
+struct clientInfo *FindClient(struct address addr, struct clientInfo *list);
 
 //Print the hostname and port in the terminal
 void printHostname(struct address address);

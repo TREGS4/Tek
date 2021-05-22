@@ -98,24 +98,29 @@ struct clientInfo *last(struct clientInfo *client)
     return client;
 }
 
-int sameIP(struct address addr1, struct sockaddr_in *second)
+int sameIP(struct address addr1, struct address addr2)
 {
     int me = FALSE;
+    printf("addr1: %s\n", addr1.hostname);
+    printf("addr2: %s\n", addr2.hostname);
 
-    if (memcmp(&first->sin_addr, &second->sin_addr, sizeof(struct in_addr)) == 0)
+    if(strlen(addr1.hostname) == strlen(addr2.hostname))
+        me = TRUE;
+    if (me == TRUE && memcmp(&addr1.hostname, &addr2.hostname, strlen(addr1.hostname)) == 0)
         me = TRUE;
 
     return me;
 }
 
-struct clientInfo *FindClient(struct sockaddr_in *tab, struct clientInfo *list)
+struct clientInfo *FindClient(struct address addr, struct clientInfo *list)
 {
     struct clientInfo *res = NULL;
     list = list->sentinel->next;
 
+    printf("addr: %s\n", addr.hostname);
     while (res == NULL && list->isSentinel == FALSE)
     {
-        if (sameIP(tab, &list->IP) == TRUE)
+        if (sameIP(addr, list->address) == TRUE)
             res = list;
         list = list->next;
     }
@@ -137,25 +142,29 @@ void printIP(struct sockaddr_in *IP)
 void addServerFromMessage(MESSAGE message, struct server *server)
 {
     size_t offset = 0;
-    size_t nbstruct = 1;
-    struct adress temp;
+    struct address temp;
 
     //peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
     //comportement inconnu dans ce cas la
+    printf("sizeData: %llu", message.sizeData);
 
-    for (size_t i = 0; i < nbstruct; i++)
+    while(offset < message.sizeData)
     {
-        unsigned int16 size = 0;
+        uint16_t size = 0;
         memcpy(&size, message.data + offset, HEADER_HOSTNAME_SIZE);
-        temp.hostname = malloc(sizeof(char) * (size - PORT_SIZE - 1);
-        memcpy(temp, message.sizeData + offset + HEADER_HOSTNAME_SIZE, size);
+        temp.hostname = malloc(sizeof(char) * (size - PORT_SIZE - 1));
+        offset += HEADER_HOSTNAME_SIZE;
 
+        memcpy(&temp, message.data + offset, size);
+        offset += size;
+        
         pthread_mutex_lock(&server->lockKnownServers);
-        if (FindClient(&temp, server->KnownServers) == NULL)
+        if (FindClient(temp, server->KnownServers) == NULL)
             addClient(server->KnownServers, temp);
         pthread_mutex_unlock(&server->lockKnownServers);
         
-        offset += size;
+        printf("offset: %lu\n", offset);
+        printf("size: %llu\n", message.sizeData);
     }
 }
 
@@ -175,14 +184,14 @@ void *sendNetwork(void *arg)
 
         pthread_mutex_lock(&server->lockKnownServers);
 
-        for(struct clientInfo *temp = server->KnownServers; temp != NULL; temp = temp->next)
+        for(struct clientInfo *temp = server->KnownServers->sentinel->next; temp->isSentinel == FALSE; temp = temp->next)
             dataSize += strlen(temp->address.hostname) + 1 + PORT_SIZE + 1 + HEADER_HOSTNAME_SIZE;
 
         messageBuff = malloc(sizeof(char) * dataSize);
 
         for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
         {
-            unsigned int16 size = strlen(client->address.hostname) + 1 + PORT_SIZE + 1;
+            uint16_t size = strlen(client->address.hostname) + 1 + PORT_SIZE + 1;
             memcpy(messageBuff + offset, &size, HEADER_HOSTNAME_SIZE);
 
             memcpy(messageBuff + offset + HEADER_HOSTNAME_SIZE, &client->address, size);
@@ -203,16 +212,16 @@ void *sendNetwork(void *arg)
 
 struct sockaddr_in GetIPfromHostname(struct address address)
 {
-    struct sockaddr_in resIP;
+    struct sockaddr_in *resIP;
     struct addrinfo hints, *res;
     memset(&res, 0, sizeof(struct sockaddr_in));
 	memset(&hints, 0, sizeof(struct addrinfo));
 
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
-	getaddrinfo(address.hostname, server->port, &hints, &res);
-    resIP = (struct sockaddr_in)*res->ai_addr;
+	getaddrinfo(address.hostname, address.port, &hints, &res);
+    resIP = (struct sockaddr_in *)res->ai_addr;
     freeaddrinfo(res);
 
-    return resIP;
+    return *resIP;
 }
