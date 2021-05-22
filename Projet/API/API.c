@@ -4,15 +4,16 @@
 #define BUFFER_SIZE 500
 
 
-char *serverToJson(struct *server_list server_list)
+/*char *serverToJson(struct server_list* server_list)
 {
 	//TODO
-}
+}*/
 
-char *ttxsToJson(*TRANSACTIONS_LIST transaction_list)
+/*char *ttxsToJson(TRANSACTIONS_LIST* transaction_list)
 {
  	//TODO
-}
+}*/
+
 void resend(int fd, const void *buf, size_t count,int flag)
 {
    ssize_t send1 = send(fd,buf,count,flag);
@@ -21,42 +22,48 @@ void resend(int fd, const void *buf, size_t count,int flag)
    
    while (send1 < (ssize_t) count) 
 	{
-	     send1 += send(fd,buf+send, count-send,flag);
+	     send1 += send(fd,buf+send1, count-send1,flag);
 	}
 }
 
 
-void temptransaction_cmd(int client_socket_id, *TRANSACTIONS_LIST transaction _list)
+void temptransaction_cmd(int client_socket_id, TRANSACTIONS_LIST* transaction_list)
 {
-	//TODO
+	char *message
 }
 
-void server_cmd(int client_socket_id, struct *server server_list)
+void server_cmd(int client_socket_id, struct server* server_list)
 {
-	//TODO
+	size_t len = listLen (server_list->KnownServers->sentinel);
+	char *str1 = "{\"size\":%ld}";
+	char *message = malloc(sizeof(char)*(strlen(str1)+10));
+	sprintf(message,str1,len);
+	
+	resend (client_socket_id,message,strlen(message),0);
 }
 
-void blockchain_cmd(int client_socket_id, *BLOCKCHAIN block_list)
+void blockchain_cmd(int client_socket_id, BLOCKCHAIN* block_list)
 {
 	char *txt = blockchainToJson(block_list);
 	resend(client_socket_id,txt,strlen(txt),0);
 }
 
-void add_transaction_cmd(int client_socket_id, gchar* resource,*TRANSACTIONS_LIST transaction _list)
+void add_transaction_cmd(int client_socket_id, gchar* resource,TRANSACTIONS_LIST* transaction_list)
 {
-	char *transaction = binToTxs( (BYTE*) resource);
-	addTx(transaction _list,transaction);
-	resend(client_socket_id,"ok",2,0);
+	TRANSACTION transaction = binToTxs( (BYTE*) resource);
+	addTx(transaction_list,&transaction);
+	char *message = "{\"success\":\"ok\"}";
+	resend(client_socket_id,message,strlen(message),0);
 }
 
 // Define the thread function.
 void* worker(void* arg)
 {
-    struct *WORK_ARG work_arg = (struct WORK_ARG) arg;
+    struct WORK_ARG* work_arg = arg;
     int client_socket_id = work_arg->client_socket_id;
-    *BLOCKCHAIN block_list= work_arg->block_list;
-    struct *server server_list = work_arg->server_list;
-    *TRANSACTIONS_LIST transaction _list = work_arg->transaction_list;
+    BLOCKCHAIN* block_list= work_arg->block_list;
+    struct server* server_list = work_arg->server_list;
+    TRANSACTIONS_LIST* transaction_list = work_arg->transaction_list;
     
     ssize_t request_size;
     char request[BUFFER_SIZE];
@@ -104,9 +111,11 @@ void* worker(void* arg)
                 else
                 {
                     // Treat restart command
-                    if(strcmp(resource, "add_transaction") == 0) add_transaction_cmd(client_socket_id,resource);
-                    else //TODO message error;
-                }
+                    if(strcmp(resource, "add_transaction") == 0) add_transaction_cmd(client_socket_id,resource,transaction_list);
+                    else {
+			   //TODO message error;
+	                 }
+		}
             }
         }
 	
@@ -122,18 +131,14 @@ void* worker(void* arg)
     return NULL;
 }
 
-int API(struct *BLOCKCHAIN block_list, struct *server server_list , struct *TRANSACTIONS_LIST transaction_list  )
+int API(BLOCKCHAIN* block_list, struct server* server_list ,TRANSACTIONS_LIST* transaction_list  )
 {
     struct addrinfo hints;
     struct addrinfo *addr_list, *addr;
     int socket_id, client_socket_id;
     int res;
 
-    // Init with a value of 1
-    // first 0 is for unused option, keep it this way
-    if ( sem_init(&lock, 0, 1) == -1)
-        err(1, "Fail to initialized semaphore");
-    
+  
     //Get addresses list
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_INET;
@@ -190,8 +195,7 @@ int API(struct *BLOCKCHAIN block_list, struct *server server_list , struct *TRAN
         exit(0);
     }
 
-    //Socket waiting for connections on port 2048
-    printf("Tic-Tac-Toe Server\nListening to port 2048...\n");
+
 
     //Allow multiple connections
     while(1)
@@ -206,11 +210,11 @@ int API(struct *BLOCKCHAIN block_list, struct *server server_list , struct *TRAN
 
         int thread;
         pthread_t thread_id;
-	struct *WORK_ARG work_arg = malloc(sizeof(struct WORK_ARG));
+	struct WORK_ARG* work_arg = malloc(sizeof(struct WORK_ARG));
 	work_arg->client_socket_id = client_socket_id;
 	work_arg->block_list = block_list;
 	work_arg->server_list = server_list;
-	work_Arg->transaction_list = transaction_list; 
+	work_arg->transaction_list = transaction_list; 
 
         // - Create and execute the thread.
         thread = pthread_create(&thread_id, NULL, &(worker), (void*) work_arg);
@@ -224,7 +228,6 @@ int API(struct *BLOCKCHAIN block_list, struct *server server_list , struct *TRAN
     //Close server sockets
     close(socket_id);
     
-    sem_destroy(&lock);
 }
 
 

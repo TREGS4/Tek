@@ -6,8 +6,13 @@
 #define PORT "6969"
 
 //Boolean part
+#ifndef TRUE 
 #define TRUE 1
+#endif
+
+#ifndef FALSE 
 #define FALSE 0
+#endif
 
 // Message part
 #define BUFFER_SIZE_SOCKET 512

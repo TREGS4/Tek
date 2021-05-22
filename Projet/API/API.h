@@ -20,11 +20,12 @@
 
 
 
-struct { int client_socket_id;
-	 *BLOCKCHAIN block_list;
-	 struct *server server_list;
-	 *TRANSACTIONS_LIST transaction_list;
-} WORK_ARG;
+struct WORK_ARG { 
+	int client_socket_id;
+	 BLOCKCHAIN* block_list;
+	 struct server *server_list;
+	 TRANSACTIONS_LIST* transaction_list;
+} ;
 
 
 
