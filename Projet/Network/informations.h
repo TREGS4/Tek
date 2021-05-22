@@ -3,7 +3,7 @@
 
 #include "queue/shared_queue.h"
 
-#define DEFAULT_PORT "06969"
+#define DEFAULT_PORT "6969"
 
 //Boolean part
 #define TRUE 1

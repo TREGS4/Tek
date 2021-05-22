@@ -8,9 +8,9 @@ void *printList(void *arg)
     {
         for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
         {
-            ;//printHostname(client->address);
+            ; //printHostname(client->address);
         }
-            
+
         printf("\n\n");
         sleep(2);
     }
@@ -72,25 +72,21 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     server->address.hostname = hostname;
     memset(server->address.port, 0, PORT_SIZE + 1);
 
-    if(port != NULL)
+    if (port != NULL)
         memcpy(server->address.port, port, strlen(port));
     else
         memcpy(server->address.port, DEFAULT_PORT, strlen(DEFAULT_PORT));
-  
+
     pthread_create(&serverThread, NULL, Server, (void *)server);
     pthread_create(&sendOutgoingMessageThread, NULL, SendOutgoinMessages, (void *)server);
     pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)server);
 
-    
     if (printListTerm == TRUE)
         pthread_create(&printListThread, NULL, printList, (void *)server);
 
-
-
     while (server->status != ONLINE)
-       sleep(0.01);
+        sleep(0.01);
 
-    
     pthread_mutex_lock(&server->lockKnownServers);
     addClient(server->KnownServers, server->address);
     pthread_mutex_unlock(&server->lockKnownServers);
@@ -98,10 +94,10 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     if (hostnameFirstServer != NULL)
     {
         struct address address;
-        address.hostname = hostname;
+        address.hostname = hostnameFirstServer;
         memset(address.port, 0, PORT_SIZE + 1);
 
-        if(port != NULL)
+        if (portFirstServer != NULL)
             memcpy(address.port, portFirstServer, strlen(portFirstServer));
         else
             memcpy(address.port, DEFAULT_PORT, strlen(DEFAULT_PORT));
@@ -112,7 +108,6 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     }
     else
         printf("No server to connect to...\n");
-    
 
     pthread_join(serverThread, NULL);
     pthread_join(sendOutgoingMessageThread, NULL);

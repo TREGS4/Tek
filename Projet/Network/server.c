@@ -133,12 +133,16 @@ void *Server(void *arg)
 		client->socket = accept(skt, (struct sockaddr *)&client->IP, &temp);
 
 		if (pthread_create(&thread, NULL, read_thread, (void *)client) == 0)
+		{
+			//pthread_join(thread, NULL);
 			pthread_detach(thread);
+		}
 		else
 		{
 			close(client->socket);
 			free(client);
 		}
+		
 	}
 
 	close(skt);

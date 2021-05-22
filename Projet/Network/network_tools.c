@@ -48,7 +48,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
     struct clientInfo *client = malloc(sizeof(struct clientInfo));
 
     client->isSentinel = FALSE;
-    client->address = address;
+    memcpy(&client->address, &address, sizeof(struct address));
 
     client->next = list->next;
     client->prev = list;
@@ -101,8 +101,6 @@ struct clientInfo *last(struct clientInfo *client)
 int sameIP(struct address addr1, struct address addr2)
 {
     int me = FALSE;
-    printf("addr1: %s\n", addr1.hostname);
-    printf("addr2: %s\n", addr2.hostname);
 
     if(strlen(addr1.hostname) == strlen(addr2.hostname))
         me = TRUE;
@@ -117,7 +115,6 @@ struct clientInfo *FindClient(struct address addr, struct clientInfo *list)
     struct clientInfo *res = NULL;
     list = list->sentinel->next;
 
-    printf("addr: %s\n", addr.hostname);
     while (res == NULL && list->isSentinel == FALSE)
     {
         if (sameIP(addr, list->address) == TRUE)
@@ -142,15 +139,17 @@ void printIP(struct sockaddr_in *IP)
 void addServerFromMessage(MESSAGE message, struct server *server)
 {
     size_t offset = 0;
-    struct address temp;
+    
+    uint16_t size = 0;
 
     //peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
     //comportement inconnu dans ce cas la
-    printf("sizeData: %llu", message.sizeData);
+    printf("sizeData: %llu\nData: %s\n", message.sizeData, message.data);
 
     while(offset < message.sizeData)
     {
-        uint16_t size = 0;
+        printf("here\n");
+        struct address temp;
         memcpy(&size, message.data + offset, HEADER_HOSTNAME_SIZE);
         temp.hostname = malloc(sizeof(char) * (size - PORT_SIZE - 1));
         offset += HEADER_HOSTNAME_SIZE;
@@ -158,13 +157,14 @@ void addServerFromMessage(MESSAGE message, struct server *server)
         memcpy(&temp, message.data + offset, size);
         offset += size;
         
+        printf("Addr: %s\nPort: %s\n", temp.hostname, temp.port);
+
         pthread_mutex_lock(&server->lockKnownServers);
         if (FindClient(temp, server->KnownServers) == NULL)
             addClient(server->KnownServers, temp);
         pthread_mutex_unlock(&server->lockKnownServers);
         
         printf("offset: %lu\n", offset);
-        printf("size: %llu\n", message.sizeData);
     }
 }
 
