@@ -32,7 +32,8 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
 
     if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-        perror("Can't create the socket, while trying to test the client before add it");
+        printf("Can't create the socket, while trying to test %s:%s add it\n", address.hostname, address.port);
+        perror(NULL);
         return NULL;
     }
 
@@ -40,7 +41,8 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
 
     if (connect(skt, (struct sockaddr *)&IP, sizeof(struct sockaddr_in)) < 0)
     {
-        perror("Can't add the client");
+        printf("Can't add the client: %s:%s\n", address.hostname, address.port);
+        perror(NULL);
         return NULL;
     }
 
@@ -57,6 +59,8 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
         client->next->prev = client;
 
     client->sentinel = list->sentinel;
+
+    printf("Client: %s:%s sucessfuly added\n\n\n", address.hostname, address.port);
 
     return NULL;
 }
@@ -115,8 +119,6 @@ struct clientInfo *FindClient(struct address addr, struct clientInfo *list)
     struct clientInfo *res = NULL;
     list = list->sentinel->next;
 
-    printf("Len: %lu\n", strlen(addr.hostname));
-    printf("Addr: %s\nPort: %s\n", addr.hostname, addr.port);
     while (res == NULL && list->isSentinel == FALSE)
     {
         if (sameIP(addr, list->address) == TRUE)
@@ -144,7 +146,6 @@ void addServerFromMessage(MESSAGE message, struct server *server)
 
     //peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
     //comportement inconnu dans ce cas la
-    printf("sizeData: %llu\n", message.sizeData);
 
     while (offset < message.sizeData)
     {
@@ -153,40 +154,20 @@ void addServerFromMessage(MESSAGE message, struct server *server)
         uint16_t sizeHostname;
 
         memcpy(&size, message.data + offset, HEADER_HOSTNAME_SIZE);
-        printf("Size: %u\n", size);
         sizeHostname = size - PORT_SIZE - 1;
 
         temp.hostname = calloc(1, sizeof(char) * sizeHostname);
         offset += HEADER_HOSTNAME_SIZE;
 
-        printf("DATA RECEIVE:\n");
-        for (size_t i = 0; i < message.sizeData; i++)
-        {
-            printf("%u  ", message.data[i]);
-        }
-        printf("\n\n");
-
         memcpy(temp.hostname, message.data + offset, sizeHostname);
         memcpy(temp.port, message.data + offset + sizeHostname, PORT_SIZE + 1);
         offset += size;
 
-        printf("Apres memecpy DATA:\n");
-        for (size_t i = 0; i < sizeHostname; i++)
-        {
-            printf("%02x  ", temp.hostname[i]);
-        }
-        printf("\n\n");
-
-        printf("Addr: %s\nPort: %s\n", temp.hostname, temp.port);
         pthread_mutex_lock(&server->lockKnownServers);
         if (FindClient(temp, server->KnownServers) == NULL)
-           addClient(server->KnownServers, temp); 
+            addClient(server->KnownServers, temp);
         pthread_mutex_unlock(&server->lockKnownServers);
-        
-        printf("offset: %lu\n", offset);
     }
-
-    printf("\n\n\n");
 }
 
 void *sendNetwork(void *arg)
@@ -214,7 +195,7 @@ void *sendNetwork(void *arg)
         {
             uint16_t sizeHostname = strlen(client->address.hostname) + 1;
             uint16_t size = sizeHostname + PORT_SIZE + 1;
-            
+
             memcpy(messageBuff + offset, &size, HEADER_HOSTNAME_SIZE);
             offset += HEADER_HOSTNAME_SIZE;
 
@@ -225,17 +206,9 @@ void *sendNetwork(void *arg)
         }
 
         pthread_mutex_unlock(&server->lockKnownServers);
-        printf("SizeData before sending: %llu\n", dataSize);
-        
+
         MESSAGE message = CreateMessage(type, dataSize, messageBuff);
         shared_queue_push(server->OutgoingMessages, message);
-        printf("DATA SEND:\n");
-        for (size_t i = 0; i < message.sizeData; i++)
-        {
-            printf("%u  ", message.data[i]);
-        }
-        printf("\n\n");
-
 
         free(messageBuff);
         sleep(2);
