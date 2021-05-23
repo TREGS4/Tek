@@ -1,8 +1,6 @@
 #ifndef INFORMATIONS_H
 #define INFORMATIONS_H
 
-#include "queue/shared_queue.h"
-
 #define DEFAULT_PORT "6969"
 
 //Boolean part

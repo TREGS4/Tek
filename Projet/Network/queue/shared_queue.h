@@ -24,12 +24,12 @@ shared_queue* shared_queue_new();
 // Pushes a new value onto the shared queue.
 // queue = Address of the shared queue.
 // val = value to push.
-void shared_queue_push(shared_queue* sq, MESSAGE message);
+void shared_queue_push(shared_queue* sq, MESSAGE *message);
 
 // Pops a value off the shared queue.
 // queue = Address of the shared queue.
 // Returns the value.
-MESSAGE shared_queue_pop(shared_queue* sq);
+MESSAGE *shared_queue_pop(shared_queue* sq);
 
 // Frees the shared queue.
 // queue = Address of the shared queue.

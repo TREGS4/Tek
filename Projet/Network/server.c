@@ -1,5 +1,4 @@
 #include "server.h"
-#include "network_tools.h"
 
 void *read_thread(void *arg)
 {
@@ -53,7 +52,7 @@ void *read_thread(void *arg)
 
 	if (problem == 0)
 	{
-		MESSAGE message = BinToMessage(dataBuff);
+		MESSAGE *message = BinToMessage(dataBuff);
 
 		switch (type)
 		{

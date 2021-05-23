@@ -144,27 +144,27 @@ void printIP(struct sockaddr_in *IP)
     free(buff);
 }
 
-void addServerFromMessage(MESSAGE message, struct server *server)
+void addServerFromMessage(MESSAGE *message, struct server *server)
 {
     size_t offset = 0;
 
     //peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
     //comportement inconnu dans ce cas la
 
-    while (offset < message.sizeData)
+    while (offset < message->sizeData)
     {
         struct address temp;
         uint16_t size = 0;
         uint16_t sizeHostname;
 
-        memcpy(&size, message.data + offset, HEADER_HOSTNAME_SIZE);
+        memcpy(&size, message->data + offset, HEADER_HOSTNAME_SIZE);
         sizeHostname = size - PORT_SIZE - 1;
 
         temp.hostname = calloc(1, sizeof(char) * sizeHostname);
         offset += HEADER_HOSTNAME_SIZE;
 
-        memcpy(temp.hostname, message.data + offset, sizeHostname);
-        memcpy(temp.port, message.data + offset + sizeHostname, PORT_SIZE + 1);
+        memcpy(temp.hostname, message->data + offset, sizeHostname);
+        memcpy(temp.port, message->data + offset + sizeHostname, PORT_SIZE + 1);
         offset += size;
 
         pthread_mutex_lock(&server->lockKnownServers);
@@ -188,8 +188,6 @@ void *sendNetwork(void *arg)
         dataSize = 0;
         offset = 0;
 
-        pthread_mutex_lock(&server->lockKnownServers);
-
         for (struct clientInfo *temp = server->KnownServers->sentinel->next; temp->isSentinel == FALSE; temp = temp->next)
             dataSize += strlen(temp->address.hostname) + 1 + PORT_SIZE + 1 + HEADER_HOSTNAME_SIZE;
 
@@ -209,10 +207,14 @@ void *sendNetwork(void *arg)
             offset += PORT_SIZE + 1;
         }
 
-        pthread_mutex_unlock(&server->lockKnownServers);
-
-        MESSAGE message = CreateMessage(type, dataSize, messageBuff);
-        shared_queue_push(server->OutgoingMessages, message);
+        MESSAGE *message = NULL;
+        if (CreateMessage(type, dataSize, messageBuff, message) == EXIT_SUCCESS)
+        {
+            //write(STDOUT_FILENO, message->data, message->sizeData);
+            pthread_mutex_lock(&server->lockKnownServers);
+            //shared_queue_push(server->OutgoingMessages, message);
+            pthread_mutex_unlock(&server->lockKnownServers);
+        }
 
         free(messageBuff);
         sleep(2);

@@ -1,21 +1,5 @@
 #include "client.h"
-
-void *printList(void *arg)
-{
-    struct server *server = arg;
-    struct clientInfo *client = server->KnownServers;
-    while (server->status != EXITING)
-    {
-        for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
-        {
-            ; //printHostname(client->address);
-        }
-
-        printf("\n\n");
-        sleep(2);
-    }
-    return NULL;
-}
+#include "server.h"
 
 struct server *initServer()
 {
@@ -36,23 +20,31 @@ struct server *initServer()
 
 void freeServer(struct server *server)
 {
+    //list
     pthread_mutex_lock(&server->lockKnownServers);
     freeClientList(server->KnownServers);
     pthread_mutex_unlock(&server->lockKnownServers);
+
+    //mutex
     pthread_mutex_destroy(&server->lockKnownServers);
     pthread_mutex_destroy(&server->lockStatus);
+
+    //shared_queue
     shared_queue_destroy(server->IncomingMessages);
     shared_queue_destroy(server->OutgoingMessages);
+
+    //malloc
+    free(server->address.hostname);
     free(server);
 }
 
-void *SendOutgoinMessages(void *arg)
+void *SendOutGoinMessages(void *arg)
 {
     struct server *server = arg;
 
     while (server->status != EXITING)
     {
-        MESSAGE messsage = shared_queue_pop(server->OutgoingMessages);
+        MESSAGE *messsage = shared_queue_pop(server->OutgoingMessages);
         SendMessage(server->KnownServers, messsage);
         DestroyMessage(messsage);
     }
@@ -62,61 +54,172 @@ void *SendOutgoinMessages(void *arg)
 
 int Network(struct server *server, char *hostname, char *port, char *hostnameFirstServer, char *portFirstServer)
 {
-    int printListTerm = FALSE;
-
     pthread_t serverThread;
-    pthread_t sendOutgoingMessageThread;
+    pthread_t sendOutGoingMessageThread;
     pthread_t sendNetworkThread;
-    pthread_t printListThread;
+    int problem = 0;
+    struct address addressFirstServer;
 
+    /*
+    *   Perform test on arguments to avoids problem as much as possible
+    */
+
+    /*
+    *=========================================TEST==================================
+    */
+    if (server == NULL)
+    {
+        fprintf(stderr, "Error while starting network: hostname is NULL\n");
+        return EXIT_FAILURE;
+    }
+    if (hostname == NULL)
+    {
+        fprintf(stderr, "Error while starting network: server is NULL\n");
+        return EXIT_FAILURE;
+    }
+    if (port != NULL && strlen(port) > PORT_SIZE)
+    {
+        fprintf(stderr, "Error while starting network: port is too long\n");
+        return EXIT_FAILURE;
+    }
+    if (portFirstServer != NULL && strlen(portFirstServer) > PORT_SIZE)
+    {
+        fprintf(stderr, "Error while starting network: port for the first server is too long\n");
+        return EXIT_FAILURE;
+    }
+
+    /*
+    *==============================================================================
+    */
+
+    /*
+    *   Setting up the hostname and port of the server, it's a copie of the args so they can be freed
+    */
+    /*
+    *=============================SETTING UP SERVER AND FIRST SERVER================
+    */
     server->address.hostname = calloc(1, strlen(hostname) + 1);
+    if (server->address.hostname == NULL)
+    {
+        fprintf(stderr, "Error when calloc for server's hostname in Network function\n");
+        return EXIT_FAILURE;
+    }
     memcpy(server->address.hostname, hostname, strlen(hostname));
     memset(server->address.port, 0, PORT_SIZE + 1);
-
 
     if (port != NULL)
         memcpy(server->address.port, port, strlen(port));
     else
         memcpy(server->address.port, DEFAULT_PORT, strlen(DEFAULT_PORT));
 
-    pthread_create(&serverThread, NULL, Server, (void *)server);
-    pthread_create(&sendOutgoingMessageThread, NULL, SendOutgoinMessages, (void *)server);
-    pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)server);
-
-    if (printListTerm == TRUE)
-        pthread_create(&printListThread, NULL, printList, (void *)server);
-
-    while (server->status != ONLINE)
-        sleep(0.01);
-
-    pthread_mutex_lock(&server->lockKnownServers);
-    addClient(server->KnownServers, server->address);
-    pthread_mutex_unlock(&server->lockKnownServers);
+    /*
+    *   Create the first server to connect to if the pointer is not null
+    */
 
     if (hostnameFirstServer != NULL)
     {
-        struct address address;
-        address.hostname = calloc(1, strlen(hostnameFirstServer) + 1);
-        memcpy(address.hostname, hostnameFirstServer, strlen(hostnameFirstServer));
-        memset(address.port, 0, PORT_SIZE + 1);
+        addressFirstServer.hostname = calloc(1, strlen(hostnameFirstServer) + 1);
+        memcpy(addressFirstServer.hostname, hostnameFirstServer, strlen(hostnameFirstServer));
+        memset(addressFirstServer.port, 0, PORT_SIZE + 1);
 
         if (portFirstServer != NULL)
-            memcpy(address.port, portFirstServer, strlen(portFirstServer));
+            memcpy(addressFirstServer.port, portFirstServer, strlen(portFirstServer));
         else
-            memcpy(address.port, DEFAULT_PORT, strlen(DEFAULT_PORT));
-
-        pthread_mutex_lock(&server->lockKnownServers);
-        addClient(server->KnownServers, address);
-        pthread_mutex_unlock(&server->lockKnownServers);
+            memcpy(addressFirstServer.port, DEFAULT_PORT, strlen(DEFAULT_PORT));
     }
     else
         printf("No server to connect to...\n");
 
-    pthread_join(serverThread, NULL);
-    pthread_join(sendOutgoingMessageThread, NULL);
-    pthread_join(sendNetworkThread, NULL);
-    if (printListTerm == 1)
-        pthread_join(printListThread, NULL);
+    /*
+    *==============================================================================
+    */
+
+    /*
+    * Launch our three main thread
+    *   - Server is accepting all incomming connection
+    *   - SendOutGoingMessages pop any element of the the queue outgoingmessages and send it
+    *   - SendNetwork send regularly to all the known servers our list of known servers.
+    */
+    /*
+    *====================================STARTIGN THREAD============================
+    */
+    problem = pthread_create(&serverThread, NULL, Server, (void *)server);
+    if (problem != 0)
+        problem = -1;
+
+    if (problem == 0)
+    {
+        problem = pthread_create(&sendOutGoingMessageThread, NULL, SendOutGoinMessages, (void *)server);
+        if (problem != 0)
+            problem = -2;
+    }
+
+    if (problem == 0)
+    {
+        problem = pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)server);
+        if (problem != 0)
+            problem = -3;
+    }
+
+    /*
+    *==============================================================================
+    */
+
+    /*
+    *==========================ADDING SERVER AND FIRST SERVER======================
+    */
+    if (problem == 0)
+    {
+        /*
+        *   Wait for the server thread to be ONLINE before adding any serving.
+        *   A test is perform to see if the server is online, if not the server is not
+        *   added to the list. The first server we are contaction is ourselves so we need to
+        *   wait.
+        */
+        while (server->status != ONLINE)
+            sleep(0.01);
+
+        pthread_mutex_lock(&server->lockKnownServers);
+        addClient(server->KnownServers, server->address);
+        if (hostnameFirstServer != NULL)
+            addClient(server->KnownServers, addressFirstServer);
+        pthread_mutex_unlock(&server->lockKnownServers);
+    }
+
+    /*
+    *==============================================================================
+    */
+
+    /*
+    *   Wainting for our main threads before ending
+    */
+    /*
+    *====================================ENDING====================================
+    */
+    if (problem != 0)
+    {
+        pthread_mutex_lock(&server->lockStatus);
+        server->status = EXITING;
+        pthread_mutex_unlock(&server->lockStatus);
+    }
+
+    if (problem == 0)
+    {
+        pthread_join(serverThread, NULL);
+        pthread_join(sendOutGoingMessageThread, NULL);
+        pthread_join(sendNetworkThread, NULL);
+    }
+    else if (problem < -1)
+    {
+        pthread_join(serverThread, NULL);
+        if (problem < -2)
+            pthread_join(sendOutGoingMessageThread, NULL);
+
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
+    /*
+    *==============================================================================
+    */
 }

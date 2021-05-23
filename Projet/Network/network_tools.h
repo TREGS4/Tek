@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 
 #include "informations.h"
+#include "queue/shared_queue.h"
 
 //contains the hostname and the port of a client
 struct address
@@ -93,7 +94,7 @@ struct clientInfo *FindClient(struct address addr, struct clientInfo *list);
 //Print the hostname and port in the terminal
 void printHostname(struct address address);
 
-void addServerFromMessage(MESSAGE message, struct server *server);
+void addServerFromMessage(MESSAGE *message, struct server *server);
 
 void *sendNetwork(void *arg);
 
