@@ -166,23 +166,23 @@ void addServerFromMessage(MESSAGE message, struct server *server)
         }
         printf("\n\n");
 
-        memcpy(&temp.hostname, message.data + offset, sizeHostname);
-        memcpy(&temp.port, message.data + offset + sizeHostname, PORT_SIZE + 1);
+        memcpy(temp.hostname, message.data + offset, sizeHostname);
+        memcpy(temp.port, message.data + offset + sizeHostname, PORT_SIZE + 1);
         offset += size;
 
         printf("Apres memecpy DATA:\n");
         for (size_t i = 0; i < sizeHostname; i++)
         {
-            ; //printf("%u  ", temp.hostname[0]);
+            printf("%02x  ", temp.hostname[i]);
         }
         printf("\n\n");
 
-        printf("Addr: %s\nPort: %s\n", "test", temp.port);
-        /*pthread_mutex_lock(&server->lockKnownServers);
+        printf("Addr: %s\nPort: %s\n", temp.hostname, temp.port);
+        pthread_mutex_lock(&server->lockKnownServers);
         if (FindClient(temp, server->KnownServers) == NULL)
-        ;   //addClient(server->KnownServers, temp); 
+           addClient(server->KnownServers, temp); 
         pthread_mutex_unlock(&server->lockKnownServers);
-        */
+        
         printf("offset: %lu\n", offset);
     }
 
@@ -212,12 +212,16 @@ void *sendNetwork(void *arg)
 
         for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
         {
-            uint16_t size = strlen(client->address.hostname) + 1 + PORT_SIZE + 1;
+            uint16_t sizeHostname = strlen(client->address.hostname) + 1;
+            uint16_t size = sizeHostname + PORT_SIZE + 1;
+            
             memcpy(messageBuff + offset, &size, HEADER_HOSTNAME_SIZE);
             offset += HEADER_HOSTNAME_SIZE;
 
-            memcpy(messageBuff + offset, &client->address, size);
-            offset += size;
+            memcpy(messageBuff + offset, client->address.hostname, sizeHostname);
+            offset += sizeHostname;
+            memcpy(messageBuff + offset, client->address.port, PORT_SIZE + 1);
+            offset += PORT_SIZE + 1;
         }
 
         pthread_mutex_unlock(&server->lockKnownServers);
