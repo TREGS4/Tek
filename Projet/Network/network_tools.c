@@ -219,16 +219,20 @@ void *sendNetwork(void *arg)
 
 struct sockaddr_in GetIPfromHostname(struct address address)
 {
-    struct sockaddr_in *resIP;
+    struct sockaddr_in resIP, *temp;
     struct addrinfo hints, *res;
-    memset(&res, 0, sizeof(struct sockaddr_in));
+    memset(&resIP, 0, sizeof(struct sockaddr_in));
     memset(&hints, 0, sizeof(struct addrinfo));
 
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
-    getaddrinfo(address.hostname, address.port, &hints, &res);
-    resIP = (struct sockaddr_in *)res->ai_addr;
+    int r = getaddrinfo(address.hostname, address.port, &hints, &res);
+    temp = (struct sockaddr_in *)res->ai_addr;
+    if(temp != NULL && r == 0)
+        resIP = *temp;
+    else
+        printf("An error as occured while resolving %s:%s", address.hostname, address.port);
     freeaddrinfo(res);
 
-    return *resIP;
+    return resIP;
 }

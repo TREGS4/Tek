@@ -29,10 +29,15 @@ int connectClient(struct address address)
 		return -1;
 
 	struct sockaddr_in IP = GetIPfromHostname(address);
+	struct sockaddr_in temp;
+	memset(&temp, 0, sizeof(struct sockaddr_in));
+
+	if(memcmp(&IP, &temp, sizeof(struct sockaddr_in)) != 0)
+		return -1;
 
 	if (connect(skt, (struct sockaddr *)&IP, sizeof(struct sockaddr_in)) < 0)
 	{
-		printf("Connect client error:\n");
+		printf("Client: %s:%s disconnected\n", address.hostname, address.port);
 		perror(NULL);
 		return -1;
 	}
