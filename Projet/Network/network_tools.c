@@ -32,7 +32,6 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
         printf("Error can't add client: invalid hostname");
         return NULL;
     }
-        
 
     if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
@@ -64,7 +63,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
 
     client->sentinel = list->sentinel;
 
-    printf("Client: %s:%s sucessfuly added\n\n\n", address.hostname, address.port);
+    printf("Client: %s:%s sucessfully added\n\n\n", address.hostname, address.port);
 
     return NULL;
 }
@@ -110,10 +109,11 @@ int sameIP(struct address addr1, struct address addr2)
 {
     int me = FALSE;
 
-    if (strlen(addr1.hostname) == strlen(addr2.hostname))
+    if (strlen(addr1.hostname) == strlen(addr2.hostname) && memcmp(addr1.hostname, addr2.hostname, strlen(addr1.hostname)) == 0)
         me = TRUE;
-    if (me == TRUE && memcmp(&addr1.hostname, &addr2.hostname, strlen(addr1.hostname)) == 0)
-        me = TRUE;
+
+    if (memcmp(addr1.port, addr2.port, PORT_SIZE) == 0)
+        me = me && TRUE;
 
     return me;
 }
@@ -232,7 +232,7 @@ struct sockaddr_in GetIPfromHostname(struct address address)
     hints.ai_socktype = SOCK_STREAM;
     int r = getaddrinfo(address.hostname, address.port, &hints, &res);
     temp = (struct sockaddr_in *)res->ai_addr;
-    if(temp != NULL && r == 0)
+    if (temp != NULL && r == 0)
         resIP = *temp;
     else
         printf("An error as occured while resolving %s:%s", address.hostname, address.port);

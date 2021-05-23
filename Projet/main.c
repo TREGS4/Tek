@@ -221,8 +221,8 @@ int grosTest(int argc, char **argv)
 
 	while (1)
 	{
-		MESSAGE message = CreateMessage(type, strlen(datatest), datatest);
-		shared_queue_push(server->OutgoingMessages, message);
+		//MESSAGE message = CreateMessage(type, strlen(datatest), datatest);
+		//shared_queue_push(server->OutgoingMessages, message);
 		sleep(1);
 	}
 
