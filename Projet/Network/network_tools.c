@@ -28,7 +28,11 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
     int skt = -1;
 
     if (address.hostname == NULL)
+    {
+        printf("Error can't add client: invalid hostname");
         return NULL;
+    }
+        
 
     if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {

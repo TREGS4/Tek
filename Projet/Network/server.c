@@ -71,7 +71,8 @@ void *read_thread(void *arg)
 
 	close(client->socket);
 	free(client);
-	free(dataBuff);
+	if(problem == 0)
+		free(dataBuff);
 	return NULL;
 }
 
