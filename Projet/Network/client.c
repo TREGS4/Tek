@@ -32,7 +32,7 @@ int connectClient(struct address address)
 	struct sockaddr_in temp;
 	memset(&temp, 0, sizeof(struct sockaddr_in));
 
-	if(memcmp(&IP, &temp, sizeof(struct sockaddr_in)) != 0)
+	if (memcmp(&IP, &temp, sizeof(struct sockaddr_in)) == 0)
 		return -1;
 
 	if (connect(skt, (struct sockaddr *)&IP, sizeof(struct sockaddr_in)) < 0)
