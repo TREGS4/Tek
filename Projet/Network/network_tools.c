@@ -27,7 +27,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
 {
     int skt = -1;
 
-    if(address.hostname == NULL)
+    if (address.hostname == NULL)
         return NULL;
 
     if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -102,7 +102,7 @@ int sameIP(struct address addr1, struct address addr2)
 {
     int me = FALSE;
 
-    if(strlen(addr1.hostname) == strlen(addr2.hostname))
+    if (strlen(addr1.hostname) == strlen(addr2.hostname))
         me = TRUE;
     if (me == TRUE && memcmp(&addr1.hostname, &addr2.hostname, strlen(addr1.hostname)) == 0)
         me = TRUE;
@@ -120,7 +120,7 @@ struct clientInfo *FindClient(struct address addr, struct clientInfo *list)
     while (res == NULL && list->isSentinel == FALSE)
     {
         if (sameIP(addr, list->address) == TRUE)
-           res = list;
+            res = list;
         list = list->next;
     }
 
@@ -141,32 +141,48 @@ void printIP(struct sockaddr_in *IP)
 void addServerFromMessage(MESSAGE message, struct server *server)
 {
     size_t offset = 0;
-    
-    uint16_t size = 0;
 
     //peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
     //comportement inconnu dans ce cas la
     printf("sizeData: %llu\n", message.sizeData);
 
-    while(offset < message.sizeData)
+    while (offset < message.sizeData)
     {
-        
         struct address temp;
+        uint16_t size = 0;
+        uint16_t sizeHostname;
+
         memcpy(&size, message.data + offset, HEADER_HOSTNAME_SIZE);
         printf("Size: %u\n", size);
-        temp.hostname = malloc(sizeof(char) * (size - PORT_SIZE - 1));
-        
+        sizeHostname = size - PORT_SIZE - 1;
+
+        temp.hostname = calloc(1, sizeof(char) * sizeHostname);
         offset += HEADER_HOSTNAME_SIZE;
-        
-        memcpy(&temp, message.data + offset, size);
+
+        printf("DATA RECEIVE:\n");
+        for (size_t i = 0; i < message.sizeData; i++)
+        {
+            printf("%u  ", message.data[i]);
+        }
+        printf("\n\n");
+
+        memcpy(&temp.hostname, message.data + offset, sizeHostname);
+        memcpy(&temp.port, message.data + offset + sizeHostname, PORT_SIZE + 1);
         offset += size;
-        
-        printf("Addr: %s\nPort: %s\n", temp.hostname, temp.port);
-        pthread_mutex_lock(&server->lockKnownServers);
+
+        printf("Apres memecpy DATA:\n");
+        for (size_t i = 0; i < sizeHostname; i++)
+        {
+            ; //printf("%u  ", temp.hostname[0]);
+        }
+        printf("\n\n");
+
+        printf("Addr: %s\nPort: %s\n", "test", temp.port);
+        /*pthread_mutex_lock(&server->lockKnownServers);
         if (FindClient(temp, server->KnownServers) == NULL)
         ;   //addClient(server->KnownServers, temp); 
         pthread_mutex_unlock(&server->lockKnownServers);
-
+        */
         printf("offset: %lu\n", offset);
     }
 
@@ -189,7 +205,7 @@ void *sendNetwork(void *arg)
 
         pthread_mutex_lock(&server->lockKnownServers);
 
-        for(struct clientInfo *temp = server->KnownServers->sentinel->next; temp->isSentinel == FALSE; temp = temp->next)
+        for (struct clientInfo *temp = server->KnownServers->sentinel->next; temp->isSentinel == FALSE; temp = temp->next)
             dataSize += strlen(temp->address.hostname) + 1 + PORT_SIZE + 1 + HEADER_HOSTNAME_SIZE;
 
         messageBuff = malloc(sizeof(char) * dataSize);
@@ -205,10 +221,17 @@ void *sendNetwork(void *arg)
         }
 
         pthread_mutex_unlock(&server->lockKnownServers);
-
         printf("SizeData before sending: %llu\n", dataSize);
+        
         MESSAGE message = CreateMessage(type, dataSize, messageBuff);
         shared_queue_push(server->OutgoingMessages, message);
+        printf("DATA SEND:\n");
+        for (size_t i = 0; i < message.sizeData; i++)
+        {
+            printf("%u  ", message.data[i]);
+        }
+        printf("\n\n");
+
 
         free(messageBuff);
         sleep(2);
@@ -222,11 +245,11 @@ struct sockaddr_in GetIPfromHostname(struct address address)
     struct sockaddr_in *resIP;
     struct addrinfo hints, *res;
     memset(&res, 0, sizeof(struct sockaddr_in));
-	memset(&hints, 0, sizeof(struct addrinfo));
+    memset(&hints, 0, sizeof(struct addrinfo));
 
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	getaddrinfo(address.hostname, address.port, &hints, &res);
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    getaddrinfo(address.hostname, address.port, &hints, &res);
     resIP = (struct sockaddr_in *)res->ai_addr;
     freeaddrinfo(res);
 
