@@ -23,7 +23,8 @@
 int Network(struct server *server, char *hostname, char *port, char *hostnameFirstServer, char *portFirstServer);
 
 /*
-*   Init a structure server but doesn't set, the hostname and port of the server
+*   Initalise a server structure and return its pointer.
+*   If any error occurs return a null pointer.
 */
 struct server *initServer();
 

@@ -1,6 +1,11 @@
 #ifndef INFORMATIONS_H
 #define INFORMATIONS_H
 
+/*
+*   This file contain some informations about the network, there is no .c attach to it
+*/
+
+
 #define DEFAULT_PORT "6969"
 
 //Boolean part

@@ -1,23 +1,54 @@
 #include "client.h"
 #include "server.h"
 
+/*
+*   Initalise a server structure and return its pointer.
+*   If any error occurs return a null pointer.
+*/
 struct server *initServer()
 {
     struct server *server = malloc(sizeof(struct server));
-    pthread_mutex_init(&server->lockKnownServers, NULL);
-    pthread_mutex_init(&server->lockStatus, NULL);
-    server->IncomingMessages = shared_queue_new();
-    server->OutgoingMessages = shared_queue_new();
+    if (server != NULL)
+    {
+        int problemM1 = 0;
+        int problemM2 = 0;
+        server->KnownServers = NULL;
+        server->IncomingMessages = NULL;
+        server->OutgoingMessages = NULL;
+        problemM1 = pthread_mutex_init(&server->lockKnownServers, NULL);
+        problemM2 = pthread_mutex_init(&server->lockStatus, NULL);
 
-    server->KnownServers = initClientList(&server->lockKnownServers);
+        if (problemM1 == 0 && problemM2 == 0 && (server->KnownServers = initClientList(&server->lockKnownServers)) != NULL && (server->IncomingMessages = shared_queue_new()) != NULL && (server->OutgoingMessages = shared_queue_new()) != NULL)
+        {
+            pthread_mutex_lock(&server->lockStatus);
+            server->status = STARTING;
+            pthread_mutex_unlock(&server->lockStatus);
+        }
+        else
+        {
+            if (server->KnownServers != NULL)
+                freeClientList(server->KnownServers);
 
-    pthread_mutex_lock(&server->lockStatus);
-    server->status = STARTING;
-    pthread_mutex_unlock(&server->lockStatus);
+            if (server->IncomingMessages != NULL)
+                shared_queue_destroy(server->IncomingMessages);
+
+            if (server->OutgoingMessages != NULL)
+                shared_queue_destroy(server->OutgoingMessages);
+
+            if (problemM1 != 0)
+                pthread_mutex_destroy(&server->lockKnownServers);
+
+            if (problemM2 != 0)
+                pthread_mutex_destroy(&server->lockStatus);
+        }
+    }
 
     return server;
 }
 
+/*
+*   Free properly the structure server pass in argument and all dynamic memory allocated in it. 
+*/
 void freeServer(struct server *server)
 {
     //list
@@ -38,6 +69,10 @@ void freeServer(struct server *server)
     free(server);
 }
 
+/*
+*   Function always trying to pop message and send them to the clients.
+*   This function is running in a thread.
+*/
 void *SendOutGoinMessages(void *arg)
 {
     struct server *server = arg;
@@ -52,6 +87,9 @@ void *SendOutGoinMessages(void *arg)
     return NULL;
 }
 
+/*
+*   Main function of the peer to peer network
+*/
 int Network(struct server *server, char *hostname, char *port, char *hostnameFirstServer, char *portFirstServer)
 {
     pthread_t serverThread;
@@ -180,9 +218,14 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
             sleep(0.01);
 
         pthread_mutex_lock(&server->lockKnownServers);
-        addClient(server->KnownServers, server->address);
-        if (hostnameFirstServer != NULL)
-            addClient(server->KnownServers, addressFirstServer);
+        if (addClient(server->KnownServers, server->address) == NULL)
+            problem = 1;
+        if (problem == 0 && hostnameFirstServer != NULL)
+        {
+            if (addClient(server->KnownServers, addressFirstServer) == NULL)
+                problem = 2;
+        }
+
         pthread_mutex_unlock(&server->lockKnownServers);
     }
 
@@ -203,7 +246,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
         pthread_mutex_unlock(&server->lockStatus);
     }
 
-    if (problem == 0)
+    if (problem >= 0)
     {
         pthread_join(serverThread, NULL);
         pthread_join(sendOutGoingMessageThread, NULL);

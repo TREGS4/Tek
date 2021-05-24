@@ -2,32 +2,29 @@
 #include <unistd.h>
 /*
 *   Create a structure MESSAGE from the arguments.
-*   If the allocation failed return EXIT_FAILURE and the pointer is set to null.
-*   Return EXITE_SUCCESS otherwise and pointer is pointing to the structure.
+*   If the allocation failed return null.
+*   Return a pointer to the structure created.
 *
 *   The MESSAGE must be freed with DestroyMessage()
 */
-int CreateMessage(int type, unsigned long long sizeData, char *data, MESSAGE **message)
+MESSAGE *CreateMessage(int type, unsigned long long sizeData, char *data)
 {
-    *message = malloc(sizeof(MESSAGE));
+    MESSAGE *message = malloc(sizeof(MESSAGE));
     if (message == NULL)
-        return EXIT_FAILURE;
+        return NULL;
 
     message->data = malloc(sizeof(char) * sizeData);
-    if (*message->data == NULL)
+    if (message->data == NULL)
     {
-        free(*message);
-        message = NULL;
-        return EXIT_FAILURE;
+        free(message);
+        return NULL;
     }
 
-    *message->type = type;
-    *message->sizeData = sizeData;
-    memcpy(*message->data, data, *message->sizeData);
+    message->type = type;
+    message->sizeData = sizeData;
+    memcpy(message->data, data, message->sizeData);
 
-    write(STDOUT_FILENO, *message->data, *message->sizeData);
-
-    return EXIT_SUCCESS;
+    return message;
 }
 
 /*
@@ -39,7 +36,6 @@ int CreateMessage(int type, unsigned long long sizeData, char *data, MESSAGE **m
 */
 MESSAGE *BinToMessage(char *buff)
 {
-    MESSAGE *message = NULL;
     int type = 0;
     unsigned long long sizeData = 0;
     char *data;
@@ -48,11 +44,11 @@ MESSAGE *BinToMessage(char *buff)
     memcpy(&sizeData, buff + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
 
     data = malloc(sizeof(char) * sizeData);
+    if(data == NULL)
+        return NULL;
     memcpy(data, buff + HEADER_SIZE, sizeData);
 
-    CreateMessage(type, sizeData, data, &message);
-
-    return message;
+    return CreateMessage(type, sizeData, data);
 }
 
 /*

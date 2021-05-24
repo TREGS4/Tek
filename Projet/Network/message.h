@@ -27,12 +27,12 @@ typedef struct
 
 /*
 *   Create a structure MESSAGE from the arguments.
-*   If the allocation failed return EXIT_FAILURE and the pointer is set to null.
-*   Return EXIT_SUCCESS otherwise and pointer is pointing to the structure.
+*   If the allocation failed return null.
+*   Return a pointer to the structure created.
 *
 *   The MESSAGE must be freed with DestroyMessage()
 */
-int CreateMessage(int type, unsigned long long sizeData, char *data, MESSAGE **message);
+MESSAGE *CreateMessage(int type, unsigned long long sizeData, char *data);
 
 /*
 *   Free properly the message pas in argument.

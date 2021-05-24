@@ -1,18 +1,30 @@
 #include "network_tools.h"
 
+/*
+*   Create the sentinel of a clientInfo list
+*   The pointer to the sentinel is returned
+*   If malloc failed null is returned
+*/
 struct clientInfo *initClientList()
 {
     struct clientInfo *sentinel = malloc(sizeof(struct clientInfo));
-    memset(&sentinel->address.port, 0, PORT_SIZE + 1);
-    sentinel->address.hostname = NULL;
-    sentinel->sentinel = sentinel;
-    sentinel->prev = NULL;
-    sentinel->next = sentinel;
-    sentinel->isSentinel = TRUE;
+    if (sentinel != NULL)
+    {
+        memset(&sentinel->address.port, 0, PORT_SIZE + 1);
+        sentinel->address.hostname = NULL;
+        sentinel->sentinel = sentinel;
+        sentinel->prev = NULL;
+        sentinel->next = sentinel;
+        sentinel->isSentinel = TRUE;
+    }
 
     return sentinel;
 }
 
+/*
+*   Free the clientInfo list pass in argument
+*   the pointer could be on any element of the list
+*/
 void freeClientList(struct clientInfo *clientList)
 {
     clientList = clientList->sentinel;
@@ -23,19 +35,29 @@ void freeClientList(struct clientInfo *clientList)
     free(clientList);
 }
 
+/*
+*   You need to block the mutex before calling the function !!!
+*
+*   Create un clientInfo element from the address pass in argument and add it to
+*   the list. The element could be added anywhere in the list.
+*   The function return a pointer to the new element is returned.
+*   If any problems occurs null is returned
+*
+*   Before anything the function try to connect to the client to be sure it's a valid client.
+*/
 struct clientInfo *addClient(struct clientInfo *list, struct address address)
 {
-    int skt = -1;
+    int skt;
 
     if (address.hostname == NULL)
     {
-        printf("Error can't add client: invalid hostname");
+        fprintf(stderr, "Error can't add client: invalid hostname");
         return NULL;
     }
 
     if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-        printf("Can't create the socket, while trying to test %s:%s add it\n", address.hostname, address.port);
+        fprintf(stderr, "Can't create the socket, while trying to test %s:%s before adding it\n", address.hostname, address.port);
         perror(NULL);
         return NULL;
     }
@@ -44,7 +66,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
 
     if (connect(skt, (struct sockaddr *)&IP, sizeof(struct sockaddr_in)) < 0)
     {
-        printf("Can't add the client: %s:%s\n", address.hostname, address.port);
+        fprintf(stderr, "Can't add the client: %s:%s\n", address.hostname, address.port);
         perror(NULL);
         return NULL;
     }
@@ -52,22 +74,32 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
     close(skt);
     struct clientInfo *client = malloc(sizeof(struct clientInfo));
 
-    client->isSentinel = FALSE;
-    memcpy(&client->address, &address, sizeof(struct address));
+    if (client != NULL)
+    {
+        client->isSentinel = FALSE;
+        memcpy(&client->address, &address, sizeof(struct address));
 
-    client->next = list->next;
-    client->prev = list;
-    list->next = client;
-    if (client->next != NULL)
-        client->next->prev = client;
+        client->next = list->next;
+        client->prev = list;
+        list->next = client;
+        if (client->next != NULL)
+            client->next->prev = client;
 
-    client->sentinel = list->sentinel;
+        client->sentinel = list->sentinel;
 
-    printf("Client: %s:%s sucessfully added\n\n\n", address.hostname, address.port);
+        printf("Client: %s:%s sucessfully added\n\n\n", address.hostname, address.port);
+    }
+    else
+        fprintf(stderr, "Error during the allocation of memory for %s:%s in addClient()\n", address.hostname, address.port);
 
-    return NULL;
+    return client;
 }
 
+/*
+*   You need to block the mutex before calling the function !!!
+*
+*   Remove properly the client from the list
+*/
 int removeClient(struct clientInfo *client)
 {
     if (client->isSentinel == TRUE)
@@ -85,6 +117,12 @@ int removeClient(struct clientInfo *client)
     return EXIT_SUCCESS;
 }
 
+/*
+*   You need to block the mutex before calling the function !!!
+*
+*   Take a pointer to any element of the list.
+*   Return the size of the list (sentinel not included).
+*/
 size_t listLen(struct clientInfo *client)
 {
     size_t res = 0;
@@ -97,6 +135,10 @@ size_t listLen(struct clientInfo *client)
     return res;
 }
 
+/*
+*   Take a pointer to any element of the list.
+*   Return the last element of the list.
+*/
 struct clientInfo *last(struct clientInfo *client)
 {
     while (client->next->isSentinel == FALSE)
@@ -207,12 +249,12 @@ void *sendNetwork(void *arg)
             offset += PORT_SIZE + 1;
         }
 
-        MESSAGE *message = NULL;
-        if (CreateMessage(type, dataSize, messageBuff, message) == EXIT_SUCCESS)
+        MESSAGE *message = CreateMessage(type, dataSize, messageBuff);
+
+        if (message == NULL)
         {
-            //write(STDOUT_FILENO, message->data, message->sizeData);
             pthread_mutex_lock(&server->lockKnownServers);
-            //shared_queue_push(server->OutgoingMessages, message);
+            shared_queue_push(server->OutgoingMessages, message);
             pthread_mutex_unlock(&server->lockKnownServers);
         }
 
