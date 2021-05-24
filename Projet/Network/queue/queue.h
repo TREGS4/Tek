@@ -6,7 +6,7 @@
 typedef struct queue
 {
     // Value of an element.
-    MESSAGE message;
+    MESSAGE *message;
 
     // Pointer to the next element.
     struct queue *next;
@@ -16,7 +16,7 @@ typedef struct queue
 // start = Starting address of the queue.
 // val = Value to push.
 // Returns the new starting address of the queue.
-queue* queue_push(queue* start, MESSAGE message);
+queue* queue_push(queue* start, MESSAGE *message);
 
 // Pops a value off a queue.
 // start = Starting address of the queue.

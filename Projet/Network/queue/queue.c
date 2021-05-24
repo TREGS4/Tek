@@ -1,8 +1,6 @@
-#include <err.h>
-#include <stdlib.h>
 #include "queue.h"
 
-queue* queue_push(queue* start, MESSAGE message)
+queue* queue_push(queue* start, MESSAGE *message)
 {
 	queue *q = malloc(sizeof(queue));
 	if(q == NULL)
@@ -30,7 +28,7 @@ queue* queue_pop(queue* start, MESSAGE *message)
 
 	queue *old = start->next;
 	if(message != NULL)
-		*message = old->message;
+		message = old->message;
 
 	if(start->next == start)
 		start = NULL;
@@ -44,10 +42,10 @@ queue* queue_pop(queue* start, MESSAGE *message)
 
 void queue_empty(queue** pstart)
 {
-	MESSAGE message;
+	MESSAGE *message = NULL;
     while(*pstart != NULL)
 	{
-		*pstart =  queue_pop(*pstart, &message);
+		*pstart =  queue_pop(*pstart, message);
 		DestroyMessage(message);
 	}
 	   

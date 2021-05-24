@@ -1,7 +1,9 @@
 #include "client.h"
-#include "server.h"
 
-void Send(int fd, const void *buf, size_t count, int flag)
+/*
+*	Secure the sending of message on a socket
+*/
+int Send(int fd, const void *buf, size_t count, int flag)
 {
 	ssize_t r = 0;
 	size_t reste = count;
@@ -10,93 +12,77 @@ void Send(int fd, const void *buf, size_t count, int flag)
 		reste -= r;
 
 	if (r < 0)
-		err(3, "Error while rewriting");
+		return EXIT_FAILURE;
+	else
+		return EXIT_SUCCESS;
 }
 
-/*Return the size of the date in byte + the size of the headar in byte*/
-unsigned long long sizeMessage(char *message)
-{
-	unsigned long long size = 0;
-	memcpy(&size, message + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
-	return size + HEADER_SIZE;
-}
-
-int connectClient(struct sockaddr_in *IP)
+/*
+*	From a address structure create a socket and return it.
+*/
+int connectClient(struct address address)
 {
 	int skt = -1;
 
-	if (IP == NULL)
-		return -1;
-
 	if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		return -1;
+		return EXIT_FAILURE;
 
-	struct addrinfo hints, *res;
-	char portStr[6] = DEFAULT_PORT;
-	unsigned short port = 0;
-	int value = 1;
+	struct sockaddr_in IP = GetIPfromHostname(address); //return 0.0.0.0:00000 if the hostname is not valid
+	struct sockaddr_in temp;
+	memset(&temp, 0, sizeof(struct sockaddr_in));
 
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	
-	setsockopt(skt, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value));
+	if (memcmp(&IP, &temp, sizeof(struct sockaddr_in)) == 0)
+		return EXIT_FAILURE;
 
-	port = ntohs(server->IP.sin_port);
-	snprintf(portStr, 6, "%u", port);
-
-	getaddrinfo(NULL, portStr, &hints, &res);
-
-	while (res != NULL && connect == 0)
+	if (connect(skt, (struct sockaddr *)&IP, sizeof(struct sockaddr_in)) < 0)
 	{
-		if (skt >= 0)
-		{
-			if (bind(skt, res->ai_addr, res->ai_addrlen) == 0)
-				connect = 1;
-			else
-				close(skt);
-		}
-		else
-			res = res->ai_next;
-	}
-
-	freeaddrinfo(res);
-
-	if (connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0)
-	{
-		printf("Connect client error:\n");
+		fprintf(stderr, "Client: %s:%s disconnected\n", address.hostname, address.port);
 		perror(NULL);
-		return -1;
+		return EXIT_FAILURE;
 	}
 
 	return skt;
 }
 
-int SendMessageForOneClient(struct clientInfo *client, MESSAGE message)
+/*
+*	Take a client to contact and the message as argument.
+*	Connect to the client and the message.
+*	return EXIT_FAILURE, if the client is unreachable or a problem occurs
+*
+*	Improvment ?
+*	reveive directly the message in binary from the parent function
+*	could be a little tricky if it's in an thread
+*/
+
+int SendMessageForOneClient(struct clientInfo *client, MESSAGE *message)
 {
 	int skt = -1;
 
-	if ((skt = connectClient(&client->IP)) < 0)
-		return -1;
+	if ((skt = connectClient(client->address)) == EXIT_FAILURE)
+		return EXIT_FAILURE;
 
 	char *binMessage = MessageToBin(message);
-	Send(skt, binMessage, HEADER_SIZE + message.sizeData, 0);
+	int res = Send(skt, binMessage, HEADER_SIZE + message->sizeData, 0);
 	free(binMessage);
-	close(skt);
-	return 0;
+	res = close(skt) && res;
+	return res;
 }
 
-int SendMessage(struct clientInfo *clientList, MESSAGE message)
+/*
+*	Take a list of client and message and send the message at each client
+*	If there is a problem with the client, , it will remove of the list
+*
+*	Could be imrove with multithreading
+*/
+void SendMessage(struct clientInfo *clientList, MESSAGE *message)
 {
 	for (clientList = clientList->sentinel->next; clientList->isSentinel == FALSE; clientList = clientList->next)
 	{
-		if (SendMessageForOneClient(clientList, message) < 0)
+		if (SendMessageForOneClient(clientList, message) == EXIT_FAILURE)
 		{
 			struct clientInfo *temp = clientList;
 			clientList = clientList->next;
 			removeClient(temp);
 		}
 	}
-
-	return 1;
 }

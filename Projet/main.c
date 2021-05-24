@@ -9,8 +9,6 @@
 #include <signal.h>
 
 
-
-
 int main(){
 	struct server *server_list = initServer();
 	TRANSACTIONS_LIST tl = initListTxs();

@@ -1,5 +1,4 @@
 #include "server.h"
-#include "network_tools.h"
 
 void *read_thread(void *arg)
 {
@@ -53,7 +52,7 @@ void *read_thread(void *arg)
 
 	if (problem == 0)
 	{
-		MESSAGE message = BinToMessage(dataBuff);
+		MESSAGE *message = BinToMessage(dataBuff);
 
 		switch (type)
 		{
@@ -71,7 +70,8 @@ void *read_thread(void *arg)
 
 	close(client->socket);
 	free(client);
-	free(dataBuff);
+	if(problem == 0)
+		free(dataBuff);
 	return NULL;
 }
 
@@ -87,17 +87,12 @@ void *Server(void *arg)
 	struct addrinfo *res;
 	int connect = 0;
 	int skt;
-	char portStr[6] = DEFAULT_PORT;
-	unsigned short port = 0;
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	port = ntohs(server->IP.sin_port);
-	snprintf(portStr, 6, "%u", port);
-
-	getaddrinfo(NULL, portStr, &hints, &res);
+	getaddrinfo(NULL, server->address.port, &hints, &res);
 
 	while (res != NULL && connect == 0)
 	{
@@ -138,14 +133,19 @@ void *Server(void *arg)
 		client->socket = accept(skt, (struct sockaddr *)&client->IP, &temp);
 
 		if (pthread_create(&thread, NULL, read_thread, (void *)client) == 0)
+		{
+			//pthread_join(thread, NULL);
 			pthread_detach(thread);
+		}
 		else
 		{
 			close(client->socket);
 			free(client);
 		}
+		
 	}
 
 	close(skt);
+
 	return NULL;
 }
