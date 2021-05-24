@@ -3,6 +3,7 @@ CFLAGS=-Wall -Wextra
 CFLAGS +=$(FINAL)
 LDLIBS= -pthread -lm -lcrypto
 
+
 TARGET ?= blockchain
 SRC_DIRS ?= ./
 
