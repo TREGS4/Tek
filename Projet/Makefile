@@ -1,7 +1,7 @@
 CC=gcc
-CFLAGS= `pkg-config --cflags glib-2.0` -Wall -Wextra 
+CFLAGS=  -Wall -Wextra 
 CFLAGS +=$(FINAL)
-LDLIBS=`pkg-config --libs glib-2.0` -pthread -lm -lcrypto
+LDLIBS= -pthread -lm -lcrypto
 TARGET ?= blockchain
 SRC_DIRS ?= ./
 
