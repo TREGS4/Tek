@@ -25,5 +25,6 @@ int checkBlockchain(BLOCKCHAIN *blockchain);
 char *blockchainToJson(BLOCKCHAIN *bc);
 BLOCKCHAIN_BIN blockchainToBin(BLOCKCHAIN *bc);
 BLOCKCHAIN binToBlockchain(BYTE *bin);
+void freeBlockchain(BLOCKCHAIN *bc);
 
 #endif
