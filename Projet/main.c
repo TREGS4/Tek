@@ -13,6 +13,6 @@ int main(){
 	struct server *server_list = initServer();
 	TRANSACTIONS_LIST tl = initListTxs();
 	BLOCKCHAIN block_list = initBlockchain();
-	API(block_list, server_list ,tl);
+	API(&block_list, server_list ,&tl);
 	return 0;
 }

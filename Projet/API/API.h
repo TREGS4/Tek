@@ -9,9 +9,6 @@
 #include <unistd.h>
 #include <err.h>
 #include <semaphore.h>
-#include <gmodule.h>
-#include <glib.h>
-#include <glib/gprintf.h>
 #include "../Network/network_tools.h"
 #include "../Block/transactions.h"
 #include "../Block/blockchain.h"

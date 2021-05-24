@@ -3,17 +3,49 @@
 
 #define BUFFER_SIZE 500
 
+char * string_append(char * full_request, char * request)
+{
+	char * new_request = malloc(sizeof(char) * (strlen(full_request) + strlen(request) + 1));
+	sprintf(new_request,"%s%s",full_request, request);
+	free(full_request);
+	return new_request;
+}
 
+char *findPath(char *str)
+{
+	char *res;
+	size_t start = 0;
+	size_t len;
+
+	for (; (char)str[start] != ' '; start++)
+	{
+		;
+	}
+	start += 2;
+	for (len = start; (char)str[len] != ' '; len++)
+	{
+		;
+	}
+	len -= start;
+
+	res = malloc(sizeof(char) * (len + 1));
+	memset(res, 0, len + 1);
+
+	for (size_t i = 0; i < len; i++)
+		res[i] = str[start + i];
+
+	return res;
+}
 
 void resend(int fd, const void *buf, size_t count,int flag)
 {
-   ssize_t send1 = send(fd,buf,count,flag);
-   if (send1 == -1) 
-   	return err(1, "Error writing");
-   
-   while (send1 < (ssize_t) count) 
+	ssize_t send1 = send(fd,buf,count,flag);
+	if (send1 == -1) 
+		return err(1, "Error writing");
+
+	while (send1 < (ssize_t) count) 
 	{
-	     send1 += send(fd,buf+send1, count-send1,flag);
+		send1 += send(fd,buf+send1, count-send1,flag);
 	}
 }
 
@@ -42,7 +74,7 @@ void blockchain_cmd(int client_socket_id, BLOCKCHAIN* block_list)
 	free(message);
 }
 
-void add_transaction_cmd(int client_socket_id, gchar* resource,TRANSACTIONS_LIST* transaction_list)
+void add_transaction_cmd(int client_socket_id, char* resource,TRANSACTIONS_LIST* transaction_list)
 {
 	TRANSACTION transaction = binToTxs( (BYTE*) resource);
 	addTx(transaction_list,&transaction);
@@ -54,180 +86,181 @@ void add_transaction_cmd(int client_socket_id, gchar* resource,TRANSACTIONS_LIST
 // Define the thread function.
 void* worker(void* arg)
 {
-    struct WORK_ARG* work_arg = arg;
-    int client_socket_id = work_arg->client_socket_id;
-    BLOCKCHAIN* block_list= work_arg->block_list;
-    struct server* server_list = work_arg->server_list;
-    TRANSACTIONS_LIST* transaction_list = work_arg->transaction_list;
-    
-    ssize_t request_size;
-    char request[BUFFER_SIZE];
+	struct WORK_ARG* work_arg = arg;
+	int client_socket_id = work_arg->client_socket_id;
+	BLOCKCHAIN* block_list= work_arg->block_list;
+	struct server* server_list = work_arg->server_list;
+	TRANSACTIONS_LIST* transaction_list = work_arg->transaction_list;
 
-    //Get the request from the web client
-    //Loop until full message is read
-    GString *full_request = g_string_new("");
-    do
-    {
-        request_size = read(client_socket_id, request, BUFFER_SIZE-1);
-        if (request_size == -1)
-        {
-            perror("read");
-            exit(0);
-        }
-        request[request_size] = '\0';
-        full_request = g_string_append(full_request, request);
-    } while (request_size > 0 &&
-             g_str_has_suffix(full_request->str, "\r\n\r\n") == FALSE);
+	ssize_t request_size;
+	char request[BUFFER_SIZE];
 
-    //Get resource from the request
-    if (g_str_has_prefix(full_request->str, "GET ") == TRUE)
-    {
-        gchar* resource = g_strndup(full_request->str+5, g_strstr_len(full_request->str, -1, " HTTP/")-full_request->str-5);
-         
-        //Print resource and free full_request and resource
-        printf("%d: %s\n", client_socket_id, resource);
-
-        //Send message status
-        char message200[] = "HTTP/1.1 200 OK\r\n\r\n";
-	char message404[] = "HTTP/1.1 404 Not Found\r\n\r\n";
-
-        
-        //Compute and send content message depending on requested resource
-        
-        //Treat update command
-        if(strcmp(resource, "send_transaction_list") == 0) 
+	//Get the request from the web client
+	//Loop until full message is read
+	char *full_request = malloc(sizeof(char));
+	do
 	{
-		send(client_socket_id, message200, strlen(message200), MSG_MORE);
-		temptransaction_cmd(client_socket_id,transaction_list);
-	}
-        else if (strcmp(resource, "send_server_count") == 0)
-        {
-		send(client_socket_id, message200, strlen(message200), MSG_MORE);
-		server_cmd(client_socket_id, server_list);
-	}
-	else if (strcmp(resource, "send_blockchain_list") == 0)
-	{
-		send(client_socket_id, message200, strlen(message200), MSG_MORE);
-		blockchain_cmd(client_socket_id, block_list);
-	}
-	else if (strcmp(resource, "add_transaction") == 0)
-	{
-		send(client_socket_id, message200, strlen(message200), MSG_MORE);
-		add_transaction_cmd(client_socket_id,resource,transaction_list);
-	}
-        else
-	{
-		send(client_socket_id, message404, strlen(message404), 0);   
-	}
-        g_free(resource);
+		request_size = read(client_socket_id, request, BUFFER_SIZE-1);
+		if (request_size == -1)
+		{
+			perror("read");
+			exit(0);
+		}
+		request[request_size] = '\0';
+		full_request = string_append(full_request, request);
+	} while (request_size > 0 &&
+			memcmp(full_request+strlen(full_request)-4, "\r\n\r\n",5) == 1);
 
-        //Close client sockets
-        close(client_socket_id);
-	
-    }
-    free(work_arg);
-    g_string_free(full_request, TRUE);
-    
-    return NULL;
+	//Get resource from the request
+	if (memcmp(full_request, "GET ",5) == TRUE)
+	{
+		char* resource = findPath(full_request);
+
+		//Print resource and free full_request and resource
+		printf("%d: %s\n", client_socket_id, resource);
+
+		//Send message status
+		char message200[] = "HTTP/1.1 200 OK\r\n\r\n";
+		char message404[] = "HTTP/1.1 404 Not Found\r\n\r\n";
+
+
+		//Compute and send content message depending on requested resource
+
+		//Treat update command
+		if(strcmp(resource, "send_transaction_list") == 0) 
+		{
+			send(client_socket_id, message200, strlen(message200), MSG_MORE);
+			temptransaction_cmd(client_socket_id,transaction_list);
+		}
+		else if (strcmp(resource, "send_server_count") == 0)
+		{
+			send(client_socket_id, message200, strlen(message200), MSG_MORE);
+			server_cmd(client_socket_id, server_list);
+		}
+		else if (strcmp(resource, "send_blockchain_list") == 0)
+		{
+			send(client_socket_id, message200, strlen(message200), MSG_MORE);
+			blockchain_cmd(client_socket_id, block_list);
+		}
+		else if (strcmp(resource, "add_transaction") == 0)
+		{
+			send(client_socket_id, message200, strlen(message200), MSG_MORE);
+			add_transaction_cmd(client_socket_id,resource,transaction_list);
+		}
+		else
+		{
+			send(client_socket_id, message404, strlen(message404), 0);   
+		}
+		free(resource);
+
+		//Close client sockets
+
+
+	}
+	close(client_socket_id);
+	free(work_arg);
+	free(full_request);
+
+	return NULL;
 }
 
 int API(BLOCKCHAIN* block_list, struct server* server_list ,TRANSACTIONS_LIST* transaction_list  )
 {
-    struct addrinfo hints;
-    struct addrinfo *addr_list, *addr;
-    int socket_id, client_socket_id;
-    int res;
-
-  
-    //Get addresses list
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-
-    res = getaddrinfo(NULL, "2048", &hints, &addr_list);
-
-    //If error, exit the program
-    if (res != 0)
-    {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(res));
-        exit(0);
-    }
+	struct addrinfo hints;
+	struct addrinfo *addr_list, *addr;
+	int socket_id, client_socket_id;
+	int res;
 
 
-    //Try to connect to each adress returned by getaddrinfo()
-    for (addr = addr_list; addr != NULL; addr = addr->ai_next)
-    {
-        //Socket creation
-        socket_id = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+	//Get addresses list
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
 
-        //If error, try next adress
-        if (socket_id == -1)
-            continue;
+	res = getaddrinfo(NULL, "2048", &hints, &addr_list);
 
-        //Set options on socket
-        int enable = 1;
-        if (setsockopt(socket_id, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1)
-            perror("setsockopt(SO_REUSEADDR) failed");
-
-        //Bind a name to a socket, exit if no error
-        if (bind(socket_id, addr->ai_addr, addr->ai_addrlen) == 0)
-            break;
-
-        //Close current not connected socket
-        close(socket_id);
-    }
-
-    //addr_list freed
-    freeaddrinfo(addr_list);
-
-    //If no address works, exit the program
-    if (addr == NULL)
-    {
-        fprintf(stderr, "Could not bind\n");
-        exit(0);
-    }
-
-    //Specify that the socket can be used to accept incoming connections
-    if(listen(socket_id, 5) == -1)
-    {
-        fprintf(stderr, "Cannot wait\n");
-        exit(0);
-    }
+	//If error, exit the program
+	if (res != 0)
+	{
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(res));
+		exit(0);
+	}
 
 
+	//Try to connect to each adress returned by getaddrinfo()
+	for (addr = addr_list; addr != NULL; addr = addr->ai_next)
+	{
+		//Socket creation
+		socket_id = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
 
-    //Allow multiple connections
-    while(1)
-    {
-        //Accept connection from a client and exit the program in case of error
-        client_socket_id = accept(socket_id, addr->ai_addr, &(addr->ai_addrlen));
-        if(client_socket_id == -1)
-        {
-            fprintf(stderr, "Cannot connect\n");
-            exit(0);
-        }
+		//If error, try next adress
+		if (socket_id == -1)
+			continue;
 
-        int thread;
-        pthread_t thread_id;
-	struct WORK_ARG* work_arg = malloc(sizeof(struct WORK_ARG));
-	work_arg->client_socket_id = client_socket_id;
-	work_arg->block_list = block_list;
-	work_arg->server_list = server_list;
-	work_arg->transaction_list = transaction_list; 
+		//Set options on socket
+		int enable = 1;
+		if (setsockopt(socket_id, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1)
+			perror("setsockopt(SO_REUSEADDR) failed");
 
-        // - Create and execute the thread.
-        thread = pthread_create(&thread_id, NULL, &(worker), (void*) work_arg);
-        if(thread != 0)
-        {
-            fprintf(stderr, "hello: Can't create thread.\n");
-            exit(0);
-        }
-    }
+		//Bind a name to a socket, exit if no error
+		if (bind(socket_id, addr->ai_addr, addr->ai_addrlen) == 0)
+			break;
 
-    //Close server sockets
-    close(socket_id);
-    
+		//Close current not connected socket
+		close(socket_id);
+	}
+
+	//addr_list freed
+	freeaddrinfo(addr_list);
+
+	//If no address works, exit the program
+	if (addr == NULL)
+	{
+		fprintf(stderr, "Could not bind\n");
+		exit(0);
+	}
+
+	//Specify that the socket can be used to accept incoming connections
+	if(listen(socket_id, 5) == -1)
+	{
+		fprintf(stderr, "Cannot wait\n");
+		exit(0);
+	}
+
+
+
+	//Allow multiple connections
+	while(1)
+	{
+		//Accept connection from a client and exit the program in case of error
+		client_socket_id = accept(socket_id, addr->ai_addr, &(addr->ai_addrlen));
+		if(client_socket_id == -1)
+		{
+			fprintf(stderr, "Cannot connect\n");
+			exit(0);
+		}
+
+		int thread;
+		pthread_t thread_id;
+		struct WORK_ARG* work_arg = malloc(sizeof(struct WORK_ARG));
+		work_arg->client_socket_id = client_socket_id;
+		work_arg->block_list = block_list;
+		work_arg->server_list = server_list;
+		work_arg->transaction_list = transaction_list; 
+
+		// - Create and execute the thread.
+		thread = pthread_create(&thread_id, NULL, &(worker), (void*) work_arg);
+		if(thread != 0)
+		{
+			fprintf(stderr, "hello: Can't create thread.\n");
+			exit(0);
+		}
+	}
+
+	//Close server sockets
+	close(socket_id);
+
 }
 
 
