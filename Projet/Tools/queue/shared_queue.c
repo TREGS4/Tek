@@ -17,12 +17,12 @@ shared_queue* shared_queue_new()
 	return q;
 }
 
-void shared_queue_push(shared_queue* sq, MESSAGE *message)
+void shared_queue_push(shared_queue* sq, void *ptr)
 {
 	if(sem_wait(&sq->lock) < 0)
 		err(EXIT_FAILURE, "Error while locking");
 
-	sq->queue = queue_push(sq->queue, message);
+	sq->queue = queue_push(sq->queue, ptr);
 
 	if(sem_post(&sq->size) < 0)
 		err(EXIT_FAILURE, "Error while increasing size");
@@ -31,9 +31,9 @@ void shared_queue_push(shared_queue* sq, MESSAGE *message)
 	
 }
 
-MESSAGE *shared_queue_pop(shared_queue* sq)
+void *shared_queue_pop(shared_queue* sq)
 {
-	MESSAGE *res = NULL;
+	void *res = NULL;
 
 	if(sem_wait(&sq->size) < 0)
 		err(EXIT_FAILURE, "Error while decreasing size");

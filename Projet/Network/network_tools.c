@@ -281,3 +281,15 @@ struct sockaddr_in GetIPfromHostname(struct address address)
 
     return resIP;
 }
+
+char *ServerListToJSON(struct server *server)
+{
+    /*size_t nbchar = 0;
+    struct clientInfo 
+    for*/
+    char *res = NULL;
+
+
+
+    return res;
+}

@@ -5,8 +5,8 @@
 #include "Noeud_de_gestion/gestion.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "API/API.h"
 #include "Network/network.h"
-#include "Network/server.h"
 #include <signal.h>
 
 typedef struct

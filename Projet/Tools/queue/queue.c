@@ -1,12 +1,12 @@
 #include "queue.h"
 
-queue* queue_push(queue* start, MESSAGE *message)
+queue* queue_push(queue* start, void *ptr)
 {
 	queue *q = malloc(sizeof(queue));
 	if(q == NULL)
 		err(EXIT_FAILURE, "Error while creating the element");
 	
-	q->message = message;
+	q->ptr = ptr;
 
 	if(start != NULL)
 	{
@@ -20,14 +20,14 @@ queue* queue_push(queue* start, MESSAGE *message)
 	return q;
 }
 
-queue* queue_pop(queue* start, MESSAGE **message)
+queue* queue_pop(queue* start, void **ptr)
 {
 	if(start == NULL)
 		err(EXIT_FAILURE, "Error while poping element, list is empty");
 	
 
 	queue *old = start->next;
-	*message = old->message;
+	*ptr = old->ptr;
 
 	if(start->next == start)
 		start = NULL;
@@ -41,11 +41,10 @@ queue* queue_pop(queue* start, MESSAGE **message)
 
 void queue_empty(queue** pstart)
 {
-	MESSAGE *message = NULL;
+	void *ptr = NULL;
     while(*pstart != NULL)
 	{
-		*pstart =  queue_pop(*pstart, &message);
-		DestroyMessage(message);
+		*pstart =  queue_pop(*pstart, &ptr);
 	}
 	   
 }
