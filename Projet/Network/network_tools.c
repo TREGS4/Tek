@@ -251,11 +251,8 @@ void *sendNetwork(void *arg)
 
         MESSAGE *message = CreateMessage(type, dataSize, messageBuff);
 
-        if (message == NULL)
-        {
-            pthread_mutex_lock(&server->lockKnownServers);
+        if (message == NULL){
             shared_queue_push(server->OutgoingMessages, message);
-            pthread_mutex_unlock(&server->lockKnownServers);
         }
 
         free(messageBuff);

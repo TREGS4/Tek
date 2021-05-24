@@ -1,22 +1,6 @@
-#include "../Block/block.h"
-#include "../Block/transactions.h"
-#include "../Block/blockchain.h"
-#include "../Block/account.h"
-#include "../Hash/sha256.h"
-
-#include "../Network/network.h"
+#include "gestion.h"
 
 #include <pthread.h>
-
-typedef struct {
-    BLOCKCHAIN bc;
-    pthread_mutex_t mutex;
-} BLOCKCHAIN_M;
-
-typedef struct {
-    TRANSACTIONS_LIST tl;
-    pthread_mutex_t mutex;
-} TL_M;
 
 void* gestion(void *arg){
 
@@ -24,12 +8,10 @@ void* gestion(void *arg){
         args
     */
     struct server *network = (struct server*)arg;
-    /*if (network->status != ONLINE){
+    if (network->status != ONLINE){
         return NULL;
-    }*/
+    }
     
-
-
     BLOCKCHAIN_M bc_m;
     pthread_mutex_init(&bc_m.mutex, NULL);
     bc_m.bc = initBlockchain();
@@ -38,8 +20,38 @@ void* gestion(void *arg){
     pthread_mutex_init(&txs_temp_m.mutex, NULL);
     txs_temp_m.tl = initListTxs();
 
-    /*pthread_mutex_lock(&bc_m.mutex);
-    pthread_mutex_unlock(&bc_m.mutex);*/
+
+    int isAPI = 1;
+    shared_queue *api_txs = shared_queue_new();
+    if (isAPI){
+        ;// TODO
+    }
+
+    while (1){
+
+
+        // reading the network messages
+        if (!shared_queue_isEmpty(network->IncomingMessages)){
+            MESSAGE *message = shared_queue_pop(network->IncomingMessages);
+            if (message->type == 2){ // transaction
+                printf("message type 2 received\n");
+            }else if (message->type == 3){ // blockchain
+                printf("message type 3 received\n");
+            }
+            DestroyMessage(message);
+        }
+
+        // reading the api transactions
+        if (!shared_queue_isEmpty(api_txs)){
+
+        }
+        
+    
+    
+    // thimot la pute
+
+    
+    }
 
     pthread_mutex_destroy(&bc_m.mutex);
     pthread_mutex_destroy(&txs_temp_m.mutex);

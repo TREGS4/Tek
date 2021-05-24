@@ -20,15 +20,14 @@ queue* queue_push(queue* start, MESSAGE *message)
 	return q;
 }
 
-queue* queue_pop(queue* start, MESSAGE *message)
+queue* queue_pop(queue* start, MESSAGE **message)
 {
 	if(start == NULL)
 		err(EXIT_FAILURE, "Error while poping element, list is empty");
 	
 
 	queue *old = start->next;
-	if(message != NULL)
-		message = old->message;
+	*message = old->message;
 
 	if(start->next == start)
 		start = NULL;
@@ -45,7 +44,7 @@ void queue_empty(queue** pstart)
 	MESSAGE *message = NULL;
     while(*pstart != NULL)
 	{
-		*pstart =  queue_pop(*pstart, message);
+		*pstart =  queue_pop(*pstart, &message);
 		DestroyMessage(message);
 	}
 	   
