@@ -230,6 +230,8 @@ void *sendNetwork(void *arg)
         dataSize = 0;
         offset = 0;
 
+        pthread_mutex_lock(&server->lockKnownServers);
+
         for (struct clientInfo *temp = server->KnownServers->sentinel->next; temp->isSentinel == FALSE; temp = temp->next)
             dataSize += strlen(temp->address.hostname) + 1 + PORT_SIZE + 1 + HEADER_HOSTNAME_SIZE;
 
@@ -249,14 +251,12 @@ void *sendNetwork(void *arg)
             offset += PORT_SIZE + 1;
         }
 
+        pthread_mutex_unlock(&server->lockKnownServers);
+
         MESSAGE *message = CreateMessage(type, dataSize, messageBuff);
 
-        if (message == NULL)
-        {
-            pthread_mutex_lock(&server->lockKnownServers);
+        if (message != NULL)
             shared_queue_push(server->OutgoingMessages, message);
-            pthread_mutex_unlock(&server->lockKnownServers);
-        }
 
         free(messageBuff);
         sleep(2);
@@ -287,12 +287,37 @@ struct sockaddr_in GetIPfromHostname(struct address address)
 
 char *ServerListToJSON(struct server *server)
 {
-    /*size_t nbchar = 0;
-    struct clientInfo 
-    for*/
-    char *res = NULL;
+    char *str = "{\"server_list\":[";
+    char *base = "{\"hostname\":\"%s\", \"port\":\"%s\"}";
+    size_t nbchar = strlen(str);
+    size_t offset = 0;
 
+    pthread_mutex_lock(&server->lockKnownServers);
+    struct clientInfo *elt = server->KnownServers->next->next;
 
+    nbchar += strlen(base) * listLen(server->KnownServers);
+
+    for (; elt->isSentinel == FALSE; elt = elt->next)
+        nbchar += strlen(elt->address.hostname) + strlen(elt->address.port);
+
+    nbchar++;
+
+    char *res = calloc(1, sizeof(char) * nbchar);
+
+    sprintf(res, "%s", str);
+    offset += strlen(str);
+    for(elt = elt->sentinel->next; elt->isSentinel == FALSE; elt = elt->next)
+    {
+        sprintf(res + offset, base, elt->address.hostname, elt->address.port);
+        offset += strlen(elt->address.hostname) + strlen(elt->address.port) + strlen(base); 
+    }
+    res[offset++] = ']';
+    res[offset] = '}';
+    
+    pthread_mutex_unlock(&server->lockKnownServers);
+
+    printf("%lu\n", nbchar);
+    printf("%s\n", res);
 
     return res;
 }

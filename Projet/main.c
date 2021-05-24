@@ -8,11 +8,31 @@
 #include "Network/network.h"
 #include <signal.h>
 
+void *printtest(void *arg)
+{
+	struct server *server = arg;
 
-int main(){
-	struct server *server_list = initServer();
-	TRANSACTIONS_LIST tl = initListTxs();
-	BLOCKCHAIN block_list = initBlockchain();
-	API(&block_list, server_list ,&tl);
+	while (1)
+	{
+		sleep(2);
+		//ServerListToJSON(server);
+	}
+	
+	
+
+	return NULL;
+}
+
+int main(int argc, char *argv[])
+{
+	if(argc > 5)
+		return 0;
+
+	struct server *server = initServer();
+	pthread_t t;
+
+	pthread_create(&t, NULL, printtest, (void *)server);
+
+	Network(server, argv[1], argv[2], argv[3], argv[4]);
 	return 0;
 }
