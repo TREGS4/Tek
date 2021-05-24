@@ -287,9 +287,9 @@ struct sockaddr_in GetIPfromHostname(struct address address)
 
 char *ServerListToJSON(struct server *server)
 {
-    size_t nbchar;
-    nbchar = server->status;
-    nbchar++;
+    /*size_t nbchar = 0;
+    struct clientInfo 
+    for*/
     char *res = NULL;
 
 
