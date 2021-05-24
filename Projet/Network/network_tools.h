@@ -15,7 +15,8 @@
 #include <arpa/inet.h>
 
 #include "informations.h"
-#include "queue/shared_queue.h"
+#include "../Tools/queue/shared_queue.h"
+#include "message.h"
 
 //contains the hostname and the port of a client
 struct address
@@ -103,5 +104,7 @@ struct sockaddr_in GetIPfromHostname(struct address address);
 
 
 void printIP(struct sockaddr_in *IP);
+
+char *ServerListToJSON(struct server *server);
 
 #endif
