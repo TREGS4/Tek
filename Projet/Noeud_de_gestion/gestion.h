@@ -8,16 +8,6 @@
 #include "../Hash/sha256.h"
 #include "../Network/network.h"
 
-typedef struct {
-    BLOCKCHAIN bc;
-    pthread_mutex_t mutex;
-} BLOCKCHAIN_M;
-
-typedef struct {
-    TRANSACTIONS_LIST tl;
-    pthread_mutex_t mutex;
-} TL_M;
-
 void* gestion(void *arg);
 
 #endif

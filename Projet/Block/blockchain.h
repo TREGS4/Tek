@@ -17,6 +17,12 @@ typedef struct
 	size_t nbBytes;
 } BLOCKCHAIN_BIN;
 
+typedef struct {
+    BLOCKCHAIN bc;
+    pthread_mutex_t mutex;
+} BLOCKCHAIN_M;
+
+
 BLOCK *getLastBlock(BLOCKCHAIN *blockchain);
 void addBlock(BLOCKCHAIN *blockchain, BLOCK block);
 BLOCKCHAIN initBlockchain();

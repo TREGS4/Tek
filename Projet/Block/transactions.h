@@ -30,6 +30,11 @@ typedef struct
 	size_t nbBytes;
 } TRANSACTION_BIN;
 
+typedef struct {
+    TRANSACTIONS_LIST tl;
+    pthread_mutex_t mutex;
+} TL_M;
+
 
 void txsToString(TRANSACTION *txs, char buf[TRANSACTION_SIZE]);
 char *txsToJson(TRANSACTION *t);

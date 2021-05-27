@@ -51,9 +51,8 @@ int grosTest(int argc, char **argv)
 		network.portFirstServer = argv[4];
 	else
 		network.portFirstServer = NULL;
-	pthread_t networkthread;
 
-	
+	pthread_t networkthread;
 	pthread_create(&networkthread, NULL, NetworkThread, (void *)&network);
 
 	while (server->status != ONLINE){

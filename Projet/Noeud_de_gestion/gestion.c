@@ -1,4 +1,5 @@
 #include "gestion.h"
+#include "../API/API.h"
 
 #include <pthread.h>
 
@@ -22,9 +23,18 @@ void* gestion(void *arg){
 
 
     int isAPI = 1;
-    shared_queue *api_txs = shared_queue_new();
+
+    pthread_t api_thread;
+    shared_queue *api_txs;
     if (isAPI){
-        ;// TODO
+        api_txs = shared_queue_new();
+        API_THREAD_ARG args = {
+            .server = network,
+            .bc_m = &bc_m,
+            .tl_m = &txs_temp_m,
+            .outgoingTxs = api_txs
+        };
+        pthread_create(&api_thread, NULL, API, (void *)&args);
     }
 
     while (1){
@@ -42,14 +52,16 @@ void* gestion(void *arg){
         }
 
         // reading the api transactions
-        if (!shared_queue_isEmpty(api_txs)){
+        if (isAPI && !shared_queue_isEmpty(api_txs)){
+            TRANSACTION *txs = shared_queue_pop(api_txs);
 
+            pthread_mutex_lock(&txs_temp_m.mutex);
+            addTx(&txs_temp_m.tl, txs);
+            pthread_mutex_unlock(&txs_temp_m.mutex);
+            
+            printf("une transaction depuis l'api a été reçu.\n");
+            free(txs);
         }
-        
-    
-    
-    // thimot la pute
-
     
     }
 
