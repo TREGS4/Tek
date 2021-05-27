@@ -1,0 +1,113 @@
+#include "transactions.h"
+#include "../Hash/sha256.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+void txsToString(TRANSACTION *txs, char buf[TRANSACTION_SIZE])
+{
+	sprintf(buf, "%s%s%014d", txs->sender, txs->receiver, txs->amount);
+}
+
+char *txsToJson(TRANSACTION *t)
+{
+	char *s1 = "{\"sender\":\"";
+	char *s2 = "\",\"receiver\":\"";
+	char *s3 = "\",\"amount\":";
+	char *s4 = "}";
+	size_t size = strlen(s1) + strlen(s2) + strlen(s3) + strlen(s4);
+	char *res = calloc(size + TRANSACTION_SIZE + 1, sizeof(char));
+	sprintf(res, "%s%s%s%s%s%d%s", s1, t->sender,s2, t->receiver, s3, t->amount, s4);	
+	char *json = calloc(strlen(res), sizeof(char));
+	memcpy(json, res, strlen(res));
+	free(res);
+	return json;
+}
+char *tlToJson(TRANSACTIONS_LIST *tl)
+{
+	char *s1 = "{\"transactions\":[";
+	char *s2 = "]}";
+	size_t size = strlen(s1) + strlen(s2);
+
+	char *json = NULL;
+
+	size_t nbTxs = tl->size;
+	char *restxs = NULL;
+	size_t txssize = 0;
+	for (size_t i = 0; i < nbTxs; i++){
+		char *txsjson = txsToJson(&tl->transactions[i]);
+		size_t t = txssize + strlen(txsjson) + 1;
+		restxs = realloc(restxs, t);
+		sprintf(restxs + txssize,"%s,",txsjson);
+		txssize += strlen(txsjson) + 1;
+		free(txsjson);
+	}
+	json = calloc(size + txssize + 1, sizeof(char));
+	if (restxs != NULL){
+		sprintf(json, "%s%s%s", s1, restxs, s2);
+		free(restxs);
+	}else{
+		sprintf(json, "%s%s", s1, s2);
+	}
+
+	return json;
+}
+
+
+
+size_t getSizeOf_txsbin(){
+	return sizeof(TRANSACTION);
+}
+TRANSACTION_BIN txsToBin(TRANSACTION *t)
+{
+	TRANSACTION_BIN txsbin = {
+		.nbBytes = getSizeOf_txsbin(),
+	};
+	txsbin.bin = calloc(1, getSizeOf_txsbin());
+	memcpy(txsbin.bin, t, getSizeOf_txsbin());
+	return txsbin;
+}
+
+TRANSACTION binToTxs(BYTE *bin){
+	TRANSACTION txs;
+	memcpy(&txs, bin, getSizeOf_txsbin());
+	return txs;
+}
+
+TRANSACTIONS_LIST initListTxs()
+{
+	TRANSACTIONS_LIST newTransactionsList = 
+	{
+		.transactions = NULL,
+		.size = 0,
+		.capacity = 1,
+	};
+	
+	newTransactionsList.transactions = malloc(sizeof(TRANSACTION) * newTransactionsList.capacity);
+	if (newTransactionsList.transactions == NULL){
+		printf("error initListTxs\n");
+		exit(1);
+	}
+
+	return newTransactionsList;
+}
+
+void addTx(TRANSACTIONS_LIST *tl, TRANSACTION *t)
+{
+	if (tl->size >= tl->capacity)
+	{
+		tl->capacity *= 2;
+		tl->transactions = realloc(tl->transactions, sizeof(TRANSACTION) * tl->capacity);
+		if (tl->transactions == NULL)
+			exit(1);
+	}
+
+	tl->transactions[tl->size] = *t;
+	tl->size += 1;
+}
+
+void clearTxsList(TRANSACTIONS_LIST *tl)
+{
+	free(tl->transactions);
+	*tl = initListTxs();
+}

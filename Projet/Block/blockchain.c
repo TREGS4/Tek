@@ -64,13 +64,34 @@ BLOCK createGenesis()
 	for (int i = 0; i < SHA256_BLOCK_SIZE; i++){
 		newGenesis.previusHash[i] = 0;
 	}
+	newGenesis.tl = initListTxs();
 	
 	return newGenesis;
 }
 
 
+int checkBlockchain(BLOCKCHAIN *blockchain)
+{
+	for (size_t i = 1 ; i < blockchain->blocksNumber ; i++)
+	{
+		BYTE hash[SHA256_BLOCK_SIZE];
+		BLOCK current = blockchain->blocks[i];
+		BLOCK prev = blockchain->blocks[i - 1];
+		getHash(&current, hash);
+		
+		if (memcmp(current.previusHash, prev.blockHash, SHA256_BLOCK_SIZE) != 0)
+			return 1;
+			
+		if (memcmp(current.blockHash, hash, SHA256_BLOCK_SIZE) != 0)
+			return 1;
+	}
+	
+	return 0;
+}
 
-char *blockchainToJson(BLOCKCHAIN *bc){
+
+char *blockchainToJson(BLOCKCHAIN *bc)
+{
 	char *s1 = "{\"blocks\":[";
 	char *s2 = "]}";
 	size_t size = strlen(s1) + strlen(s2);
@@ -88,4 +109,53 @@ char *blockchainToJson(BLOCKCHAIN *bc){
 	sprintf(json, "%s%s%s", s1, resblock, s2);
 	free(resblock);
 	return json;
+}
+
+
+BLOCKCHAIN_BIN blockchainToBin(BLOCKCHAIN *bc)
+{
+	size_t nbBlocks = bc->blocksNumber;
+	size_t size = sizeof(size_t);
+	size_t total_size = size;
+
+	BYTE *res = malloc(size);
+	size_t cursor = 0;
+	memcpy(res + cursor, &nbBlocks, sizeof(nbBlocks));
+	cursor += sizeof(nbBlocks);
+
+	for (size_t i = 0; i < bc->blocksNumber; i++){
+		BLOCK_BIN blockbin = blockToBin(&bc->blocks[i]);
+		total_size += blockbin.nbBytes;
+		res = realloc(res, total_size);
+		memcpy(res + cursor, blockbin.bin, blockbin.nbBytes);
+		cursor += blockbin.nbBytes;
+		free(blockbin.bin);
+	}
+	BLOCKCHAIN_BIN bcbin = {
+		.bin = res,
+		.nbBytes = total_size,
+	};
+	return bcbin;
+}
+
+
+BLOCKCHAIN binToBlockchain(BYTE *bin){
+	size_t nbBlocks;
+	size_t cursor = 0;
+	memcpy(&nbBlocks, bin + cursor, sizeof(nbBlocks));
+	cursor += sizeof(nbBlocks);
+
+	BLOCKCHAIN bc = {
+		.blocksNumber = nbBlocks,
+	};
+	bc.blocks = malloc(sizeof(BLOCK)*nbBlocks);
+
+	for (size_t i = 0; i < nbBlocks; i++){
+		size_t nbTxs;
+		memcpy(&nbTxs, bin + cursor, sizeof(nbTxs));
+		BLOCK b = binToBlock(bin + cursor);
+		cursor += getSizeOf_blockbin(nbTxs);
+		bc.blocks[i] = b;
+	}
+	return bc;
 }
