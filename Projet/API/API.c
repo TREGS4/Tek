@@ -56,12 +56,11 @@ void resend(int fd, const void *buf, size_t count,int flag)
 void temptransaction_cmd(int client_socket_id, TL_M *tl_m)
 {
 	pthread_mutex_lock(&tl_m->mutex);
-	char *message2 = tlToJson(&tl_m->tl);
-	char *message = "salut";
+	char *message = tlToJson(&tl_m->tl);
 	pthread_mutex_unlock(&tl_m->mutex);
 
 	resend (client_socket_id,message,strlen(message),0);
-	free(message2);
+	free(message);
 }
 
 void server_cmd(int client_socket_id, struct server* server)
@@ -95,9 +94,7 @@ void add_transaction_cmd(int client_socket_id, shared_queue *outgoingTxs)
 		char *message = "{\"success\":\"error\"}";
 		resend(client_socket_id,message,strlen(message),0);
 	}else{
-		transaction->amount = 80;
-		sprintf(transaction->sender, "adrienadrien");
-		sprintf(transaction->receiver, "paulpaul");
+		*transaction = CreateTxs(100, "robert", "germaine");
 		shared_queue_push(outgoingTxs, transaction);
 
 		char *message = "{\"success\":\"ok\"}";

@@ -154,7 +154,7 @@ BLOCKCHAIN binToBlockchain(BYTE *bin){
 		size_t nbTxs;
 		memcpy(&nbTxs, bin + cursor, sizeof(nbTxs));
 		BLOCK b = binToBlock(bin + cursor);
-		cursor += getSizeOf_blockbin(nbTxs);
+		cursor += getSizeOf_blockbin(&b);
 		bc.blocks[i] = b;
 	}
 	return bc;
