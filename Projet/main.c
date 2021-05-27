@@ -8,7 +8,7 @@
 #include "API/API.h"
 #include "Network/network.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
 	if (argc > 5)
 		return 0;
@@ -22,9 +22,4 @@ int main(int argc, char *argv[])
 	}
 
 	return 0;
-}
-
-int main(int argc, char **argv)
-{
-	grosTest(argc, argv);
 }
