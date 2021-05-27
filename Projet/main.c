@@ -114,26 +114,32 @@ int grosTest(int argc, char **argv)
 	while (server->status != ONLINE){
 		sleep(0.2);
 	}
-	pthread_t gestionthread;
-	pthread_create(&gestionthread, NULL, gestion, (void *)server);
+	//pthread_t gestionthread;
+	//pthread_create(&gestionthread, NULL, gestion, (void *)server);
 
-	sleep(3);
 	char *data = "salope";
 	MESSAGE *msg = CreateMessage(2, strlen(data), data);
 	printf("message push : %p\n", msg);
 	shared_queue_push(server->OutgoingMessages, msg);
 
-
+	sleep(5);
+	printf("Wainting for stop\n");
+	server->status = EXITING;
 	pthread_join(networkthread, NULL);
-	pthread_join(gestionthread, NULL);
+	//pthread_join(gestionthread, NULL);
+	
+	printf("Network is ended\n");
 	freeServer(network.server);
+	printf("Server is freed\n");
 
 	return EXIT_SUCCESS;
 }
 
 int main(int argc, char **argv)
 {
-	TRANSACTION t = CreateTxs(104, "Adrien", "Tom");
+	/*TRANSACTION t = CreateTxs(104, "Adrien", "Tom");
+	free(t.sender);
+	free(t.receiver);
 	
 	TRANSACTION t2 = 
 	{
@@ -202,6 +208,7 @@ int main(int argc, char **argv)
 	time (&rawtime);
 
 	//printf ( "Current local time and date: %ld", sizeof(rawtime) );
-
+*/
 	grosTest(argc, argv);
+	
 }

@@ -38,17 +38,11 @@ MESSAGE *BinToMessage(char *buff)
 {
     int type = 0;
     unsigned long long sizeData = 0;
-    char *data;
 
     memcpy(&type, buff, SIZE_TYPE_MSG);
     memcpy(&sizeData, buff + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
 
-    data = malloc(sizeof(char) * sizeData);
-    if(data == NULL)
-        return NULL;
-    memcpy(data, buff + HEADER_SIZE, sizeData);
-
-    return CreateMessage(type, sizeData, data);
+    return CreateMessage(type, sizeData, buff + HEADER_SIZE);
 }
 
 /*

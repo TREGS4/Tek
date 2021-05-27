@@ -21,6 +21,11 @@ void* gestion(void *arg){
     pthread_mutex_init(&txs_temp_m.mutex, NULL);
     txs_temp_m.tl = initListTxs();
 
+    TRANSACTION txs = CreateTxs(10, "mabite", "moncouteau");
+    for(size_t i = 0; i < 1000; i++)
+    {
+        addTx(&txs_temp_m.tl, &txs);
+    }
 
     int isAPI = 1;
 

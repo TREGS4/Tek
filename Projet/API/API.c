@@ -59,7 +59,7 @@ void temptransaction_cmd(int client_socket_id, TL_M *tl_m)
 	char *message = tlToJson(&tl_m->tl);
 	pthread_mutex_unlock(&tl_m->mutex);
 
-	resend (client_socket_id,message,strlen(message),0);
+	//resend (client_socket_id,message,strlen(message),0);
 	free(message);
 }
 
@@ -139,7 +139,7 @@ void* worker(void* arg)
 
 	printf("request=\n %s\n\n", full_request);
 	//Get resource from the request
-	if (memcmp(full_request, "GET ",5) == TRUE)
+	if (memcmp(full_request, "GET ",4) == 0)
 	{
 		//Send message status
 		char message200[] = "HTTP/1.1 200 OK\nAccess-Control-Allow-Origin: *\r\n\r\n";
