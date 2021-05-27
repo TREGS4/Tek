@@ -15,7 +15,7 @@ void *printtest(void *arg)
 	while (1)
 	{
 		sleep(2);
-		//ServerListToJSON(server);
+		ServerListToJSON(server);
 	}
 	
 	

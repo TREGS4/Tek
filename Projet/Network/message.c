@@ -103,5 +103,5 @@ void printMessage(MESSAGE *message, struct sockaddr_in *IP)
     display[strlen(display)] = '\n';
     display[strlen(display)] = '\n';
 
-    printf(display);
+    printf("%s", display);
 }
