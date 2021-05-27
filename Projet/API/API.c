@@ -3,9 +3,14 @@
 
 #define BUFFER_SIZE 500
 
+
+// return full_request on problem
 char * string_append(char * full_request, char * request)
 {
 	char * new_request = malloc(sizeof(char) * (strlen(full_request) + strlen(request) + 1));
+	if (new_request == NULL){
+		return full_request;
+	}
 	sprintf(new_request,"%s%s",full_request, request);
 	free(full_request);
 	return new_request;
@@ -17,18 +22,16 @@ char *findPath(char *str)
 	size_t start = 0;
 	size_t len;
 
-	for (; (char)str[start] != ' '; start++)
-	{
-		;
-	}
+	for (; (char)str[start] != ' '; start++){;}
 	start += 2;
-	for (len = start; (char)str[len] != ' '; len++)
-	{
-		;
-	}
+	for (len = start; (char)str[len] != ' '; len++){;}
 	len -= start;
 
 	res = malloc(sizeof(char) * (len + 1));
+	if (res == NULL){
+		return NULL;
+	}
+
 	memset(res, 0, len + 1);
 
 	for (size_t i = 0; i < len; i++)
@@ -50,37 +53,57 @@ void resend(int fd, const void *buf, size_t count,int flag)
 }
 
 
-void temptransaction_cmd(int client_socket_id, TRANSACTIONS_LIST* transaction_list)
+void temptransaction_cmd(int client_socket_id, TL_M *tl_m)
 {
-	char *message = tlToJson (transaction_list);
+	pthread_mutex_lock(&tl_m->mutex);
+	char *message2 = tlToJson(&tl_m->tl);
+	char *message = "salut";
+	pthread_mutex_unlock(&tl_m->mutex);
+
 	resend (client_socket_id,message,strlen(message),0);
-	free(message);
+	free(message2);
 }
 
-void server_cmd(int client_socket_id, struct server* server_list)
+void server_cmd(int client_socket_id, struct server* server)
 {
-	size_t len = listLen (server_list->KnownServers->sentinel);
+	size_t len = listLen (server->KnownServers->sentinel);
 	char *str1 = "{\"size\":%ld}";
 	char *message = malloc(sizeof(char)*(strlen(str1)+10));
-	sprintf(message,str1,len);	
-	resend (client_socket_id,message,strlen(message),0);
-	free(message);
+	if (message == NULL){
+		resend (client_socket_id,NULL,0,0);
+	}else{
+		sprintf(message,str1,len);	
+		resend (client_socket_id,message,strlen(message),0);
+		free(message);
+	}
 }
 
-void blockchain_cmd(int client_socket_id, BLOCKCHAIN* block_list)
+void blockchain_cmd(int client_socket_id, BLOCKCHAIN_M *bc_m)
 {
-	char *message = blockchainToJson(block_list);
+	pthread_mutex_lock(&bc_m->mutex);
+	char *message = blockchainToJson(&bc_m->bc);
+	pthread_mutex_unlock(&bc_m->mutex);
+
 	resend(client_socket_id,message,strlen(message),0);
 	free(message);
 }
 
-void add_transaction_cmd(int client_socket_id, char* resource,TRANSACTIONS_LIST* transaction_list)
+void add_transaction_cmd(int client_socket_id, shared_queue *outgoingTxs)
 {
-	TRANSACTION transaction = binToTxs( (BYTE*) resource);
-	addTx(transaction_list,&transaction);
-	char *message = "{\"success\":\"ok\"}";
-	resend(client_socket_id,message,strlen(message),0);
-	free(message);
+	TRANSACTION *transaction = malloc(sizeof(TRANSACTION));
+	if (transaction == NULL){
+		char *message = "{\"success\":\"error\"}";
+		resend(client_socket_id,message,strlen(message),0);
+	}else{
+		transaction->amount = 80;
+		sprintf(transaction->sender, "adrienadrien");
+		sprintf(transaction->receiver, "paulpaul");
+		shared_queue_push(outgoingTxs, transaction);
+
+		char *message = "{\"success\":\"ok\"}";
+		resend(client_socket_id,message,strlen(message),0);
+	}
+	
 }
 
 // Define the thread function.
@@ -88,16 +111,22 @@ void* worker(void* arg)
 {
 	struct WORK_ARG* work_arg = arg;
 	int client_socket_id = work_arg->client_socket_id;
-	BLOCKCHAIN* block_list= work_arg->block_list;
-	struct server* server_list = work_arg->server_list;
-	TRANSACTIONS_LIST* transaction_list = work_arg->transaction_list;
+	BLOCKCHAIN_M* bc_m = work_arg->bc_m;
+	struct server* server = work_arg->server;
+	TL_M* tl_m = work_arg->tl_m;
+	shared_queue *outgoingTxs = work_arg->outgoingTxs;
 
 	ssize_t request_size;
 	char request[BUFFER_SIZE];
 
 	//Get the request from the web client
 	//Loop until full message is read
-	char *full_request = malloc(sizeof(char));
+	char *full_request = calloc(1, sizeof(char));
+	if (full_request == NULL){
+		close(client_socket_id);
+		return NULL;
+	}
+
 	do
 	{
 		request_size = read(client_socket_id, request, BUFFER_SIZE-1);
@@ -111,41 +140,44 @@ void* worker(void* arg)
 	} while (request_size > 0 &&
 			memcmp(full_request+strlen(full_request)-4, "\r\n\r\n",5) == 1);
 
+	printf("request=\n %s\n\n", full_request);
 	//Get resource from the request
 	if (memcmp(full_request, "GET ",5) == TRUE)
 	{
-		char* resource = findPath(full_request);
-
-		//Print resource and free full_request and resource
-		printf("%d: %s\n", client_socket_id, resource);
-
 		//Send message status
-		char message200[] = "HTTP/1.1 200 OK\r\n\r\n";
-		char message404[] = "HTTP/1.1 404 Not Found\r\n\r\n";
+		char message200[] = "HTTP/1.1 200 OK\nAccess-Control-Allow-Origin: *\r\n\r\n";
+		char message404[] = "HTTP/1.1 404 Not Found\nAccess-Control-Allow-Origin: *\r\n\r\n";
 
+
+		char* resource = findPath(full_request);
+		if (resource == NULL){
+			send(client_socket_id, message404, strlen(message404), 0);
+			close(client_socket_id);
+			return NULL;
+		}
 
 		//Compute and send content message depending on requested resource
 
 		//Treat update command
-		if(strcmp(resource, "send_transaction_list") == 0) 
+		if(strcmp(resource, "transactions/get") == 0) 
 		{
 			send(client_socket_id, message200, strlen(message200), MSG_MORE);
-			temptransaction_cmd(client_socket_id,transaction_list);
+			temptransaction_cmd(client_socket_id, tl_m);
 		}
-		else if (strcmp(resource, "send_server_count") == 0)
+		else if (strcmp(resource, "server/count") == 0)
 		{
 			send(client_socket_id, message200, strlen(message200), MSG_MORE);
-			server_cmd(client_socket_id, server_list);
+			server_cmd(client_socket_id, server);
 		}
-		else if (strcmp(resource, "send_blockchain_list") == 0)
+		else if (strcmp(resource, "blockchain") == 0)
 		{
 			send(client_socket_id, message200, strlen(message200), MSG_MORE);
-			blockchain_cmd(client_socket_id, block_list);
+			blockchain_cmd(client_socket_id, bc_m);
 		}
-		else if (strcmp(resource, "add_transaction") == 0)
+		else if (strcmp(resource, "transactions/post") == 0)
 		{
 			send(client_socket_id, message200, strlen(message200), MSG_MORE);
-			add_transaction_cmd(client_socket_id,resource,transaction_list);
+			add_transaction_cmd(client_socket_id, outgoingTxs);
 		}
 		else
 		{
@@ -158,14 +190,19 @@ void* worker(void* arg)
 
 	}
 	close(client_socket_id);
-	free(work_arg);
 	free(full_request);
 
 	return NULL;
 }
 
-int API(BLOCKCHAIN* block_list, struct server* server_list ,TRANSACTIONS_LIST* transaction_list  )
+void *API(void *args)
 {
+	API_THREAD_ARG *api_args = (API_THREAD_ARG*)args;
+	BLOCKCHAIN_M *bc_m = api_args->bc_m;
+	TL_M *tl_m = api_args->tl_m;
+	struct server *server = api_args->server;
+	shared_queue *outgoingTxs = api_args->outgoingTxs;
+
 	struct addrinfo hints;
 	struct addrinfo *addr_list, *addr;
 	int socket_id, client_socket_id;
@@ -222,7 +259,7 @@ int API(BLOCKCHAIN* block_list, struct server* server_list ,TRANSACTIONS_LIST* t
 	}
 
 	//Specify that the socket can be used to accept incoming connections
-	if(listen(socket_id, 5) == -1)
+	if(listen(socket_id, 10) == -1)
 	{
 		fprintf(stderr, "Cannot wait\n");
 		exit(0);
@@ -243,19 +280,21 @@ int API(BLOCKCHAIN* block_list, struct server* server_list ,TRANSACTIONS_LIST* t
 
 		int thread;
 		pthread_t thread_id;
-		struct WORK_ARG* work_arg = malloc(sizeof(struct WORK_ARG));
-		work_arg->client_socket_id = client_socket_id;
-		work_arg->block_list = block_list;
-		work_arg->server_list = server_list;
-		work_arg->transaction_list = transaction_list; 
+		struct WORK_ARG work_arg;
+		work_arg.client_socket_id = client_socket_id;
+		work_arg.bc_m = bc_m;
+		work_arg.server = server;
+		work_arg.tl_m = tl_m; 
+		work_arg.outgoingTxs = outgoingTxs;
 
 		// - Create and execute the thread.
-		thread = pthread_create(&thread_id, NULL, &(worker), (void*) work_arg);
+		thread = pthread_create(&thread_id, NULL, worker, (void*)&work_arg);
 		if(thread != 0)
 		{
 			fprintf(stderr, "hello: Can't create thread.\n");
 			exit(0);
 		}
+		pthread_detach(thread_id);   
 	}
 
 	//Close server sockets

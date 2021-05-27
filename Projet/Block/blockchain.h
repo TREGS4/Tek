@@ -17,6 +17,12 @@ typedef struct
 	size_t nbBytes;
 } BLOCKCHAIN_BIN;
 
+typedef struct {
+    BLOCKCHAIN bc;
+    pthread_mutex_t mutex;
+} BLOCKCHAIN_M;
+
+
 BLOCK *getLastBlock(BLOCKCHAIN *blockchain);
 void addBlock(BLOCKCHAIN *blockchain, BLOCK block);
 BLOCKCHAIN initBlockchain();
@@ -25,5 +31,6 @@ int checkBlockchain(BLOCKCHAIN *blockchain);
 char *blockchainToJson(BLOCKCHAIN *bc);
 BLOCKCHAIN_BIN blockchainToBin(BLOCKCHAIN *bc);
 BLOCKCHAIN binToBlockchain(BYTE *bin);
+void freeBlockchain(BLOCKCHAIN *bc);
 
 #endif

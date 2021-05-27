@@ -1,0 +1,53 @@
+
+*** These modified files were found in JOE when it aborted on Mon May 24 17:53:32 2021
+*** JOE was aborted by UNIX signal 1
+
+*** File '(Unnamed)'
+/home/TEK/BlockchainS4/.git/COMMIT_EDITMSG
+
+*** File '/home/TEK/BlockchainS4/.git/COMMIT_EDITMSG'
+/main' into gestion
+
+# Conflicts:
+#	Projet/Makefile
+#	Projet/Tools/queue/queue.c
+#	Projet/Tools/queue/queue.h
+#	Projet/blockchain
+#	Projet/main.c
+#
+# It looks like you may be committing a merge.
+# If this is not correct, please remove the file
+#	.git/MERGE_HEAD
+# and try again.
+
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Committer: root <root@vps-95f45c69.vps.ovh.net.novalocal>
+#
+# On branch gestion
+# Your branch is up to date with 'origin/gestion'.
+#
+# All conflicts fixed but you are still merging.
+#
+# Changes to be committed:
+#	new file:   API/API.c
+#	new file:   API/API.h
+#	modified:   Makefile
+#	modified:   Network/informations.h
+#	modified:   Network/network_tools.c
+#	modified:   Network/network_tools.h
+#	renamed:    Network/queue/queue.c -> Tools/queue/queue.c
+#	renamed:    Network/queue/queue.h -> Tools/queue/queue.h
+#	renamed:    Network/queue/shared_queue.c -> Tools/queue/shared_queue.c
+#	renamed:    Network/queue/shared_queue.h -> Tools/queue/shared_queue.h
+#	deleted:    blockchain
+#	modified:   main.c
+#
+
+*** File '* Startup Log *'
+Processing '/etc/joe/editorrc'...
+Processing '/etc/joe/ftyperc'...
+Finished processing /etc/joe/ftyperc
+Finished processing /etc/joe/editorrc

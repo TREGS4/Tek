@@ -159,3 +159,12 @@ BLOCKCHAIN binToBlockchain(BYTE *bin){
 	}
 	return bc;
 }
+
+
+
+void freeBlockchain(BLOCKCHAIN *bc){
+	for (size_t i = 0; i < bc->blocksNumber; i++){
+		clearTxsList(&bc->blocks[i].tl);
+	}
+	free(bc->blocks);
+}

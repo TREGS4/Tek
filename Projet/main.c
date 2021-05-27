@@ -2,6 +2,7 @@
 #include "Block/transactions.h"
 #include "Block/blockchain.h"
 #include "Hash/sha256.h"
+#include "Noeud_de_gestion/gestion.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "API/API.h"
@@ -21,4 +22,9 @@ int main(int argc, char *argv[])
 	}
 
 	return 0;
+}
+
+int main(int argc, char **argv)
+{
+	grosTest(argc, argv);
 }
