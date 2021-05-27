@@ -7,13 +7,14 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include "../Hash/sha256.h"
+#include "../Network/network.h"
+#include "../Block/block.h"
 
 //read stdin "difficulty-index-prevhashmerklehash"
 //read : string(hash infos)
 //write stdout "difficulty-index-prevhashmerklehash-proof"
 //write : string(either : "occupied" or "proof")
 //
-int occupied = 0;
 int ismining = 0;
 //struct for threads
 struct mining_arg{
@@ -35,8 +36,10 @@ char *string_split(char str[], int *diff){
 		if(count == 0)
 			*diff = atoi(token);
 		else if(count == 2){
-			char *res = malloc(sizeof(char) * strlen(token));
-			for(size_t i = 0; i < strlen(token); i++)
+			size_t size = strlen(token);
+			char *res = malloc(sizeof(char) * (size+1));
+			res[size] = 0;
+			for(size_t i = 0; i < size; i++)
 				res[i] = token[i];
 			return res;
 		}
@@ -194,34 +197,10 @@ void mine_and_write(char str[], int fdout, int nbthread){
 	rewrite(fdout, &strout, strlen(strout));
 }
 
-//handler for mining lobby
-void handler(){
-	wait(NULL);
-	occupied = 0;
-}
+//main function : execute this to launch a mining node
+int launch_mining()
+{
 
-//basic fonction wich read on fdin and send the res on fdout, if occupied send "occupied"
-int mininglobby(int fdin, int fdout, int nbthread){
-	size_t lenbuff = 1024;
-	char buff[lenbuff];
-	pid_t p = getpid();
-	while(p != 0){
-		signal(SIGCHLD, handler);
-		if(read(fdin, &buff, lenbuff) == 0)
-			err(3,"mining.c : mininglobby: error while reading");
-		if(occupied == 0){
-			if((p = fork()) == 0){//son
-				occupied = 1;
-				mine_and_write(buff, fdout, nbthread);
-			}
-			else
-				occupied = 1;
-		}
-		else{
-			write(fdout, "occupied", 8);
-		}
-	}
-	return 0;
 }
 
 int moncuq()
@@ -229,7 +208,7 @@ int moncuq()
 	//mininglobby(STDIN_FILENO, STDOUT_FILENO);
 	char *str = "Pierre a donné 145 euros a thimot";
 	char *str2 = "pouet";
-	char *nbstr = "1-3-";
+	char *nbstr = "2-3-";
 	//unsigned long proof = mine_from_string(nbstr,4);
 	char str3[6*SHA256_BLOCK_SIZE];
 	BYTE buf[SHA256_BLOCK_SIZE];

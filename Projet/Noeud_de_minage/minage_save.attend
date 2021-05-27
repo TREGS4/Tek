@@ -8,61 +8,67 @@
 #include <signal.h>
 #include "../Hash/sha256.h"
 
-//read stdin "difficulty-index-prevhash-merklehash"
+//read stdin "difficulty-index-prevhashmerklehash"
 //read : string(hash infos)
-//write stdout "difficulty-index-prevhash-merklehash-proof"
+//write stdout "difficulty-index-prevhashmerklehash-proof"
 //write : string(either : "occupied" or "proof")
 //
 int occupied = 0;
 int ismining = 0;
+//struct for threads
 struct mining_arg{
-	unsigned int sum;
+	char * sum;
 	int diff;
 	unsigned long nbthread;
 	int start;
 };
 
-//string to sum : takes the incoming string and sum it's component splitted with \n
-unsigned int char_to_sum(char str[], int *diff){
+//input string splitting : takes the incoming string and split it's component splitted with -
+char *string_split(char str[], int *diff){
 	char delim[] = "-";
 	char *token = strtok(str, delim);
-	unsigned int res = 0;
 	int count = 0;
+	//printf("string split token :\n");
 	while(token != NULL)
 	{
+		//printf("count %d :%s\n", count, token);
 		if(count == 0)
 			*diff = atoi(token);
-		else if(count != 1)
-			res += atol(token);
+		else if(count == 2){
+			char *res = malloc(sizeof(char) * strlen(token));
+			for(size_t i = 0; i < strlen(token); i++)
+				res[i] = token[i];
+			return res;
+		}
 		token = strtok(NULL, delim);
-		if(count > 3)
-			err(3,"minage : char to sum : Wrong format");
+		if(count > 2)
+			err(3,"mining.c : char to sum : Wrong format");
 		count++;
 	}
-	return res;
+	return NULL;
 }
 
-//mine with the sum from char_to_sum
+//mine with the string from string_splitting
 void *thread_mining(void *arg){
 	struct mining_arg *m_a = arg;
 	int diff = m_a->diff;
-	unsigned int sum = m_a->sum;
+	char * sum = m_a->sum;
 	unsigned long nbthread = m_a->nbthread;
 	unsigned long *proof = malloc(sizeof(unsigned long));
 	*proof = m_a->start;
 	free(m_a);
 	//printf("start : %d\n nbthread : %ld\n", m_a->start, nbthread);
+	//printf("sum : %s\n",sum);
 	unsigned int res = 1;
-	unsigned int tmp;
-	BYTE str[SHA256_BLOCK_SIZE];
+	char str[5*SHA256_BLOCK_SIZE];
 	while(res == 1 && ismining == 0){
-		//int to str
-		tmp = sum + *proof;
-		sprintf((char *)str, "%d", tmp);
+		//str = sum + proof
+		sprintf((char *)str, "%ld%s", *proof, sum);
+		//printf("proof : %ld\nstring : %s\n",*proof, str);
 
 		//hash with sha256
 		BYTE buf[SHA256_BLOCK_SIZE];
-		sha256(str, buf);
+		sha256((BYTE *)str, buf);
 		//uncomment if you want to print the hash
 		/*printf("buf :");
 		  for(int i = 0; i < 32; i++)
@@ -83,13 +89,11 @@ void *thread_mining(void *arg){
 }
 
 //return 0 if proof is correct, 1 if not
-unsigned int __testproof(int diff, unsigned int sum, unsigned long proof){
+unsigned int __testproof(int diff, char * sum, unsigned long proof){
 	unsigned int res = 0;
-	unsigned int tmp;
-	BYTE str[SHA256_BLOCK_SIZE];
-	//int to str
-	tmp = sum + proof;
-	sprintf((char *)str, "%d", tmp);
+	BYTE str[5*SHA256_BLOCK_SIZE];
+	//str = sum + proof
+	sprintf((char *)str, "%ld%s", proof, sum);
 
 	//hash with sha256
 	BYTE buf[SHA256_BLOCK_SIZE];
@@ -107,7 +111,7 @@ unsigned int testproof(char *strin ,unsigned long proof){
 	int diff = 0;
 	char *str = malloc(sizeof(char) * strlen(strin));
 	strcpy(str,strin);
-	unsigned int sum = char_to_sum(str, &diff);
+	char * sum = string_split(str, &diff);
 	unsigned int res = __testproof(diff, sum, proof);
 	free(str);
 	return res;
@@ -118,8 +122,13 @@ unsigned int mine_from_string(char *strin, int nbthread){
 	char *str = malloc(sizeof(char) * strlen(strin));
 	strcpy(str,strin);
 	int diff = 0;
-	unsigned int sum = char_to_sum(str, &diff);
+	char *sum = string_split(str, &diff);
+	if(sum == NULL)
+		err(3,"mining.c : mine_from_string : error while creating the sum");
 	free(str);
+
+	//uncomment to debug
+	//printf("mine from string : \nsum : %s\n", sum);
 
 	//threads for the mining
 	pthread_t thr[nbthread];
@@ -139,12 +148,13 @@ unsigned int mine_from_string(char *strin, int nbthread){
 	}
 	for(int n = 0; n < nbthread; n++){
 		pthread_join(thr[n], (void **)&output);
-	//	printf("%d\n", *output);
+		//printf("output thread %d :%d\n", n, *output);
 		if(testproof(strin, *output) == 0){
 			proof = *output;
 		}
 	}
 	free(output);
+	free(sum);
 	return proof;
 }
 
@@ -179,7 +189,7 @@ void rewrite(int fd, const void *buf, size_t count)
 //take a string and send it with the proof on fdout
 void mine_and_write(char str[], int fdout, int nbthread){	
 	unsigned long proof = mine_from_string(str, nbthread);
-	char strout[len_of_proof(proof) + strlen(str) + 2];
+	char strout[len_of_proof(proof) + 4*SHA256_BLOCK_SIZE + 2];
 	rebuild(strout, str, proof);
 	rewrite(fdout, &strout, strlen(strout));
 }
@@ -198,7 +208,7 @@ int mininglobby(int fdin, int fdout, int nbthread){
 	while(p != 0){
 		signal(SIGCHLD, handler);
 		if(read(fdin, &buff, lenbuff) == 0)
-			err(3,"minage : mininglobby: error while reading");
+			err(3,"mining.c : mininglobby: error while reading");
 		if(occupied == 0){
 			if((p = fork()) == 0){//son
 				occupied = 1;
@@ -217,9 +227,40 @@ int mininglobby(int fdin, int fdout, int nbthread){
 int moncuq()
 {
 	//mininglobby(STDIN_FILENO, STDOUT_FILENO);
-	char nbstr[] = "3-2-3-5";
+	char *str = "Pierre a donné 145 euros a thimot";
+	char *str2 = "pouet";
+	char *nbstr = "1-3-";
 	//unsigned long proof = mine_from_string(nbstr,4);
-	mine_and_write(nbstr, STDOUT_FILENO, 4);
+	char str3[6*SHA256_BLOCK_SIZE];
+	BYTE buf[SHA256_BLOCK_SIZE];
+	BYTE buf2[SHA256_BLOCK_SIZE];
+	sha256((BYTE *)str, buf);
+	sha256((BYTE *)str2, buf2);
+
+	char buff[SHA256_BLOCK_SIZE * 2];
+	char buff2[SHA256_BLOCK_SIZE * 2];
+
+	sha256ToAscii(buf, buff);
+	sha256ToAscii(buf2, buff2);
+
+	sprintf(str3, "%s%s%s", nbstr, buff, buff2);  				//stack smashing here
+	/*printf("buf :");
+	for(int i = 0; i < 4 * SHA256_BLOCK_SIZE + 4; i++)
+		printf("%02x", str3[i]);
+	printf("\n");*/
+
+	//printf("buf :");
+	char str4[4*SHA256_BLOCK_SIZE + 5];
+	for(int i = 0; i < 4*SHA256_BLOCK_SIZE + 4; i++){
+		//printf("%c", str3[i]);
+		str4[i] = str3[i];
+	}
+	str4[4*SHA256_BLOCK_SIZE+4] = '\0';
+	//printf("\n");
+
+	//printf("%s\n",str4);
+	mine_and_write(str4, STDOUT_FILENO, 4);
+	printf("\n");
 	/*char *str = malloc(sizeof(char) * strlen(nbstr));
 	strcpy(str,nbstr);
 	unsigned int res = testproof(nbstr, proof);
