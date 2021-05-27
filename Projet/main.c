@@ -7,7 +7,63 @@
 #include <stdlib.h>
 #include "API/API.h"
 #include "Network/network.h"
-#include <signal.h>
+#include <time.h>
+
+
+void printTransaction(TRANSACTION t) 
+{
+	char * time_str = ctime(&t.time);
+    time_str[strlen(time_str)-1] = '\0';
+	printf("Amount : %14ld$. From %s to %s. date: %s\n", t.amount, t.sender, t.receiver, time_str);
+}
+
+void printBlock(BLOCK block)
+{
+	printf("prevHash : ");
+	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
+	{
+		printf("%02x", block.previusHash[i]);
+	}
+	printf("\n");
+	
+	printf("currHash : ");
+	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
+	{
+		printf("%02x", block.blockHash[i]);
+	}
+	printf("\n");
+	
+	size_t nbTxs = block.tl.size;
+	for (size_t i = 0; i < nbTxs; i++)
+	{
+		printTransaction(block.tl.transactions[i]);
+	}	
+}
+
+void printBlockchain(BLOCKCHAIN blockchain)
+{
+	printf("-------------------BLOCKCHAIN-------------------\n\n");
+	printf("----Genesis----\n");
+	
+	printf("Hash : ");
+	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
+	{
+		printf("%02x", blockchain.blocks[0].blockHash[i]);
+	}
+	printf("\n");
+	printf("---------------\n\n");
+	
+	for(size_t i = 1; i < blockchain.blocksNumber; i++)
+	{
+		printf("---------------BLOCK %02ld---------------\n", i);
+		printBlock(blockchain.blocks[i]);
+		printf("--------------------------------------\n\n");
+	}
+	printf("------------------------------------------------\n");
+}
+
+
+
 
 typedef struct
 {
@@ -77,5 +133,75 @@ int grosTest(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+	TRANSACTION t = CreateTxs(104, "Adrien", "Tom");
+	
+	TRANSACTION t2 = 
+	{
+		.sender = "Thimot",
+		.receiver = "Margaux",
+		.amount = 358
+	};
+	
+	TRANSACTION t3 = 
+	{
+		.sender = "Pierre",
+		.receiver = "Hugo",
+		.amount = 226
+	};
+	
+	BLOCK b;
+	b.tl = initListTxs();
+	for (int i = 0; i < 3; i++)
+	{
+		t.amount = rand() % 3000 + 1;
+		addTx(&b.tl, &t);
+	}
+
+	BLOCK b2;
+	b2.tl = initListTxs();
+	for (int i = 0; i < 5; i++)
+	{
+		t2.amount = rand() % 3000 + 1;
+		addTx(&b2.tl, &t2);
+	}
+	
+	BLOCK b3;
+	b3.tl = initListTxs();
+	for (int i = 0; i < 1; i++)
+	{
+		t3.amount = rand() % 3000 + 1;
+		addTx(&b3.tl, &t3);
+	}
+
+	BLOCKCHAIN bc = initBlockchain();
+	addBlock(&bc, b);
+	addBlock(&bc, b2);
+	addBlock(&bc, b3);
+	printf("Number of blocks in the blockchain : %lu.\n\n", bc.blocksNumber);
+	printBlockchain(bc);
+	printf("\n");
+
+
+	BLOCKCHAIN_BIN txsbin = blockchainToBin(&bc);
+	for (size_t i = 0; i < txsbin.nbBytes; i++)
+	{
+		if (i % 20 == 0){
+			printf("\n");
+		}
+		printf("%02x ", txsbin.bin[i]);
+	}
+	printf("\n");
+
+	
+
+
+	freeBlockchain(&bc);
+
+
+	time_t rawtime;
+	time (&rawtime);
+
+	//printf ( "Current local time and date: %ld", sizeof(rawtime) );
+
 	grosTest(argc, argv);
 }

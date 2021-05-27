@@ -62,6 +62,8 @@ void* gestion(void *arg){
             printf("une transaction depuis l'api a été reçu.\n");
             free(txs);
         }
+
+        sleep(0.05);
     
     }
 
