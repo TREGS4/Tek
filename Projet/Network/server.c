@@ -57,6 +57,7 @@ void *read_thread(void *arg)
 		switch (type)
 		{
 		case TYPE_NETWORK:
+			printMessage(message, &client->IP);
 			addServerFromMessage(message, client->server);
 			DestroyMessage(message);
 			break;

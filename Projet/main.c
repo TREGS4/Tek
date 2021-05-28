@@ -122,7 +122,7 @@ int grosTest(int argc, char **argv)
 	printf("message push : %p\n", msg);
 	shared_queue_push(server->OutgoingMessages, msg);
 
-	sleep(5);
+	sleep(60);
 	printf("Wainting for stop\n");
 	server->status = EXITING;
 	pthread_join(networkthread, NULL);

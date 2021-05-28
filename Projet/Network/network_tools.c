@@ -260,7 +260,11 @@ void *sendNetwork(void *arg)
         MESSAGE *message = CreateMessage(type, dataSize, messageBuff);
 
         if (message != NULL)
+        {
             shared_queue_push(server->OutgoingMessages, message);
+            printf("Network Send\n");
+        }
+            
 
         free(messageBuff);
         sleep(2);
