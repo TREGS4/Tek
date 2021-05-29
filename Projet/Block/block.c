@@ -39,7 +39,7 @@ void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE])
 void getMerkleHash(BLOCK *b, BYTE merkleHash[SHA256_BLOCK_SIZE])
 {
 	char *buf = tlToString(&b->tl);
-	sha256(buf, merkleHash);
+	sha256((BYTE*)buf, merkleHash);
 	free(buf);
 }
 

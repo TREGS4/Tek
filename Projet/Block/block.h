@@ -12,6 +12,7 @@ typedef struct
 	BYTE previusHash[SHA256_BLOCK_SIZE];
 	TRANSACTIONS_LIST tl;
 	BYTE blockHash[SHA256_BLOCK_SIZE];
+	size_t proof;
 } BLOCK;
 
 typedef struct
