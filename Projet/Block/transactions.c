@@ -34,7 +34,7 @@ char *txsToJson(TRANSACTION *t)
 	char *s1 = "{\"sender\":\"";
 	char *s2 = "\",\"receiver\":\"";
 	char *s3 = "\",\"amount\":";
-	char *s4 = "\",\"time\":";
+	char *s4 = ",\"time\":";
 	char *s5 = "}";
 	size_t txs_size = strlen(t->receiver) + strlen(t->sender) + 14 + 11;
 	size_t size = strlen(s1) + strlen(s2) + strlen(s3) + strlen(s4) + strlen(s5);
@@ -79,7 +79,7 @@ char *tlToJson(TRANSACTIONS_LIST *tl)
 		char *txsjson = txsToJson(&tl->transactions[i]);
 		size_t size_json = strlen(txsjson);
 		size_t t = txssize + size_json + 1;
-		restxs = realloc(restxs, t);
+		restxs = realloc(restxs, t + 1);
 		if (restxs != NULL)
 		{
 			sprintf(restxs + txssize, "%s,", txsjson);
@@ -107,7 +107,7 @@ char *tlToJson(TRANSACTIONS_LIST *tl)
 	else
 		printf("PROBLEMN WITH CALLOC JSON");
 		
-	return restxs;
+	return json;
 }
 
 size_t getSizeOf_txsbin(TRANSACTION *t)
