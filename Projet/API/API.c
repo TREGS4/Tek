@@ -61,11 +61,11 @@ void resend(int fd, const void *buf, size_t count, int flag)
 void temptransaction_cmd(int client_socket_id, TL_M *tl_m)
 {
 	pthread_mutex_lock(&tl_m->mutex);
-	//char *message = tlToJson(&tl_m->tl);
+	char *message = tlToJson(&tl_m->tl);
 	pthread_mutex_unlock(&tl_m->mutex);
 
-	//resend (client_socket_id,message,strlen(message),0);
-	//free(message);
+	resend (client_socket_id,message,strlen(message),0);
+	free(message);
 }
 
 void server_cmd(int client_socket_id, struct server *server)

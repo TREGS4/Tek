@@ -14,8 +14,8 @@ TRANSACTION CreateTxs(size_t amount, char *sender, char *receiver)
 	};
 	size_t sender_size = strlen(sender);
 	size_t receiver_size = strlen(receiver);
-	txs.sender = calloc(sender_size, 1);
-	txs.receiver = calloc(receiver_size, 1);
+	txs.sender = calloc(sender_size + 1, 1);
+	txs.receiver = calloc(receiver_size + 1, 1);
 	memcpy(txs.sender, sender, sender_size);
 	memcpy(txs.receiver, receiver, receiver_size);
 	return txs;
@@ -44,7 +44,7 @@ char *txsToJson(TRANSACTION *t)
 	{
 		sprintf(res, "%s%s%s%s%s%ld%s%ld%s", s1, t->sender, s2, t->receiver, s3, t->amount, s4, t->time, s5);
 		size = strlen(res);
-		json = calloc(size, sizeof(char));
+		json = calloc(size + 1, sizeof(char));
 		if(json != NULL)
 		{
 			memcpy(json, res, size);
@@ -76,7 +76,6 @@ char *tlToJson(TRANSACTIONS_LIST *tl)
 	size_t txssize = 0;
 	for (size_t i = 0; i < nbTxs; i++)
 	{
-		printf("%lu\n", i);
 		char *txsjson = txsToJson(&tl->transactions[i]);
 		size_t size_json = strlen(txsjson);
 		size_t t = txssize + size_json + 1;
