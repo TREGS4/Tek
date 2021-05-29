@@ -119,7 +119,6 @@ int grosTest(int argc, char **argv)
 
 	char *data = "salope";
 	MESSAGE *msg = CreateMessage(2, strlen(data), data);
-	printf("message push : %p\n", msg);
 	shared_queue_push(server->OutgoingMessages, msg);
 
 	sleep(60);
