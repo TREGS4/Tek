@@ -38,17 +38,7 @@ void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE])
 
 void getMerkleHash(BLOCK *b, BYTE merkleHash[SHA256_BLOCK_SIZE])
 {
-	size_t nbTxs = b->tl.size;
-	BYTE *buf = calloc(sizeof(BYTE), 1);
-	size_t offset = 0;
-	for (size_t i = 0; i < nbTxs; i++){
-		char *txs_buf = txsToString(&(b->tl.transactions[i]));
-		size_t size = strlen(txs_buf);
-		buf = realloc(buf, offset + size + 1);
-		sprintf((char*)buf+offset, "%s", txs_buf);
-		offset += size;
-	}
-
+	char *buf = tlToString(&b->tl);
 	sha256(buf, merkleHash);
 	free(buf);
 }

@@ -39,6 +39,7 @@ typedef struct {
 
 TRANSACTION CreateTxs(size_t amount, char* sender, char* receiver);
 char *txsToString(TRANSACTION *txs);
+char *tlToString(TRANSACTIONS_LIST *tl);
 char *txsToJson(TRANSACTION *t);
 char *tlToJson(TRANSACTIONS_LIST *tl);
 TRANSACTION_BIN txsToBin(TRANSACTION *t);

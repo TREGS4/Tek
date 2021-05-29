@@ -29,6 +29,20 @@ char *txsToString(TRANSACTION *txs)
 	return res;
 }
 
+char *tlToString(TRANSACTIONS_LIST *tl)
+{
+	char *res = calloc(sizeof(char),1);
+	size_t offset = 0;
+	for (size_t i = 0; i < tl->size; i++){
+		char *txs_buf = txsToString(&tl->transactions[i]);
+		size_t size = strlen(txs_buf);
+		res = realloc(res, offset + size + 1);
+		sprintf(res + offset, "%s", txs_buf);
+		offset += size;
+	}
+	return res;
+}
+
 char *txsToJson(TRANSACTION *t)
 {
 	char *s1 = "{\"sender\":\"";
