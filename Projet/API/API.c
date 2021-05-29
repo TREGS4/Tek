@@ -112,7 +112,7 @@ void* worker(void* arg)
 			memcmp(full_request+strlen(full_request)-4, "\r\n\r\n",5) == 1);
 
 	//Get resource from the request
-	if (memcmp(full_request, "GET ",5) == TRUE)
+	if (memcmp(full_request, "GET ",4) == FALSE)
 	{
 		char* resource = findPath(full_request);
 
