@@ -46,6 +46,59 @@ char *findPath(char *str)
 	return res;
 }
 
+int findInfoTxs(size_t *amount, char **sender, char **receiver, char *ressource)
+{
+	size_t nbarg = 6;
+	char *infos[nbarg];
+
+	//?sender=LESENDER&receiver=LERECEIVER&amount=15
+
+	size_t start = 0;
+	size_t end = 0;
+	size_t i = 0;
+
+	while (ressource[start] != '\0' && i < nbarg)
+	{
+		while (ressource[start] != '?' && ressource[end] != '=' && ressource[start] != '&' && ressource[start] != '\0')
+		{
+			start++;
+		}
+		start++;
+		end = start;
+
+		while (ressource[end] != '=' && ressource[end] != '&' && ressource[end] != '\0')
+		{
+			end++;
+		}
+
+		infos[i] = calloc(1, sizeof(char) * (end - start + 1));
+		memcpy(infos[i], ressource + start, end - start);
+
+		i++;
+		start = end;
+	}
+
+	for (size_t i = 0; i < nbarg; i += 2)
+	{
+		if (memcmp(infos[i], "sender", 7) == 0)
+		{
+			*sender = infos[i + 1];
+		}
+		else if (memcmp(infos[i], "receiver", 9) == 0)
+		{
+			*receiver = infos[i + 1];
+		}
+		else if (memcmp(infos[i], "amount", 7) == 0)
+		{
+			*amount = (size_t)atol(infos[i + 1]);
+			free(infos[i + 1]);
+		}
+		free(infos[i]);
+	}
+
+	return EXIT_SUCCESS;
+}
+
 void resend(int fd, const void *buf, size_t count, int flag)
 {
 	ssize_t send1 = send(fd, buf, count, flag);
@@ -64,7 +117,7 @@ void temptransaction_cmd(int client_socket_id, TL_M *tl_m)
 	char *message = tlToJson(&tl_m->tl);
 	pthread_mutex_unlock(&tl_m->mutex);
 
-	resend (client_socket_id,message,strlen(message),0);
+	resend(client_socket_id, message, strlen(message), 0);
 	free(message);
 }
 
@@ -95,7 +148,7 @@ void blockchain_cmd(int client_socket_id, BLOCKCHAIN_M *bc_m)
 	free(message);
 }
 
-void add_transaction_cmd(int client_socket_id, shared_queue *outgoingTxs)
+void add_transaction_cmd(int client_socket_id, shared_queue *outgoingTxs, char *ressource)
 {
 	TRANSACTION *transaction = malloc(sizeof(TRANSACTION));
 	if (transaction == NULL)
@@ -105,11 +158,18 @@ void add_transaction_cmd(int client_socket_id, shared_queue *outgoingTxs)
 	}
 	else
 	{
-		*transaction = CreateTxs(100, "robert", "germaine");
+		char *sender = NULL;
+		char *receiver = NULL;
+		size_t amount = 0;
+		findInfoTxs(&amount, &sender, &receiver, ressource);
+
+		*transaction = CreateTxs(amount, sender, receiver);
 		shared_queue_push(outgoingTxs, transaction);
 
 		char *message = "{\"success\":\"ok\"}";
 		resend(client_socket_id, message, strlen(message), 0);
+		free(sender);
+		free(receiver);
 	}
 }
 
@@ -150,7 +210,7 @@ void *worker(void *arg)
 
 	printf("request=\n %s\n\n", full_request);
 	//Get resource from the request
-	if (memcmp(full_request, "GET ",4) == 0)
+	if (memcmp(full_request, "GET ", 4) == 0)
 	{
 		//Send message status
 		char message200[] = "HTTP/1.1 200 OK\nAccess-Control-Allow-Origin: *\r\n\r\n";
@@ -182,10 +242,10 @@ void *worker(void *arg)
 			send(client_socket_id, message200, strlen(message200), MSG_MORE);
 			blockchain_cmd(client_socket_id, bc_m);
 		}
-		else if (strcmp(resource, "transactions/post") == 0)
+		else if (memcmp(resource, "transactions/post", 17) == 0)
 		{
 			send(client_socket_id, message200, strlen(message200), MSG_MORE);
-			add_transaction_cmd(client_socket_id, outgoingTxs);
+			add_transaction_cmd(client_socket_id, outgoingTxs, resource);
 		}
 		else
 		{
@@ -265,7 +325,6 @@ void *API(void *args)
 		fprintf(stderr, "Cannot wait\n");
 		exit(0);
 	}
-
 
 	//Allow multiple connections
 	while (1)
