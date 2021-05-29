@@ -9,11 +9,10 @@
 #include "Network/network.h"
 #include <time.h>
 
-
-void printTransaction(TRANSACTION t) 
+void printTransaction(TRANSACTION t)
 {
-	char * time_str = ctime(&t.time);
-    time_str[strlen(time_str)-1] = '\0';
+	char *time_str = ctime(&t.time);
+	time_str[strlen(time_str) - 1] = '\0';
 	printf("Amount : %14ld$. From %s to %s. date: %s\n", t.amount, t.sender, t.receiver, time_str);
 }
 
@@ -25,26 +24,26 @@ void printBlock(BLOCK block)
 		printf("%02x", block.previusHash[i]);
 	}
 	printf("\n");
-	
+
 	printf("currHash : ");
 	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
 	{
 		printf("%02x", block.blockHash[i]);
 	}
 	printf("\n");
-	
+
 	size_t nbTxs = block.tl.size;
 	for (size_t i = 0; i < nbTxs; i++)
 	{
 		printTransaction(block.tl.transactions[i]);
-	}	
+	}
 }
 
 void printBlockchain(BLOCKCHAIN blockchain)
 {
 	printf("-------------------BLOCKCHAIN-------------------\n\n");
 	printf("----Genesis----\n");
-	
+
 	printf("Hash : ");
 	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
 	{
@@ -52,8 +51,8 @@ void printBlockchain(BLOCKCHAIN blockchain)
 	}
 	printf("\n");
 	printf("---------------\n\n");
-	
-	for(size_t i = 1; i < blockchain.blocksNumber; i++)
+
+	for (size_t i = 1; i < blockchain.blocksNumber; i++)
 	{
 		printf("---------------BLOCK %02ld---------------\n", i);
 		printBlock(blockchain.blocks[i]);
@@ -61,9 +60,6 @@ void printBlockchain(BLOCKCHAIN blockchain)
 	}
 	printf("------------------------------------------------\n");
 }
-
-
-
 
 typedef struct
 {
@@ -81,7 +77,6 @@ void *NetworkThread(void *arg)
 
 	return NULL;
 }
-
 
 int grosTest(int argc, char **argv)
 {
@@ -111,25 +106,17 @@ int grosTest(int argc, char **argv)
 	pthread_t networkthread;
 	pthread_create(&networkthread, NULL, NetworkThread, (void *)&network);
 
-	while (server->status != ONLINE){
+	while (server->status != ONLINE)
+	{
 		sleep(0.2);
 	}
 	pthread_t gestionthread;
 	pthread_create(&gestionthread, NULL, gestion, (void *)server);
 
-	char *data = "salope";
-	MESSAGE *msg = CreateMessage(2, strlen(data), data);
-	shared_queue_push(server->OutgoingMessages, msg);
-
-	sleep(60);
-	printf("Wainting for stop\n");
-	server->status = EXITING;
 	pthread_join(networkthread, NULL);
 	pthread_join(gestionthread, NULL);
-	
-	printf("Network is ended\n");
+
 	freeServer(network.server);
-	printf("Server is freed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -199,5 +186,4 @@ int main(int argc, char **argv)
 	//printf ( "Current local time and date: %ld", sizeof(rawtime) );
 */
 	grosTest(argc, argv);
-	
 }
