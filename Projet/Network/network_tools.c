@@ -230,6 +230,8 @@ void *sendNetwork(void *arg)
         dataSize = 0;
         offset = 0;
 
+        pthread_mutex_lock(&server->lockKnownServers);
+
         for (struct clientInfo *temp = server->KnownServers->sentinel->next; temp->isSentinel == FALSE; temp = temp->next)
             dataSize += strlen(temp->address.hostname) + 1 + PORT_SIZE + 1 + HEADER_HOSTNAME_SIZE;
 
@@ -249,14 +251,12 @@ void *sendNetwork(void *arg)
             offset += PORT_SIZE + 1;
         }
 
+        pthread_mutex_unlock(&server->lockKnownServers);
+
         MESSAGE *message = CreateMessage(type, dataSize, messageBuff);
 
-        if (message == NULL)
-        {
-            pthread_mutex_lock(&server->lockKnownServers);
+        if (message != NULL)
             shared_queue_push(server->OutgoingMessages, message);
-            pthread_mutex_unlock(&server->lockKnownServers);
-        }
 
         free(messageBuff);
         sleep(2);
@@ -285,14 +285,61 @@ struct sockaddr_in GetIPfromHostname(struct address address)
     return resIP;
 }
 
+char* ServerToJSON(struct clientInfo *client)
+{
+    char *base = "{\"hostname\":\"%s\", \"port\":\"%s\"}";
+    size_t nbChar = strlen(client->address.hostname) + strlen(client->address.port) + strlen(base);
+    char *res = calloc(1, nbChar + 1);
+
+    sprintf(res, base, client->address.hostname, client->address.port);
+
+    return res;
+}
+
+char *AllServerToJSON(struct clientInfo *client)
+{
+    char *res = NULL;
+    size_t offset = 0;
+
+    client = client->sentinel->next;
+
+    if(client->isSentinel == FALSE)
+    {
+        char *temp = ServerToJSON(client);
+        res = calloc(1, strlen(temp) + 1);
+        sprintf(res, "%s", temp);
+        free(temp);
+        client = client->next;
+        offset = strlen(res);
+    }
+
+
+    for(; client->isSentinel == FALSE; client = client->next)
+    {
+        char *temp = ServerToJSON(client);
+        res = realloc(res, strlen(res) + strlen(temp) + 2);
+        sprintf(res + offset, ",%s", temp);
+        offset = strlen(res);
+        free(temp);
+    }
+
+    return res;
+}
+
 char *ServerListToJSON(struct server *server)
 {
-    /*size_t nbchar = 0;
-    struct clientInfo 
-    for*/
-    char *res = NULL;
+    char *str = "{\"server_list\":[%s]}";
 
+    pthread_mutex_lock(&server->lockKnownServers);
 
+    char *temp = AllServerToJSON(server->KnownServers);
+    char *res = calloc(1, sizeof(char) * (strlen(str) + strlen(temp) + 1));
+    sprintf(res, str, temp);
+    free(temp);
+    
+    pthread_mutex_unlock(&server->lockKnownServers);
+
+    printf("%s\n", res);
 
     return res;
 }

@@ -6,13 +6,19 @@
 #include <stdlib.h>
 #include "API/API.h"
 #include "Network/network.h"
-#include <signal.h>
 
+int main(int argc, char *argv[])
+{
+	if (argc > 5)
+		return 0;
 
-int main(){
-	struct server *server_list = initServer();
-	TRANSACTIONS_LIST tl = initListTxs();
-	BLOCKCHAIN block_list = initBlockchain();
-	API(&block_list, server_list ,&tl);
+	struct server *server = initServer();
+
+	if (server != NULL)
+	{
+		Network(server, argv[1], argv[2], argv[3], argv[4]);
+		free(server);
+	}
+
 	return 0;
 }
