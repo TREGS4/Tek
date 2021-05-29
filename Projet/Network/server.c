@@ -57,7 +57,6 @@ void *read_thread(void *arg)
 		switch (type)
 		{
 		case TYPE_NETWORK:
-			printMessage(message, &client->IP);
 			addServerFromMessage(message, client->server);
 			DestroyMessage(message);
 			break;
@@ -154,7 +153,7 @@ void *Server(void *arg)
 		{
 			free(client);
 		}
-		
+
 		sleep(0.1);
 	}
 
