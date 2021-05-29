@@ -1,6 +1,8 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include <fcntl.h>
+
 #include "network_tools.h"
 
 struct connection

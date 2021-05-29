@@ -72,12 +72,14 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
     }
 
     close(skt);
-    struct clientInfo *client = malloc(sizeof(struct clientInfo));
+    struct clientInfo *client = calloc(1, sizeof(struct clientInfo));
+    client->address.hostname = calloc(1, sizeof(char) * (strlen(address.hostname) + 1));
 
     if (client != NULL)
     {
         client->isSentinel = FALSE;
-        memcpy(&client->address, &address, sizeof(struct address));
+        memcpy(client->address.port, address.port, strlen(address.port));
+        memcpy(client->address.hostname, address.hostname, strlen(address.hostname));
 
         client->next = list->next;
         client->prev = list;
@@ -156,6 +158,8 @@ int sameIP(struct address addr1, struct address addr2)
 
     if (memcmp(addr1.port, addr2.port, PORT_SIZE) == 0)
         me = me && TRUE;
+    else
+        me = FALSE;
 
     return me;
 }
@@ -213,6 +217,8 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
         if (FindClient(temp, server->KnownServers) == NULL)
             addClient(server->KnownServers, temp);
         pthread_mutex_unlock(&server->lockKnownServers);
+
+        free(temp.hostname);
     }
 }
 
@@ -256,12 +262,16 @@ void *sendNetwork(void *arg)
         MESSAGE *message = CreateMessage(type, dataSize, messageBuff);
 
         if (message != NULL)
+        {
             shared_queue_push(server->OutgoingMessages, message);
+        }
+            
 
         free(messageBuff);
         sleep(2);
     }
 
+    printf("Send Network is exiting\n");
     return NULL;
 }
 
@@ -274,18 +284,21 @@ struct sockaddr_in GetIPfromHostname(struct address address)
 
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
-    int r = getaddrinfo(address.hostname, address.port, &hints, &res);
-    temp = (struct sockaddr_in *)res->ai_addr;
-    if (temp != NULL && r == 0)
-        resIP = *temp;
-    else
-        printf("An error as occured while resolving %s:%s", address.hostname, address.port);
-    freeaddrinfo(res);
+    if (address.hostname != NULL)
+    {
+        int r = getaddrinfo(address.hostname, address.port, &hints, &res);
+        temp = (struct sockaddr_in *)res->ai_addr;
+        if (temp != NULL && r == 0)
+            resIP = *temp;
+        else
+            printf("An error as occured while resolving %s:%s", address.hostname, address.port);
+        freeaddrinfo(res);
+    }
 
     return resIP;
 }
 
-char* ServerToJSON(struct clientInfo *client)
+char *ServerToJSON(struct clientInfo *client)
 {
     char *base = "{\"hostname\":\"%s\", \"port\":\"%s\"}";
     size_t nbChar = strlen(client->address.hostname) + strlen(client->address.port) + strlen(base);
@@ -303,7 +316,7 @@ char *AllServerToJSON(struct clientInfo *client)
 
     client = client->sentinel->next;
 
-    if(client->isSentinel == FALSE)
+    if (client->isSentinel == FALSE)
     {
         char *temp = ServerToJSON(client);
         res = calloc(1, strlen(temp) + 1);
@@ -313,8 +326,7 @@ char *AllServerToJSON(struct clientInfo *client)
         offset = strlen(res);
     }
 
-
-    for(; client->isSentinel == FALSE; client = client->next)
+    for (; client->isSentinel == FALSE; client = client->next)
     {
         char *temp = ServerToJSON(client);
         res = realloc(res, strlen(res) + strlen(temp) + 2);
@@ -336,7 +348,7 @@ char *ServerListToJSON(struct server *server)
     char *res = calloc(1, sizeof(char) * (strlen(str) + strlen(temp) + 1));
     sprintf(res, str, temp);
     free(temp);
-    
+
     pthread_mutex_unlock(&server->lockKnownServers);
 
     printf("%s\n", res);

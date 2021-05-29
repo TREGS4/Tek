@@ -1,5 +1,8 @@
 # Our executable
-blockchain
+*/blockchain
+
+#valgrind output
+*/valgrind-out.txt
 
 # Prerequisites
 *.d
