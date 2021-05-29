@@ -150,7 +150,7 @@ void *worker(void *arg)
 
 	printf("request=\n %s\n\n", full_request);
 	//Get resource from the request
-	if (memcmp(full_request, "GET ", 4) == FALSE)
+	if (memcmp(full_request, "GET ",4) == 0)
 	{
 		//Send message status
 		char message200[] = "HTTP/1.1 200 OK\nAccess-Control-Allow-Origin: *\r\n\r\n";

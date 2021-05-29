@@ -15,6 +15,7 @@ struct server *initServer()
         server->KnownServers = NULL;
         server->IncomingMessages = NULL;
         server->OutgoingMessages = NULL;
+        server->address.hostname = NULL;
         problemM1 = pthread_mutex_init(&server->lockKnownServers, NULL);
         problemM2 = pthread_mutex_init(&server->lockStatus, NULL);
 
@@ -51,6 +52,18 @@ struct server *initServer()
 */
 void freeServer(struct server *server)
 {
+
+    while (shared_queue_isEmpty(server->OutgoingMessages) == FALSE)
+    {
+        MESSAGE *message = shared_queue_pop(server->OutgoingMessages);
+        DestroyMessage(message);
+    }
+
+    while (shared_queue_isEmpty(server->IncomingMessages) == FALSE)
+    {
+        MESSAGE *message = shared_queue_pop(server->IncomingMessages);
+        DestroyMessage(message);
+    }
     //list
     pthread_mutex_lock(&server->lockKnownServers);
     freeClientList(server->KnownServers);
@@ -79,11 +92,15 @@ void *SendOutGoinMessages(void *arg)
 
     while (server->status != EXITING)
     {
-        MESSAGE *messsage = shared_queue_pop(server->OutgoingMessages);
-        SendMessage(server->KnownServers, messsage);
-        DestroyMessage(messsage);
+        if (shared_queue_isEmpty(server->OutgoingMessages) == FALSE)
+        {
+            MESSAGE *messsage = shared_queue_pop(server->OutgoingMessages);
+            SendMessage(server->KnownServers, messsage);
+            DestroyMessage(messsage);
+        }
     }
 
+    printf("Send messages is exiting\n");
     return NULL;
 }
 
@@ -136,6 +153,11 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     /*
     *=============================SETTING UP SERVER AND FIRST SERVER================
     */
+
+    if(server->address.hostname != NULL)
+    {
+        free(server->address.hostname);
+    }
     server->address.hostname = calloc(1, strlen(hostname) + 1);
     if (server->address.hostname == NULL)
     {
@@ -227,6 +249,11 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
         }
 
         pthread_mutex_unlock(&server->lockKnownServers);
+
+        if (hostnameFirstServer != NULL)
+        {
+            free(addressFirstServer.hostname);
+        }
     }
 
     /*

@@ -25,7 +25,7 @@ void *read_thread(void *arg)
 			problem = 1;
 			if (r == 0)
 				ended = 1;
-		}	
+		}
 		else
 			offset += r;
 	}
@@ -65,12 +65,12 @@ void *read_thread(void *arg)
 			break;
 		}
 	}
-	else if(ended == 0)
+	else if (ended == 0)
 		printf("Error while receinving data in read_thread\nError with function read or not enough bytes received\n");
 
 	close(client->socket);
 	free(client);
-	if(problem == 0)
+	if (problem == 0)
 		free(dataBuff);
 	return NULL;
 }
@@ -123,6 +123,11 @@ void *Server(void *arg)
 	server->status = ONLINE;
 	pthread_mutex_unlock(&server->lockStatus);
 
+	if(fcntl(skt, F_SETFL, O_NONBLOCK) == - 1)
+	{
+		fprintf(stderr, "Error while setting not blocking fd in server()\n");
+	}
+
 	while (server->status != EXITING)
 	{
 		struct connection *client = malloc(sizeof(struct connection));
@@ -132,20 +137,28 @@ void *Server(void *arg)
 
 		client->socket = accept(skt, (struct sockaddr *)&client->IP, &temp);
 
-		if (pthread_create(&thread, NULL, read_thread, (void *)client) == 0)
+		if (client->socket != -1)
 		{
-			//pthread_join(thread, NULL);
-			pthread_detach(thread);
+			if (pthread_create(&thread, NULL, read_thread, (void *)client) == 0)
+			{
+				pthread_detach(thread);
+			}
+			else
+			{
+				close(client->socket);
+				free(client);
+			}
 		}
 		else
 		{
-			close(client->socket);
 			free(client);
 		}
-		
+
+		sleep(0.1);
 	}
 
 	close(skt);
 
+	printf("Server is exiting\n");
 	return NULL;
 }

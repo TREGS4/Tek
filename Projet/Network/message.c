@@ -38,17 +38,11 @@ MESSAGE *BinToMessage(char *buff)
 {
     int type = 0;
     unsigned long long sizeData = 0;
-    char *data;
 
     memcpy(&type, buff, SIZE_TYPE_MSG);
     memcpy(&sizeData, buff + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
 
-    data = malloc(sizeof(char) * sizeData);
-    if(data == NULL)
-        return NULL;
-    memcpy(data, buff + HEADER_SIZE, sizeData);
-
-    return CreateMessage(type, sizeData, data);
+    return CreateMessage(type, sizeData, buff + HEADER_SIZE);
 }
 
 /*
@@ -84,16 +78,20 @@ void printMessage(MESSAGE *message, struct sockaddr_in *IP)
 {
     size_t taille = (3 + 10 + 21 + message->sizeData + sizeof(struct sockaddr_in)) * 10;
     char display[taille];
-    char *mess = "Type: %d\nSize: %llu\nFrom: %s\nData: ";
+    char *mess = "Type: %d\nSize: %llu\nFrom: %s:%u\nData: ";
 
     memset(display, 0, taille);
 
     char buffIP[16];
+    uint16_t port;
     memset(buffIP, 0, 16);
     if (IP != NULL)
+    {
         inet_ntop(AF_INET, &IP->sin_addr, buffIP, 16);
-
-    sprintf(display, mess, message->type, message->sizeData, buffIP);
+        port = ntohs(IP->sin_port);
+    }
+        
+    sprintf(display, mess, message->type, message->sizeData, buffIP, port);
     size_t offset = strlen(display);
 
     for (size_t i = 0; i < message->sizeData * 3; i += 3)
