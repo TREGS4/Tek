@@ -158,6 +158,8 @@ int sameIP(struct address addr1, struct address addr2)
 
     if (memcmp(addr1.port, addr2.port, PORT_SIZE) == 0)
         me = me && TRUE;
+    else
+        me = FALSE;
 
     return me;
 }
