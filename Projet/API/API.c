@@ -266,10 +266,9 @@ void *API(void *args)
 		exit(0);
 	}
 
-	int n = 0;
 
 	//Allow multiple connections
-	while (n < 1)
+	while (1)
 	{
 		//Accept connection from a client and exit the program in case of error
 		client_socket_id = accept(socket_id, addr->ai_addr, &(addr->ai_addrlen));
@@ -279,7 +278,6 @@ void *API(void *args)
 			exit(0);
 		}
 
-		n++;
 		int thread;
 		pthread_t thread_id;
 		struct WORK_ARG work_arg;

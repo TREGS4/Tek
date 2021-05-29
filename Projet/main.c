@@ -114,8 +114,8 @@ int grosTest(int argc, char **argv)
 	while (server->status != ONLINE){
 		sleep(0.2);
 	}
-	//pthread_t gestionthread;
-	//pthread_create(&gestionthread, NULL, gestion, (void *)server);
+	pthread_t gestionthread;
+	pthread_create(&gestionthread, NULL, gestion, (void *)server);
 
 	char *data = "salope";
 	MESSAGE *msg = CreateMessage(2, strlen(data), data);
@@ -125,7 +125,7 @@ int grosTest(int argc, char **argv)
 	printf("Wainting for stop\n");
 	server->status = EXITING;
 	pthread_join(networkthread, NULL);
-	//pthread_join(gestionthread, NULL);
+	pthread_join(gestionthread, NULL);
 	
 	printf("Network is ended\n");
 	freeServer(network.server);
