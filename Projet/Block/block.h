@@ -12,6 +12,7 @@ typedef struct
 	BYTE previusHash[SHA256_BLOCK_SIZE];
 	TRANSACTIONS_LIST tl;
 	BYTE blockHash[SHA256_BLOCK_SIZE];
+	size_t proof;
 } BLOCK;
 
 typedef struct
@@ -20,6 +21,8 @@ typedef struct
 	size_t nbBytes;
 } BLOCK_BIN;
 
+
+size_t len_of_proof(size_t proof);
 void getMerkleHash(BLOCK *b, BYTE merkleHash[SHA256_BLOCK_SIZE]);
 void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE]);
 char *blockToJson(BLOCK *b);

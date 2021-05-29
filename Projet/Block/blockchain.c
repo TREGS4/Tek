@@ -168,3 +168,43 @@ void freeBlockchain(BLOCKCHAIN *bc){
 	}
 	free(bc->blocks);
 }
+
+
+size_t amountMoney(char *address, BLOCKCHAIN *bc)
+{
+	//N'A PAS ETAIT TESTEE
+
+	size_t money = 0;
+	size_t lenAddr = strlen(address);
+
+	for(size_t i = 0; i < bc->blocksNumber; i++)
+	{
+		for(size_t j = 0; j < bc->blocks[i].tl.size; j++)
+		{
+			TRANSACTION temp = bc->blocks->tl.transactions[j];
+
+			if(memcmp(address, temp.sender, lenAddr) == 0)
+			{
+				money -= temp.amount;
+			}
+			if(memcmp(address, temp.receiver, lenAddr) == 0)
+			{
+				money += temp.amount;
+			}
+		}
+	}
+
+	return money;
+}
+
+
+int enoughMoney(char *address, size_t amount, BLOCKCHAIN *bc)
+{
+	//N'A PAS ETAIT TESTEE
+
+	int res = TRUE;
+	if(amountMoney(address, bc) < amount)
+		res = FALSE;
+	
+	return res;
+}

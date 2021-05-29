@@ -2,7 +2,7 @@
 #define BLOCKCHAIN_H
 #include "../Hash/sha256.h"
 #include "block.h"
-
+#include "../general_informations.h"
 
 typedef struct
 {
@@ -32,5 +32,7 @@ char *blockchainToJson(BLOCKCHAIN *bc);
 BLOCKCHAIN_BIN blockchainToBin(BLOCKCHAIN *bc);
 BLOCKCHAIN binToBlockchain(BYTE *bin);
 void freeBlockchain(BLOCKCHAIN *bc);
+size_t amountMoney(char *address, BLOCKCHAIN *bc);
+int enoughMoney(char *address, size_t amount, BLOCKCHAIN *bc);
 
 #endif
