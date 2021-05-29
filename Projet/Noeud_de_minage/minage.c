@@ -209,22 +209,22 @@ void rewrite(int fd, const void *buf, size_t count)
 //nb_trhead = number of thread we will use to mine,
 //difficulty : difficulty of the mining
 //status : to end the prgrm if needed
-int mining(BLOCKCHAIN *blockchain, shared_queue * tlq, shared_queue * exq, int nb_thread, int difficulty, int * status)
+int mining(BLOCKCHAIN_M *blockchain, shared_queue * tlq, shared_queue * exq, int nb_thread, int difficulty, int * status)
 {
 	while(*status)
 	{
 		//Get a transaction list's hash
 		//pop transaction list;
-		TRANSACTIONS_LIST *txl = NULL;
+		TL_M *txl = NULL;
 		txl = shared_queue_pop(tlq);
 		//build a hash
-		char *tljson = tlToJson(txl);
+		char *tljson = tlToJson(txl->tl);
 		BYTE merkle_hash[SHA256_BLOCK_SIZE];
 		sha256((BYTE *)tljson, merkle_hash);
 
 		//mining a proof
 		BYTE hash[2 * SHA256_BLOCK_SIZE];
-		BYTE *prev_hash = blockchain->blocks[blockchain->blocksNumber - 1].blockHash;
+		BYTE *prev_hash = blockchain->bc->blocks[blockchain->blocksNumber - 1].blockHash;
 		sprintf((char *)hash,"%s%s", (char *)prev_hash, (char *)merkle_hash);
 		unsigned long proof = mine_from_string((char *)hash, nb_thread, difficulty);
 		
