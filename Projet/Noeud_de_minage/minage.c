@@ -8,24 +8,27 @@
 #include <signal.h>
 #include "../Hash/sha256.h"
 #include "../Network/network.h"
+#include "../Block/transactions.h"
+#include "../Block/blockchain.h"
 #include "../Block/block.h"
+#include "../Tools/queue/shared_queue.h"
 
 //read stdin "difficulty-index-prevhashmerklehash"
 //read : string(hash infos)
 //write stdout "difficulty-index-prevhashmerklehash-proof"
 //write : string(either : "occupied" or "proof")
 //
-int ismining = 0;
 //struct for threads
 struct mining_arg{
 	char * sum;
 	int diff;
 	unsigned long nbthread;
 	int start;
+	int *ismining;
 };
 
 //input string splitting : takes the incoming string and split it's component splitted with -
-char *string_split(char str[], int *diff){
+/*char *string_split(char str[], int *diff){
 	char delim[] = "-";
 	char *token = strtok(str, delim);
 	int count = 0;
@@ -49,6 +52,17 @@ char *string_split(char str[], int *diff){
 		count++;
 	}
 	return NULL;
+}*/
+
+//len of the proof if it was a string
+size_t len_of_proof(unsigned long proof){
+	size_t len = 0;
+	unsigned long tmp = proof;
+	while(tmp != 0){
+		tmp /= 10;
+		len++;
+	}
+	return len;
 }
 
 //mine with the string from string_splitting
@@ -59,12 +73,13 @@ void *thread_mining(void *arg){
 	unsigned long nbthread = m_a->nbthread;
 	unsigned long *proof = malloc(sizeof(unsigned long));
 	*proof = m_a->start;
+	int *ismining = m_a->ismining;
 	free(m_a);
 	//printf("start : %d\n nbthread : %ld\n", m_a->start, nbthread);
 	//printf("sum : %s\n",sum);
 	unsigned int res = 1;
 	char str[5*SHA256_BLOCK_SIZE];
-	while(res == 1 && ismining == 0){
+	while(res == 1 && *ismining == 0){
 		//str = sum + proof
 		sprintf((char *)str, "%ld%s", *proof, sum);
 		//printf("proof : %ld\nstring : %s\n",*proof, str);
@@ -86,15 +101,15 @@ void *thread_mining(void *arg){
 		if(res == 1)
 			*proof += nbthread;
 		else
-			ismining = 1;
+			*ismining = 1;
 	}
 	return (void *)proof;
 }
 
 //return 0 if proof is correct, 1 if not
-unsigned int __testproof(int diff, char * sum, unsigned long proof){
+unsigned int testproof(int diff, char * sum, unsigned long proof){
 	unsigned int res = 0;
-	BYTE str[5*SHA256_BLOCK_SIZE];
+	BYTE str[SHA256_BLOCK_SIZE + len_of_proof(proof) + 1];
 	//str = sum + proof
 	sprintf((char *)str, "%ld%s", proof, sum);
 
@@ -110,7 +125,7 @@ unsigned int __testproof(int diff, char * sum, unsigned long proof){
 }
 
 //test the proof witout splitting strin return 0 if proof is correct, 1 if not
-unsigned int testproof(char *strin ,unsigned long proof){
+/*unsigned int testproof(char *strin ,unsigned long proof){
 	int diff = 0;
 	char *str = malloc(sizeof(char) * strlen(strin));
 	strcpy(str,strin);
@@ -118,26 +133,25 @@ unsigned int testproof(char *strin ,unsigned long proof){
 	unsigned int res = __testproof(diff, sum, proof);
 	free(str);
 	return res;
-}
+}*/
 
 //find the proof from the string
-unsigned int mine_from_string(char *strin, int nbthread){
-	char *str = malloc(sizeof(char) * strlen(strin));
-	strcpy(str,strin);
-	int diff = 0;
-	char *sum = string_split(str, &diff);
-	if(sum == NULL)
-		err(3,"mining.c : mine_from_string : error while creating the sum");
-	free(str);
+unsigned int mine_from_string(char *sum, int nbthread, int diff){
+	//char *str = malloc(sizeof(char) * strlen(strin));
+	//strcpy(str,strin);
+	//char *sum = string_split(str, &diff);
+	//if(sum == NULL)
+	//	err(3,"mining.c : mine_from_string : error while creating the sum");
+	//free(str);
 
 	//uncomment to debug
 	//printf("mine from string : \nsum : %s\n", sum);
 
 	//threads for the mining
 	pthread_t thr[nbthread];
-	ismining = 0;
 	unsigned int proof = 0;
 	unsigned int *output = NULL;
+	int ismining = 0;
 	for(int n = 0; n < nbthread; n++){
 		//struct for arg
 		struct mining_arg *m_a = malloc(sizeof(struct mining_arg));
@@ -145,6 +159,7 @@ unsigned int mine_from_string(char *strin, int nbthread){
 		m_a->nbthread = nbthread;
 		m_a->start = n;
 		m_a->sum = sum;
+		m_a->ismining = &ismining;
 
 		if(pthread_create(thr + n, NULL, thread_mining, (void *)m_a) != 0)
 			err(3,"mining.c: mine_from_string: error while creating the threads");
@@ -152,7 +167,7 @@ unsigned int mine_from_string(char *strin, int nbthread){
 	for(int n = 0; n < nbthread; n++){
 		pthread_join(thr[n], (void **)&output);
 		//printf("output thread %d :%d\n", n, *output);
-		if(testproof(strin, *output) == 0){
+		if(testproof(diff, sum, *output) == 0){
 			proof = *output;
 		}
 	}
@@ -161,19 +176,8 @@ unsigned int mine_from_string(char *strin, int nbthread){
 	return proof;
 }
 
-//len of the proof if it was a string
-size_t len_of_proof(unsigned long proof){
-	size_t len = 0;
-	unsigned long tmp = proof;
-	while(tmp != 0){
-		tmp /= 10;
-		len++;
-	}
-	return len;
-}
-
 //rebuild an output string using former string and proof
-void rebuild(char* ptr, char *str, unsigned long proof){
+/*void rebuild(char* ptr, char *str, unsigned long proof){
 	sprintf(ptr, "%s-%ld", str, proof);
 }
 
@@ -187,23 +191,68 @@ void rewrite(int fd, const void *buf, size_t count)
 			err(3,"error while writting");
 		tmp += res;
 	}
-}
+}*/
 
 //take a string and send it with the proof on fdout
-void mine_and_write(char str[], int fdout, int nbthread){	
+/*void mine_and_write(char str[], int fdout, int nbthread){	
 	unsigned long proof = mine_from_string(str, nbthread);
 	char strout[len_of_proof(proof) + 4*SHA256_BLOCK_SIZE + 2];
 	rebuild(strout, str, proof);
 	rewrite(fdout, &strout, strlen(strout));
-}
+}*/
 
 //main function : execute this to launch a mining node
-int launch_mining()
+//qrguments : 
+//blockachain : the current blockchain, 
+//tlq : a queue with the transaction lists, 
+//exq : the queue where we push the new blocks, 
+//nb_trhead = number of thread we will use to mine,
+//difficulty : difficulty of the mining
+//status : to end the prgrm if needed
+int mining(BLOCKCHAIN *blockchain, shared_queue * tlq, shared_queue * exq, int nb_thread, int difficulty, int * status)
 {
+	while(*status)
+	{
+		//Get a transaction list's hash
+		//pop transaction list;
+		TRANSACTIONS_LIST *txl = NULL;
+		txl = shared_queue_pop(tlq);
+		//build a hash
+		char *tljson = tlToJson(txl);
+		BYTE merkle_hash[SHA256_BLOCK_SIZE];
+		sha256((BYTE *)tljson, merkle_hash);
 
+		//mining a proof
+		BYTE hash[2 * SHA256_BLOCK_SIZE];
+		BYTE *prev_hash = blockchain->blocks[blockchain->blocksNumber - 1].blockHash;
+		sprintf((char *)hash,"%s%s", (char *)prev_hash, (char *)merkle_hash);
+		unsigned long proof = mine_from_string((char *)hash, nb_thread, difficulty);
+		
+		//create the mekle hahs with the proof
+		BYTE buff[SHA256_BLOCK_SIZE + len_of_proof(proof) + 1];
+		//str = sum + proof
+		sprintf((char *)buff, "%ld%s", proof, hash);
+
+		//hash with sha256
+		BYTE new_merkle_hash[SHA256_BLOCK_SIZE];
+		sha256(buff, new_merkle_hash);
+
+		//create a new block
+		BLOCK *block = malloc(sizeof(BLOCK));
+		block->tl = *txl;
+		block->previusHash = prev_hash;
+		block->blockHash = new_merkle_hash;
+		//BLOCK->proof = adrien ca existe pas fait le stp;
+
+		//return proof;
+		shared_queue_push(exq, block);
+
+		sleep(10);
+	}
+	return 1;
 }
 
-int moncuq()
+/*int moncuq()
 {
 	//mininglobby(STDIN_FILENO, STDOUT_FILENO);
 	char *str = "Pierre a donné 145 euros a thimot";
@@ -223,13 +272,13 @@ int moncuq()
 	sha256ToAscii(buf2, buff2);
 
 	sprintf(str3, "%s%s%s", nbstr, buff, buff2);  				//stack smashing here
-	/*printf("buf :");
+	*//*printf("buf :");
 	for(int i = 0; i < 4 * SHA256_BLOCK_SIZE + 4; i++)
 		printf("%02x", str3[i]);
 	printf("\n");*/
 
 	//printf("buf :");
-	char str4[4*SHA256_BLOCK_SIZE + 5];
+	/*char str4[4*SHA256_BLOCK_SIZE + 5];
 	for(int i = 0; i < 4*SHA256_BLOCK_SIZE + 4; i++){
 		//printf("%c", str3[i]);
 		str4[i] = str3[i];
@@ -240,7 +289,7 @@ int moncuq()
 	//printf("%s\n",str4);
 	mine_and_write(str4, STDOUT_FILENO, 4);
 	printf("\n");
-	/*char *str = malloc(sizeof(char) * strlen(nbstr));
+	*//*char *str = malloc(sizeof(char) * strlen(nbstr));
 	strcpy(str,nbstr);
 	unsigned int res = testproof(nbstr, proof);
 	free(str);
@@ -264,5 +313,5 @@ int moncuq()
 		}
 	}
 	printf("\n");*/
-	return 0;
-}
+	/*return 0;
+}*/
