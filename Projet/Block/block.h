@@ -25,7 +25,7 @@ void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE]);
 char *blockToJson(BLOCK *b);
 BLOCK_BIN blockToBin(BLOCK *b);
 BLOCK binToBlock(BYTE *bin);
-size_t getSizeOf_blockbin(size_t nbTxs);
+size_t getSizeOf_blockbin(BLOCK *b);
 bool isGenesis(BLOCK *b);
 
 #endif
