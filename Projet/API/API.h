@@ -15,15 +15,21 @@
 
 
 
-
+typedef struct{ 
+	BLOCKCHAIN_M *bc_m;
+	TL_M *tl_m;
+	struct server *server;
+	shared_queue *outgoingTxs;
+} API_THREAD_ARG;
 
 struct WORK_ARG { 
 	int client_socket_id;
-	 BLOCKCHAIN* block_list;
-	 struct server *server_list;
-	 TRANSACTIONS_LIST* transaction_list;
-} ;
-int API(BLOCKCHAIN* block_list, struct server* server_list ,TRANSACTIONS_LIST* transaction_list  );
+	BLOCKCHAIN_M *bc_m;
+	struct server *server;
+	TL_M *tl_m;
+	shared_queue *outgoingTxs;
+};
+void *API(void *args);
 
 
 #endif

@@ -37,4 +37,8 @@ void *shared_queue_pop(shared_queue* sq);
 // queue = Address of the shared queue.
 void shared_queue_destroy(shared_queue* sq);
 
+
+int shared_queue_length(shared_queue* sq);
+int shared_queue_isEmpty(shared_queue* sq);
+
 #endif

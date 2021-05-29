@@ -39,16 +39,18 @@ void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE])
 void getMerkleHash(BLOCK *b, BYTE merkleHash[SHA256_BLOCK_SIZE])
 {
 	size_t nbTxs = b->tl.size;
-	BYTE buf[TRANSACTION_SIZE*nbTxs];
+	BYTE *buf = calloc(sizeof(BYTE), 1);
 	size_t offset = 0;
 	for (size_t i = 0; i < nbTxs; i++){
-		char txs_buf[TRANSACTION_SIZE];
-		txsToString(&(b->tl.transactions[i]), txs_buf);
+		char *txs_buf = txsToString(&(b->tl.transactions[i]));
+		size_t size = strlen(txs_buf);
+		buf = realloc(buf, offset + size + 1);
 		sprintf((char*)buf+offset, "%s", txs_buf);
-		offset += strlen(txs_buf);
+		offset += size;
 	}
 
 	sha256(buf, merkleHash);
+	free(buf);
 }
 
 
@@ -94,14 +96,19 @@ char *blockToJson(BLOCK *b)
 }
 
 
-size_t getSizeOf_blockbin(size_t nbTxs){
-	return SHA256_BLOCK_SIZE * 2 + sizeof(size_t) + nbTxs * getSizeOf_txsbin();
+size_t getSizeOf_blockbin(BLOCK *b){
+	size_t size = SHA256_BLOCK_SIZE * 2;
+	size += sizeof(size_t);
+	for (size_t i = 0; i < b->tl.size; i++){
+		size += getSizeOf_txsbin(&b->tl.transactions[i]);
+	}
+	return size;
 }
 
 BLOCK_BIN blockToBin(BLOCK *b)
 {
 	size_t nbTxs = b->tl.size;
-	size_t size = getSizeOf_blockbin(nbTxs);
+	size_t size = getSizeOf_blockbin(b);
 
 	BYTE *res = malloc(size);
 	size_t cursor = 0;
@@ -143,7 +150,7 @@ BLOCK binToBlock(BYTE *bin){
 	for (size_t i = 0; i < nbTxs; i++)
 	{
 		TRANSACTION t = binToTxs(bin + cursor);
-		cursor += getSizeOf_txsbin();
+		cursor += getSizeOf_txsbin(&t);
 		addTx(&tl, &t);
 	}
 	BLOCK b = {

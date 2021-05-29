@@ -48,6 +48,18 @@ void *shared_queue_pop(shared_queue* sq)
 	return res;
 }
 
+
+int shared_queue_length(shared_queue* sq)
+{
+	int value;
+	sem_getvalue(&sq->size, &value);
+	return value;
+}
+int shared_queue_isEmpty(shared_queue* sq)
+{
+	return shared_queue_length(sq) == 0;
+}
+
 void shared_queue_destroy(shared_queue* sq)
 {
 	if(sem_wait(&sq->lock) < 0)

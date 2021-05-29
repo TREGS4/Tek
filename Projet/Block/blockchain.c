@@ -154,8 +154,17 @@ BLOCKCHAIN binToBlockchain(BYTE *bin){
 		size_t nbTxs;
 		memcpy(&nbTxs, bin + cursor, sizeof(nbTxs));
 		BLOCK b = binToBlock(bin + cursor);
-		cursor += getSizeOf_blockbin(nbTxs);
+		cursor += getSizeOf_blockbin(&b);
 		bc.blocks[i] = b;
 	}
 	return bc;
+}
+
+
+
+void freeBlockchain(BLOCKCHAIN *bc){
+	for (size_t i = 0; i < bc->blocksNumber; i++){
+		clearTxsList(&bc->blocks[i].tl);
+	}
+	free(bc->blocks);
 }
