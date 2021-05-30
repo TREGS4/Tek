@@ -1,5 +1,6 @@
 #include "gestion.h"
 #include "../API/API.h"
+#include "../Noeud_de_minage/minage.h"
 
 #include <pthread.h>
 
@@ -35,16 +36,28 @@ void *gestion(void *arg)
             .server = network,
             .bc_m = &bc_m,
             .tl_m = &txs_temp_m,
-            .outgoingTxs = api_txs};
+            .outgoingTxs = api_txs
+        };
         pthread_create(&api_thread, NULL, API, (void *)&args);
     }
 
     pthread_t mining_thread;
     shared_queue *mining_blocks;
+    int mining_status = 1;
+    int nb_mining_thread = 1;
+    int difficulty = 3;
     if (isMINING)
     {
         mining_blocks = shared_queue_new();
-        pthread_create(&mining_thread, NULL, NULL/*TODO*/, NULL);
+        MINING_THREAD_ARG args = {
+            .bc_m = &bc_m,
+            .tl_m = &txs_temp_m,
+            .exp = mining_blocks,
+            .nb_thread = nb_mining_thread,
+            .difficulty = difficulty,
+            .status = &mining_status,
+        };
+        pthread_create(&mining_thread, NULL, mining, (void *)&args);
     }
 
     while (1)
