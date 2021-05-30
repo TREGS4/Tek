@@ -7,6 +7,8 @@
 
 //Type of message
 #define TYPE_NETWORK 1
+#define TYPE_TXS 2
+#define TYPE_BLOCKCHAIN 3
 #define TYPE_TEST 255
 
 //Different info that could be useful

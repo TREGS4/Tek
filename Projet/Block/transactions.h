@@ -38,6 +38,7 @@ typedef struct {
 
 
 TRANSACTION CreateTxs(size_t amount, char* sender, char* receiver);
+int TxsEqual(TRANSACTION *t1, TRANSACTION *t2);
 char *txsToString(TRANSACTION *txs);
 char *tlToString(TRANSACTIONS_LIST *tl);
 char *txsToJson(TRANSACTION *t);
@@ -47,7 +48,9 @@ TRANSACTION binToTxs(BYTE *bin);
 size_t getSizeOf_txsbin(TRANSACTION *t);
 TRANSACTIONS_LIST initListTxs();
 void addTx(TRANSACTIONS_LIST *tl, TRANSACTION *t);
+int hasSendedTxs(char *address, TRANSACTIONS_LIST *tl);
 void clearTxsList(TRANSACTIONS_LIST *tl);
+void removeTxsList(TRANSACTIONS_LIST *tl, size_t start, size_t end); //inclusive -  exclusive
 void freeTxsList(TRANSACTIONS_LIST *tl);
 void freeTxs(TRANSACTION *txs);
 

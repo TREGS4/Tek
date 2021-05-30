@@ -1,5 +1,6 @@
 #include "transactions.h"
 #include "../Hash/sha256.h"
+#include "../general_informations.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +20,17 @@ TRANSACTION CreateTxs(size_t amount, char *sender, char *receiver)
 	memcpy(txs.sender, sender, sender_size);
 	memcpy(txs.receiver, receiver, receiver_size);
 	return txs;
+}
+
+int TxsEqual(TRANSACTION *t1, TRANSACTION *t2){
+	if (t1->amount == t2->amount && t1->time == t2->time){
+		if (memcmp(t1->sender, t2->sender, strlen(t1->sender) + 1) == 0){
+			if (memcmp(t1->receiver, t2->receiver, strlen(t1->receiver) + 1) == 0){
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
 }
 
 char *txsToString(TRANSACTION *txs)
@@ -234,6 +246,30 @@ void addTx(TRANSACTIONS_LIST *tl, TRANSACTION *t)
 	newtxs.time = t->time;
 	tl->transactions[tl->size] = newtxs;
 	tl->size += 1;
+}
+
+int hasSendedTxs(char *address, TRANSACTIONS_LIST *tl){
+	size_t size_address = strlen(address);
+	for (size_t i = 0; i < tl->size; i++){
+		size_t size_sender = strlen(tl->transactions[i].sender);
+		size_t cmp_size = (size_address > size_sender) ? size_address : size_sender;
+		if (memcmp(tl->transactions[i].sender, address, cmp_size) == 0){
+			return 1;
+		}
+	}
+	return 0;
+}
+
+void removeTxsList(TRANSACTIONS_LIST *tl, size_t start, size_t end){
+	TRANSACTIONS_LIST new_tl = initListTxs();
+	for (size_t i = 0; i < start; i++){
+		addTx(&new_tl, &tl->transactions[i]);
+	}
+	for (size_t i = end; i < tl->size; i++){
+		addTx(&new_tl, &tl->transactions[i]);
+	}
+	freeTxsList(tl);
+	*tl = new_tl;
 }
 
 void clearTxsList(TRANSACTIONS_LIST *tl){

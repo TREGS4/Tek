@@ -98,6 +98,7 @@ void *SendOutGoinMessages(void *arg)
             SendMessage(server->KnownServers, messsage);
             DestroyMessage(messsage);
         }
+        sleep(0.05);
     }
 
     printf("Send messages is exiting\n");

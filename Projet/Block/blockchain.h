@@ -24,10 +24,12 @@ typedef struct {
 
 
 BLOCK *getLastBlock(BLOCKCHAIN *blockchain);
-void addBlock(BLOCKCHAIN *blockchain, BLOCK block);
+int addBlock(BLOCKCHAIN *blockchain, BLOCK block);
 BLOCKCHAIN initBlockchain();
 BLOCK createGenesis();
 int checkBlockchain(BLOCKCHAIN *blockchain);
+void updateTlWithBc(TRANSACTIONS_LIST *tl, BLOCKCHAIN *bc);
+int findTxsInBc(TRANSACTION *txs, BLOCKCHAIN *bc);
 char *blockchainToJson(BLOCKCHAIN *bc);
 BLOCKCHAIN_BIN blockchainToBin(BLOCKCHAIN *bc);
 BLOCKCHAIN binToBlockchain(BYTE *bin);

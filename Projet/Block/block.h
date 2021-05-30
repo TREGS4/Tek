@@ -14,6 +14,7 @@ typedef struct
 	TRANSACTIONS_LIST tl;
 	BYTE blockHash[SHA256_BLOCK_SIZE];
 	size_t proof;
+	time_t time;
 } BLOCK;
 
 typedef struct

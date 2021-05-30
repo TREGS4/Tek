@@ -233,14 +233,16 @@ void *worker(void *arg)
 		if (request_size == -1)
 		{
 			perror("read");
-			exit(0);
+			close(client_socket_id);
+			free(full_request);
+			return NULL;
 		}
 		request[request_size] = '\0';
 		full_request = string_append(full_request, request);
 	} while (request_size > 0 &&
 			 memcmp(full_request + strlen(full_request) - 4, "\r\n\r\n", 5) == 1);
 
-	printf("request=\n %s\n\n", full_request);
+	//printf("request=\n %s\n\n", full_request);
 	//Get resource from the request
 	if (memcmp(full_request, "GET ", 4) == 0)
 	{
@@ -300,6 +302,8 @@ void *API(void *args)
 	TL_M *tl_m = api_args->tl_m;
 	struct server *server = api_args->server;
 	shared_queue *outgoingTxs = api_args->outgoingTxs;
+
+	printf("API launched.\n");
 
 	struct addrinfo hints;
 	struct addrinfo *addr_list, *addr;

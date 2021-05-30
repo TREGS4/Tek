@@ -11,6 +11,7 @@
 
 /*************************** HEADER FILES ***************************/
 #include <stddef.h>
+#include <stdio.h>
 
 /****************************** MACROS ******************************/
 #define SHA256_BLOCK_SIZE 32            // SHA256 outputs a 32 byte digest
@@ -32,7 +33,7 @@ void sha256_update(SHA256_CTXX *ctx, const BYTE data[], size_t len);
 void sha256_final(SHA256_CTXX *ctx, BYTE hash[]);
 void sha256(const BYTE *txt, BYTE buf[SHA256_BLOCK_SIZE]);
 void sha256ToAscii(BYTE hash[SHA256_BLOCK_SIZE], char buf[SHA256_BLOCK_SIZE * 2]);
-
+void printSha256(char *name, BYTE *hash);
 
 #endif   // SHA256_H
 

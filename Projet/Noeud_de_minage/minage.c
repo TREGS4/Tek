@@ -50,9 +50,9 @@ void *thread_mining(void *arg){
 		sha256((BYTE *)str, buf);
 		//uncomment if you want to print the hash
 		/*printf("buf :");
-		  for(int i = 0; i < 32; i++)
-		  printf("%02x", buf[i]);
-		  printf("\n");*/
+		for(int i = 0; i < 32; i++)
+		  	printf("%02x", buf[i]);
+		printf("\n");*/
 		res = 0;
 		for(int i = SHA256_BLOCK_SIZE - diff; i < SHA256_BLOCK_SIZE; i++)
 		{

@@ -13,18 +13,22 @@ BLOCK *getLastBlock(BLOCKCHAIN *blockchain)
 	return &(blockchain->blocks[blockchain->blocksNumber - 1]);
 }
 
-void addBlock(BLOCKCHAIN *blockchain, BLOCK block)
+int addBlock(BLOCKCHAIN *blockchain, BLOCK block)
 {
 	BLOCK lastBlock = *(getLastBlock(blockchain));
+	if (block.time < lastBlock.time){
+		printf("BLOCK timestamp invalide (prev > current). Nothing have been add in the blockchain\n");
+		return 0;
+	}
 	if (memcmp(block.previusHash, lastBlock.blockHash, SHA256_BLOCK_SIZE) != 0){
-		printf("BLOCK mined invalid. Nothing have been add in the blockchain\n");
-		return;
+		printf("BLOCK invalid. Nothing have been add in the blockchain\n");
+		return 0;
 	}
 	BYTE hash[SHA256_BLOCK_SIZE];
 	getHash(&block, hash);
 	if (memcmp(hash, block.blockHash, SHA256_BLOCK_SIZE) != 0){
-		printf("BLOCK mined invalid. Nothing have been add in the blockchain\n");
-		return;
+		printf("BLOCK invalid. Nothing have been add in the blockchain\n");
+		return 0;
 	}
 	
 	blockchain->blocksNumber += 1;
@@ -34,7 +38,7 @@ void addBlock(BLOCKCHAIN *blockchain, BLOCK block)
 		errx(1, "Allocation of the new block in the blockchain failed.\n");
 	
 	blockchain->blocks[blockchain->blocksNumber - 1] = block;	
-	
+	return 1;
 }
 
 BLOCKCHAIN initBlockchain()
@@ -76,14 +80,15 @@ BLOCK createGenesis()
 	Amerkle_hash[2 * SHA256_BLOCK_SIZE] = '\0';
 	Aprev_hash[2 * SHA256_BLOCK_SIZE] = '\0';
 
-	BYTE sum[4 * SHA256_BLOCK_SIZE + 1];
-	sprintf((char *)sum,"%s%s", (char *)Aprev_hash, (char *)Amerkle_hash);
-	size_t proof = (size_t)mine_from_string((char *)sum, 1, 1);
+	BYTE sum[4 * SHA256_BLOCK_SIZE + 1 + 11];
+	sprintf((char *)sum,"%011ld%s%s", newGenesis.time, (char *)Aprev_hash, (char *)Amerkle_hash);
+	size_t proof = (size_t)mine_from_string((char *)sum, 1, 2);
 
 	newGenesis.proof = proof;
 
 	BYTE hash[SHA256_BLOCK_SIZE];
 	getHash(&newGenesis, hash);
+
 	memcpy(newGenesis.blockHash, hash, SHA256_BLOCK_SIZE);
 
 	return newGenesis;
@@ -98,7 +103,10 @@ int checkBlockchain(BLOCKCHAIN *blockchain)
 		BLOCK current = blockchain->blocks[i];
 		BLOCK prev = blockchain->blocks[i - 1];
 		getHash(&current, hash);
-		
+			
+		if (current.time < prev.time)
+			return 1;
+
 		if (memcmp(current.previusHash, prev.blockHash, SHA256_BLOCK_SIZE) != 0)
 			return 1;
 			
@@ -109,6 +117,30 @@ int checkBlockchain(BLOCKCHAIN *blockchain)
 	return 0;
 }
 
+void updateTlWithBc(TRANSACTIONS_LIST *tl, BLOCKCHAIN *bc){
+	TRANSACTIONS_LIST new_tl = initListTxs();
+	for (size_t i = 0; i < tl->size; i++){
+		if (!findTxsInBc(&tl->transactions[i], bc)){
+			if (enoughMoney(tl->transactions[i].sender, tl->transactions[i].amount, bc)){
+				addTx(&new_tl, &tl->transactions[i]);
+			}
+		}
+	}
+	freeTxsList(tl);
+	*tl = new_tl;
+}
+
+int findTxsInBc(TRANSACTION *txs, BLOCKCHAIN *bc){
+	for (size_t i = 1; i < bc->blocksNumber; i++){
+		for (size_t a = 0; a < bc->blocks[i].tl.size; a++){
+			if (TxsEqual(txs, &bc->blocks[i].tl.transactions[a])){
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+	
+}
 
 char *blockchainToJson(BLOCKCHAIN *bc)
 {

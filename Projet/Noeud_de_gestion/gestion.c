@@ -30,27 +30,29 @@ void *mining(void *arg)
 	int nb_thread = m_a->nb_thread;
 	int difficulty = m_a->difficulty;
 	int * status = m_a->status;
+
+    printf("Mining thread launched.\n");
+
 	while(*status)
 	{
 		//Get a transaction list's hash
 		//build a hash
 		if(txl->tl.size != 0)
 		{
-			BYTE *prev_hash = getLastBlock(&blockchain->bc)->blockHash;
+            BLOCK *last_block = getLastBlock(&blockchain->bc);
+			BYTE prev_hash[SHA256_BLOCK_SIZE];
+            memcpy(prev_hash, last_block->blockHash, SHA256_BLOCK_SIZE);
+            
 			//create a new block
 			BLOCK *block = malloc(sizeof(BLOCK));
+            *block = initBlock();
 			memcpy(block->previusHash, prev_hash, SHA256_BLOCK_SIZE);
-			block->tl = initListTxs();
-
 
 			pthread_mutex_lock(&txl->mutex);
-			for(size_t i = 0; i < txl->tl.size; i++){
+            size_t nb_transactions = txl->tl.size;
+			for(size_t i = 0; i < nb_transactions; i++){
 				addTx(&block->tl, &txl->tl.transactions[i]);
 			}
-			clearTxsList(&txl->tl);
-
-			//empty the list
-
 			pthread_mutex_unlock(&txl->mutex);
 
 			BYTE merkle_hash[SHA256_BLOCK_SIZE];
@@ -66,9 +68,13 @@ void *mining(void *arg)
 			Amerkle_hash[2 * SHA256_BLOCK_SIZE] = '\0';
 			Aprev_hash[2 * SHA256_BLOCK_SIZE] = '\0';
 			//mining a proof
-			BYTE sum[4 * SHA256_BLOCK_SIZE + 1];
-			sprintf((char *)sum,"%s%s", (char *)Aprev_hash, (char *)Amerkle_hash);
+			BYTE sum[4 * SHA256_BLOCK_SIZE + 11 + 1];
+			sprintf((char *)sum,"%011ld%s%s", block->time, (char *)Aprev_hash, (char *)Amerkle_hash);
 			unsigned long proof = mine_from_string((char *)sum, nb_thread, difficulty);
+
+            pthread_mutex_lock(&txl->mutex);
+            removeTxsList(&txl->tl, 0, nb_transactions);
+            pthread_mutex_unlock(&txl->mutex);
 
 			//sha(proof/prev_hash/merkle_hash) = blockhash
 			block->proof = proof;
@@ -82,7 +88,7 @@ void *mining(void *arg)
 			//return proof;
 			shared_queue_push(exq, block);
 		}
-		sleep(10);
+		sleep(5);
 	}
 	return NULL;
 }
@@ -104,6 +110,7 @@ void *gestion(void *arg)
     BLOCKCHAIN_M bc_m;
     pthread_mutex_init(&bc_m.mutex, NULL);
     bc_m.bc = initBlockchain();
+    printf("Blockchain init.\n");
 
     TL_M txs_temp_m;
     pthread_mutex_init(&txs_temp_m.mutex, NULL);
@@ -132,7 +139,7 @@ void *gestion(void *arg)
     shared_queue *mining_blocks;
     int mining_status = 1;
     int nb_mining_thread = 2;
-    int difficulty = 2;
+    int difficulty = 1;
     
     MINING_THREAD_ARG args_mining = {
         .bc_m = &bc_m,
@@ -149,22 +156,80 @@ void *gestion(void *arg)
         pthread_create(&mining_thread, NULL, mining, (void *)&args_mining);
     }
 
-    size_t amount = amountMoney("MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIVdUtUR9QG0wQl2jf00+0NiTOusk69PGFuHBEAoy7NIIzM7As81H1lGYUIg5pXVrWQ9ACt99trhVWNGRo3VMicCAwEAAQ==", &bc_m.bc);
-    printf("amùountrzffzezv = %ld\n", amount);
     while (1)
     {
         // reading the network messages
         if (!shared_queue_isEmpty(network->IncomingMessages))
         {
             MESSAGE *message = shared_queue_pop(network->IncomingMessages);
-            if (message->type == 2)
-            { // transaction
-                printf("message type 2 received\n");
+            if (message->type == TYPE_TXS)
+            { //transactions
+                TRANSACTION txs = binToTxs((BYTE *)message->data);
+
+                pthread_mutex_lock(&txs_temp_m.mutex);
+                int hassended = hasSendedTxs(txs.sender, &txs_temp_m.tl);
+                
+
+                if (hassended){
+                    printf("FROM NETWORK: A transaction has been refused because the sender has already an uncheck transaction.\n");
+                }else{
+                    pthread_mutex_lock(&bc_m.mutex);
+                    int hasenough = enoughMoney(txs.sender, txs.amount, &bc_m.bc);
+                    if (!hasenough){
+                        printf("FROM NETWORK: A transaction has been refused because the sender has not enough TEK.\n");
+                    }else{
+                        addTx(&txs_temp_m.tl, &txs);
+
+                        TRANSACTION_BIN txsbin = txsToBin(&txs);
+                        MESSAGE *msg = CreateMessage(TYPE_TXS, txsbin.nbBytes, (char *)txsbin.bin);
+                        shared_queue_push(network->OutgoingMessages, msg);
+
+                        printf("FROM NETWORK: A acceptable transaction has been added.\n");
+                    }
+                    pthread_mutex_unlock(&bc_m.mutex);
+                }
+                pthread_mutex_unlock(&txs_temp_m.mutex);
             }
-            else if (message->type == 3)
+            else if (message->type == TYPE_BLOCKCHAIN)
             { // blockchain
-                printf("message type 3 received\n");
+               BLOCKCHAIN bc = binToBlockchain((BYTE *)message->data);
+
+               // verifications
+               int res = checkBlockchain(&bc);
+               if (!res){
+                    pthread_mutex_lock(&bc_m.mutex);
+                    size_t current_bc_size = bc_m.bc.blocksNumber;
+                    if (current_bc_size == bc.blocksNumber){
+                        BLOCK *last_cur_b = getLastBlock(&bc_m.bc);
+                        BLOCK *last_new_b = getLastBlock(&bc);
+                        if (last_new_b->time < last_cur_b->time){
+                            freeBlockchain(&bc_m.bc);
+                            bc_m.bc = bc;
+                            pthread_mutex_lock(&txs_temp_m.mutex);
+                            updateTlWithBc(&txs_temp_m.tl, &bc_m.bc);
+                            pthread_mutex_unlock(&txs_temp_m.mutex);
+                            printf("FROM NETWORK: the blockchain has been updated.\n");
+                        }else{
+                            freeBlockchain(&bc);
+                            printf("FROM NETWORK: A blockchain has been refused (size equal / timestamp inf).\n");
+                        }
+                    }else if (current_bc_size < bc.blocksNumber){
+                        freeBlockchain(&bc_m.bc);
+                        bc_m.bc = bc;
+                        pthread_mutex_lock(&txs_temp_m.mutex);
+                        updateTlWithBc(&txs_temp_m.tl, &bc_m.bc);
+                        pthread_mutex_unlock(&txs_temp_m.mutex);
+                        printf("FROM NETWORK: the blockchain has been updated.\n");
+                    }else{
+                        freeBlockchain(&bc);
+                        printf("FROM NETWORK: A blockchain has been refused (shortest).\n");
+                    }
+                    pthread_mutex_unlock(&bc_m.mutex);
+               }else{
+                    printf("FROM NETWORK: A blockchain has been refused (invalid).\n");
+               }
             }
+
             DestroyMessage(message);
         }
 
@@ -173,20 +238,28 @@ void *gestion(void *arg)
         {
             TRANSACTION *txs = shared_queue_pop(api_txs);
 
-            printf("sender of transaction = %s\n", txs->sender);
-
             // verification of the transaction
-            pthread_mutex_lock(&bc_m.mutex);
-            int hasenough = enoughMoney(txs->sender, txs->amount, &bc_m.bc);
-            pthread_mutex_unlock(&bc_m.mutex);
-            if (!hasenough){
-                printf("A transaction have been refused because the sender has not enough TEK.\n");
+            pthread_mutex_lock(&txs_temp_m.mutex);
+            int hassended = hasSendedTxs(txs->sender, &txs_temp_m.tl);
+
+            if (hassended){
+                printf("FROM API: A transaction has been refused because the sender has already an uncheck transaction.\n");
             }else{
-                pthread_mutex_lock(&txs_temp_m.mutex);
-                addTx(&txs_temp_m.tl, txs);
-                pthread_mutex_unlock(&txs_temp_m.mutex);
-                printf("A acceptable transaction have been added.\n");
+                pthread_mutex_lock(&bc_m.mutex);
+                int hasenough = enoughMoney(txs->sender, txs->amount, &bc_m.bc);
+                if (!hasenough){
+                    printf("FROM API: A transaction has been refused because the sender has not enough TEK.\n");
+                }else{
+                    addTx(&txs_temp_m.tl, txs);
+                    TRANSACTION_BIN txsbin = txsToBin(txs);
+                    MESSAGE *msg = CreateMessage(TYPE_TXS, txsbin.nbBytes, (char *)txsbin.bin);
+                    shared_queue_push(network->OutgoingMessages, msg);
+
+                    printf("FROM API: A acceptable transaction has been added.\n");
+                }
+                pthread_mutex_unlock(&bc_m.mutex);
             }
+            pthread_mutex_unlock(&txs_temp_m.mutex);
             free(txs);
         }
 
@@ -196,10 +269,18 @@ void *gestion(void *arg)
             BLOCK *b = shared_queue_pop(mining_blocks);
 
             pthread_mutex_lock(&bc_m.mutex);
-            addBlock(&bc_m.bc, *b);
-            pthread_mutex_unlock(&bc_m.mutex);
+            int success = addBlock(&bc_m.bc, *b);
+            
 
-            printf("un block depuis le minage a été reçu.\n");
+            if (success){
+                BLOCKCHAIN_BIN bcbin = blockchainToBin(&bc_m.bc);
+                MESSAGE *msg = CreateMessage(TYPE_BLOCKCHAIN, bcbin.nbBytes, (char *)bcbin.bin);
+                shared_queue_push(network->OutgoingMessages, msg);
+                printf("FROM MINING: correct Block received.\n");
+            }else{
+                printf("FROM MINING: incorrect Block received.\n");
+            }
+            pthread_mutex_unlock(&bc_m.mutex);
             free(b);
         }
         sleep(0.05);

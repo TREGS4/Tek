@@ -188,3 +188,12 @@ void sha256ToAscii(BYTE hash[SHA256_BLOCK_SIZE], char buf[SHA256_BLOCK_SIZE * 2]
 			buf[i*2 + 1] = var2 - 10 + 'a';
 	}	
 }
+
+
+void printSha256(char *name, BYTE *hash){
+	printf("%s : ", name);
+	for (size_t i = 0; i < SHA256_BLOCK_SIZE; i++){
+		printf("%02x", hash[i]);
+	}
+	printf("\n");
+}

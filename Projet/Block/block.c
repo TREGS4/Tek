@@ -8,6 +8,9 @@
 
 BLOCK initBlock(){
 	BLOCK b;
+	time_t rawtime;
+	time(&rawtime);
+	b.time = rawtime;
 	b.tl = initListTxs();
 	return b;
 }
@@ -31,7 +34,7 @@ bool isGenesis(BLOCK *b){
 void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE])
 {
 	size_t proof_size = len_of_proof(b->proof);
-	BYTE buf[4 * SHA256_BLOCK_SIZE + proof_size + 1];
+	BYTE buf[4 * SHA256_BLOCK_SIZE + proof_size + 1 + 11];
 	BYTE merkleHash[SHA256_BLOCK_SIZE];
 	getMerkleHash(b, merkleHash);
 
@@ -43,6 +46,8 @@ void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE])
 	size_t offset = 0;
 	sprintf((char*)buf + offset, "%ld", b->proof);
 	offset += proof_size;
+	sprintf((char*)buf + offset, "%011ld", b->time);
+	offset += 11;
 	memcpy(buf + offset, var1, SHA256_BLOCK_SIZE*2);
 	offset += SHA256_BLOCK_SIZE*2;
 	memcpy(buf + offset, var2, SHA256_BLOCK_SIZE*2);
@@ -66,10 +71,11 @@ char *blockToJson(BLOCK *b)
 	char *s1 = "{\"previousHash\":\"";
 	char *s2 = "\",\"currentHash\":\"";
 	char *s3 = "\",\"proof\":";
-	char *s4 = ",\"transactions\":[";
-	char *s5 = "]}";
-	size_t size = strlen(s1) + strlen(s2) + strlen(s3) + strlen(s4) + strlen(s5);
-	size += SHA256_BLOCK_SIZE * 2 * 2 + len_of_proof(b->proof);
+	char *s4 = ",\"time\":";
+	char *s5 = ",\"transactions\":[";
+	char *s6 = "]}";
+	size_t size = strlen(s1) + strlen(s2) + strlen(s3) + strlen(s4) + strlen(s5) + strlen(s6);
+	size += SHA256_BLOCK_SIZE * 2 * 2 + len_of_proof(b->proof) + 11;
 
 
 	char var1[SHA256_BLOCK_SIZE*2+1];
@@ -94,10 +100,10 @@ char *blockToJson(BLOCK *b)
 	}
 	json = calloc(size + txssize + 1, sizeof(char));
 	if (restxs != NULL){
-		sprintf(json, "%s%s%s%s%s%ld%s%s%s", s1, var1, s2, var2, s3, b->proof, s4, restxs, s5);
+		sprintf(json, "%s%s%s%s%s%ld%s%ld%s%s%s", s1, var1, s2, var2, s3, b->proof, s4, b->time, s5, restxs, s6);
 		free(restxs);
 	}else{
-		sprintf(json, "%s%s%s%s%s%ld%s%s", s1, var1, s2, var2, s3, b->proof, s4, s5);
+		sprintf(json, "%s%s%s%s%s%ld%s%ld%s%s", s1, var1, s2, var2, s3, b->proof, s4, b->time, s5, s6);
 	}
 
 	return json;
@@ -106,7 +112,8 @@ char *blockToJson(BLOCK *b)
 
 size_t getSizeOf_blockbin(BLOCK *b){
 	size_t size = SHA256_BLOCK_SIZE * 2;
-	size += len_of_proof(b->proof);
+	size += sizeof(b->proof);
+	size += sizeof(b->time);
 	size += sizeof(size_t);
 	for (size_t i = 0; i < b->tl.size; i++){
 		size += getSizeOf_txsbin(&b->tl.transactions[i]);
@@ -129,6 +136,8 @@ BLOCK_BIN blockToBin(BLOCK *b)
 	cursor += SHA256_BLOCK_SIZE;
 	memcpy(res + cursor, &b->proof, sizeof(b->proof));
 	cursor += sizeof(b->proof);
+	memcpy(res + cursor, &b->time, sizeof(b->time));
+	cursor += sizeof(b->time);
 
 	for (size_t i = 0; i < nbTxs; i++)
 	{
@@ -152,13 +161,16 @@ BLOCK binToBlock(BYTE *bin){
 	cursor += sizeof(nbTxs);
 	BYTE previusHash[SHA256_BLOCK_SIZE];
 	memcpy(previusHash, bin + cursor, SHA256_BLOCK_SIZE);
-	cursor +=  SHA256_BLOCK_SIZE;
+	cursor += SHA256_BLOCK_SIZE;
 	BYTE blockHash[SHA256_BLOCK_SIZE];
 	memcpy(blockHash, bin + cursor, SHA256_BLOCK_SIZE);
-	cursor +=  SHA256_BLOCK_SIZE;
+	cursor += SHA256_BLOCK_SIZE;
 	size_t proof = 0;
 	memcpy(&proof, bin + cursor, sizeof(proof));
-	cursor +=  sizeof(proof);
+	cursor += sizeof(proof);
+	time_t time = 0;
+	memcpy(&time, bin + cursor, sizeof(time));
+	cursor += sizeof(time);
 
 	TRANSACTIONS_LIST tl = initListTxs();
 	for (size_t i = 0; i < nbTxs; i++)
@@ -170,6 +182,7 @@ BLOCK binToBlock(BYTE *bin){
 	BLOCK b = {
 		.tl = tl,
 		.proof = proof,
+		.time = time,
 	};
 	memcpy(b.previusHash, previusHash, SHA256_BLOCK_SIZE);
 	memcpy(b.blockHash, blockHash, SHA256_BLOCK_SIZE);
