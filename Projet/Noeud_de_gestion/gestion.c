@@ -29,40 +29,40 @@ void *gestion(void *arg)
 
     pthread_t api_thread;
     shared_queue *api_txs;
+
+    API_THREAD_ARG args_api = {
+        .server = network,
+        .bc_m = &bc_m,
+        .tl_m = &txs_temp_m,
+    };
+
     if (isAPI)
     {
         api_txs = shared_queue_new();
-        API_THREAD_ARG args = {
-            .server = network,
-            .bc_m = &bc_m,
-            .tl_m = &txs_temp_m,
-            .outgoingTxs = api_txs
-        };
-        pthread_create(&api_thread, NULL, API, (void *)&args);
+        args_api.outgoingTxs = api_txs;
+        pthread_create(&api_thread, NULL, API, (void *)&args_api);
     }
-
-
-
 
     pthread_t mining_thread;
     shared_queue *mining_blocks;
     int mining_status = 1;
     int nb_mining_thread = 1;
     int difficulty = 1;
+    
+    MINING_THREAD_ARG args_mining = {
+        .bc_m = &bc_m,
+        .tl_m = &txs_temp_m,
+        .nb_thread = nb_mining_thread,
+        .difficulty = difficulty,
+        .status = &mining_status,
+    };
+
     if (isMINING)
     {
-        //mining_blocks = shared_queue_new();
-        MINING_THREAD_ARG args = {
-            .bc_m = &bc_m,
-            .tl_m = &txs_temp_m,
-            .exq = mining_blocks,
-            /*.nb_thread = nb_mining_thread,
-            .difficulty = difficulty,*/
-            .status = &mining_status,
-        };
-        //pthread_create(&mining_thread, NULL, mining, (void *)&args);
+        mining_blocks = shared_queue_new();
+        args_mining.exq = mining_blocks;
+        pthread_create(&mining_thread, NULL, mining, (void *)&args_mining);
     }
-
 
     TRANSACTION *txs = malloc(sizeof(TRANSACTION));
     *txs = CreateTxs(10, "d", "e");
@@ -99,7 +99,7 @@ void *gestion(void *arg)
         }
 
         // reading the blocks mined
-        /*if (isMINING && !shared_queue_isEmpty(mining_blocks))
+        if (isMINING && !shared_queue_isEmpty(mining_blocks))
         {
             BLOCK *b = shared_queue_pop(mining_blocks);
 
@@ -109,7 +109,7 @@ void *gestion(void *arg)
 
             printf("un block depuis le minage a été reçu.\n");
             free(b);
-        }*/
+        }
         sleep(0.05);
     }
 

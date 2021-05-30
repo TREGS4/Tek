@@ -179,6 +179,7 @@ void add_transaction_cmd(int client_socket_id, shared_queue *outgoingTxs, char *
 			return;
 		}
 		*transaction = CreateTxs(amount, sender, receiver);
+
 		shared_queue_push(outgoingTxs, transaction);
 
 		char *message = "{\"success\":\"ok\"}";
