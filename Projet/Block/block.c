@@ -5,6 +5,18 @@
 #include <stdlib.h>
 
 
+
+BLOCK initBlock(){
+	BLOCK b;
+	b.tl = initListTxs();
+	return b;
+}
+
+void freeBlock(BLOCK *b){
+	freeTxsList(&b->tl);
+}
+
+
 //len of the proof if it was a string
 size_t len_of_proof(size_t proof){
 	size_t len = 0;

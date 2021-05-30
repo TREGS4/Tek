@@ -48,6 +48,8 @@ size_t getSizeOf_txsbin(TRANSACTION *t);
 TRANSACTIONS_LIST initListTxs();
 void addTx(TRANSACTIONS_LIST *tl, TRANSACTION *t);
 void clearTxsList(TRANSACTIONS_LIST *tl);
+void freeTxsList(TRANSACTIONS_LIST *tl);
+void freeTxs(TRANSACTION *txs);
 
 
 

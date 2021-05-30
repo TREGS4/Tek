@@ -235,7 +235,22 @@ void addTx(TRANSACTIONS_LIST *tl, TRANSACTION *t)
 	tl->size += 1;
 }
 
-void clearTxsList(TRANSACTIONS_LIST *tl)
+void clearTxsList(TRANSACTIONS_LIST *tl){
+	freeTxsList(tl);
+	*tl = initListTxs();
+}
+
+void freeTxsList(TRANSACTIONS_LIST *tl)
 {
+	for (size_t i = 0; i < tl->size; i++){
+		freeTxs(&tl->transactions[i]);
+	}
+	
 	free(tl->transactions);
+}
+
+
+void freeTxs(TRANSACTION *txs){
+	free(txs->sender);
+	free(txs->receiver);
 }

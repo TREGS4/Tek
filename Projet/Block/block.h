@@ -21,7 +21,8 @@ typedef struct
 	size_t nbBytes;
 } BLOCK_BIN;
 
-
+BLOCK initBlock();
+void freeBlock(BLOCK *b);
 size_t len_of_proof(size_t proof);
 void getMerkleHash(BLOCK *b, BYTE merkleHash[SHA256_BLOCK_SIZE]);
 void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE]);
