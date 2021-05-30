@@ -41,28 +41,35 @@ void *gestion(void *arg)
         pthread_create(&api_thread, NULL, API, (void *)&args);
     }
 
+
+
+
     pthread_t mining_thread;
     shared_queue *mining_blocks;
     int mining_status = 1;
     int nb_mining_thread = 1;
-    int difficulty = 3;
+    int difficulty = 1;
     if (isMINING)
     {
-        mining_blocks = shared_queue_new();
+        //mining_blocks = shared_queue_new();
         MINING_THREAD_ARG args = {
             .bc_m = &bc_m,
             .tl_m = &txs_temp_m,
             .exq = mining_blocks,
-            .nb_thread = nb_mining_thread,
-            .difficulty = difficulty,
+            /*.nb_thread = nb_mining_thread,
+            .difficulty = difficulty,*/
             .status = &mining_status,
         };
-        pthread_create(&mining_thread, NULL, mining, (void *)&args);
+        //pthread_create(&mining_thread, NULL, mining, (void *)&args);
     }
+
+
+    TRANSACTION *txs = malloc(sizeof(TRANSACTION));
+    *txs = CreateTxs(10, "d", "e");
+    shared_queue_push(api_txs, txs);
 
     while (1)
     {
-
         // reading the network messages
         if (!shared_queue_isEmpty(network->IncomingMessages))
         {
@@ -92,7 +99,7 @@ void *gestion(void *arg)
         }
 
         // reading the blocks mined
-        if (isMINING && !shared_queue_isEmpty(mining_blocks))
+        /*if (isMINING && !shared_queue_isEmpty(mining_blocks))
         {
             BLOCK *b = shared_queue_pop(mining_blocks);
 
@@ -102,8 +109,7 @@ void *gestion(void *arg)
 
             printf("un block depuis le minage a été reçu.\n");
             free(b);
-        }
-
+        }*/
         sleep(0.05);
     }
 

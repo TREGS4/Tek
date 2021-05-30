@@ -199,7 +199,6 @@ void *mining(void *arg)
 		//Get a transaction list's hash
 		//build a hash
 
-		pthread_mutex_lock(&txl->mutex);
 		if(txl->tl.size != 0)
 		{
 			BYTE *prev_hash = getLastBlock(&blockchain->bc)->blockHash;
@@ -242,7 +241,6 @@ void *mining(void *arg)
 			//return proof;
 			shared_queue_push(exq, block);
 		}
-		pthread_mutex_unlock(&txl->mutex);
 		sleep(10);
 	}
 	return NULL;

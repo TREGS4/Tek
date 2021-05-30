@@ -55,9 +55,9 @@ int findInfoTxs(size_t *amount, char **sender, char **receiver, char *ressource)
 
 	size_t start = 0;
 	size_t end = 0;
-	size_t i = 0;
+	size_t n = 0;
 
-	while (ressource[start] != '\0' && i < nbarg)
+	while (ressource[start] != '\0' && n < nbarg)
 	{
 		while (ressource[start] != '?' && ressource[end] != '=' && ressource[start] != '&' && ressource[start] != '\0')
 		{
@@ -71,14 +71,14 @@ int findInfoTxs(size_t *amount, char **sender, char **receiver, char *ressource)
 			end++;
 		}
 
-		infos[i] = calloc(1, sizeof(char) * (end - start + 1));
-		memcpy(infos[i], ressource + start, end - start);
+		infos[n] = calloc(1, sizeof(char) * (end - start + 1));
+		memcpy(infos[n], ressource + start, end - start);
 
-		i++;
+		n++;
 		start = end;
 	}
 
-	for (size_t i = 0; i < nbarg; i += 2)
+	for (size_t i = 0; i < n; i += 2)
 	{
 		if (memcmp(infos[i], "sender", 7) == 0)
 		{
@@ -150,24 +150,40 @@ void blockchain_cmd(int client_socket_id, BLOCKCHAIN_M *bc_m)
 
 void add_transaction_cmd(int client_socket_id, shared_queue *outgoingTxs, char *ressource)
 {
-	TRANSACTION *transaction = malloc(sizeof(TRANSACTION));
-	if (transaction == NULL)
+
+	char *sender = NULL;
+	char *receiver = NULL;
+	size_t amount = 0;
+	findInfoTxs(&amount, &sender, &receiver, ressource);
+
+	if (amount <= 0 || sender == NULL || receiver == NULL)
 	{
 		char *message = "{\"success\":\"error\"}";
 		resend(client_socket_id, message, strlen(message), 0);
+		if (sender != NULL)
+		{
+			free(sender);
+		}
+		if (receiver != NULL)
+		{
+			free(receiver);
+		}
 	}
 	else
 	{
-		char *sender = NULL;
-		char *receiver = NULL;
-		size_t amount = 0;
-		findInfoTxs(&amount, &sender, &receiver, ressource);
-
+		TRANSACTION *transaction = malloc(sizeof(TRANSACTION));
+		if (transaction == NULL)
+		{
+			char *message = "{\"success\":\"error\"}";
+			resend(client_socket_id, message, strlen(message), 0);
+			return;
+		}
 		*transaction = CreateTxs(amount, sender, receiver);
 		shared_queue_push(outgoingTxs, transaction);
 
 		char *message = "{\"success\":\"ok\"}";
 		resend(client_socket_id, message, strlen(message), 0);
+
 		free(sender);
 		free(receiver);
 	}
