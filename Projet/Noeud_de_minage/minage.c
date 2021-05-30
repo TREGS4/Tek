@@ -198,7 +198,7 @@ void rewrite(int fd, const void *buf, size_t count)
 //nb_trhead = number of thread we will use to mine,
 //difficulty : difficulty of the mining
 //status : to end the prgrm if needed
-int mining(BLOCKCHAIN_M *blockchain, TL_M * txl, shared_queue * exq, int nb_thread, int difficulty, int * status)
+void *mining(BLOCKCHAIN_M *blockchain, TL_M * txl, shared_queue * exq, int nb_thread, int difficulty, int * status)
 {
 	while(*status)
 	{
@@ -251,7 +251,7 @@ int mining(BLOCKCHAIN_M *blockchain, TL_M * txl, shared_queue * exq, int nb_thre
 		pthread_mutex_unlock(&txl->mutex);
 		sleep(10);
 	}
-	return 1;
+	return NULL;
 }
 
 /*int moncuq()
