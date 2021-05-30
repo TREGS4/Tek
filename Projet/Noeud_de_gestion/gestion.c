@@ -24,6 +24,7 @@ void *gestion(void *arg)
     txs_temp_m.tl = initListTxs();
 
     int isAPI = 1;
+    int isMINING = 1;
 
     pthread_t api_thread;
     shared_queue *api_txs;
@@ -36,6 +37,14 @@ void *gestion(void *arg)
             .tl_m = &txs_temp_m,
             .outgoingTxs = api_txs};
         pthread_create(&api_thread, NULL, API, (void *)&args);
+    }
+
+    pthread_t mining_thread;
+    shared_queue *mining_blocks;
+    if (isMINING)
+    {
+        mining_blocks = shared_queue_new();
+        pthread_create(&mining_thread, NULL, NULL/*TODO*/, NULL);
     }
 
     while (1)
@@ -69,11 +78,24 @@ void *gestion(void *arg)
             free(txs);
         }
 
+        // reading the blocks mined
+        if (isMINING && !shared_queue_isEmpty(mining_blocks))
+        {
+            BLOCK *b = shared_queue_pop(mining_blocks);
+
+            pthread_mutex_lock(&bc_m.mutex);
+            addBlock(&bc_m.bc, *b);
+            pthread_mutex_unlock(&bc_m.mutex);
+
+            printf("un block depuis le minage a été reçu.\n");
+            free(b);
+        }
+
         sleep(0.05);
     }
 
     pthread_mutex_destroy(&bc_m.mutex);
     pthread_mutex_destroy(&txs_temp_m.mutex);
-    clearTxsList(&txs_temp_m.tl);
+    freeTxsList(&txs_temp_m.tl);
     freeBlockchain(&bc_m.bc);
 }

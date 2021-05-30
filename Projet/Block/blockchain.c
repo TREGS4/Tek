@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <err.h>
 
 
 BLOCK *getLastBlock(BLOCKCHAIN *blockchain)
@@ -14,23 +15,22 @@ BLOCK *getLastBlock(BLOCKCHAIN *blockchain)
 void addBlock(BLOCKCHAIN *blockchain, BLOCK block)
 {
 	BLOCK lastBlock = *(getLastBlock(blockchain));
-	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
-	{
-		block.previusHash[i] = lastBlock.blockHash[i];
+	if (memcmp(block.previusHash, lastBlock.blockHash, SHA256_BLOCK_SIZE) != 0){
+		printf("BLOCK mined invalid. Nothing have been add in the blockchain\n");
+		return;
 	}
-	
 	BYTE hash[SHA256_BLOCK_SIZE];
 	getHash(&block, hash);
-	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
-	{
-		block.blockHash[i] = hash[i];
+	if (memcmp(hash, block.blockHash, SHA256_BLOCK_SIZE) != 0){
+		printf("BLOCK mined invalid. Nothing have been add in the blockchain\n");
+		return;
 	}
 	
 	blockchain->blocksNumber += 1;
 	
 	blockchain->blocks = realloc(blockchain->blocks, blockchain->blocksNumber * sizeof(BLOCK));
 	if (blockchain->blocks == NULL)
-		exit(1);
+		errx(1, "Allocation of the new block in the blockchain failed.\n");
 	
 	blockchain->blocks[blockchain->blocksNumber - 1] = block;	
 	
@@ -57,14 +57,13 @@ BLOCKCHAIN initBlockchain()
 
 BLOCK createGenesis()
 {
-	BLOCK newGenesis;
+	BLOCK newGenesis = initBlock();
 	
 	BYTE buf[] = "HarryStylesAuraitDuAvoirUnGrammyPourHS1";
 	sha256(buf, newGenesis.blockHash);
 	for (int i = 0; i < SHA256_BLOCK_SIZE; i++){
 		newGenesis.previusHash[i] = 0;
 	}
-	newGenesis.tl = initListTxs();
 	
 	return newGenesis;
 }
@@ -164,7 +163,7 @@ BLOCKCHAIN binToBlockchain(BYTE *bin){
 
 void freeBlockchain(BLOCKCHAIN *bc){
 	for (size_t i = 0; i < bc->blocksNumber; i++){
-		clearTxsList(&bc->blocks[i].tl);
+		freeBlock(&bc->blocks[i]);
 	}
 	free(bc->blocks);
 }
