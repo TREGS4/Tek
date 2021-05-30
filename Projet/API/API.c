@@ -56,26 +56,41 @@ int findInfoTxs(size_t *amount, char **sender, char **receiver, char *ressource)
 	size_t start = 0;
 	size_t end = 0;
 	size_t n = 0;
+	int para = FALSE;
+
+	while (ressource[start] != '?' && ressource[start] != '\0')
+	{
+		start++
+	}
+	start++;
+	para = TRUE;
 
 	while (ressource[start] != '\0' && n < nbarg)
 	{
-		while (ressource[start] != '?' && ressource[end] != '=' && ressource[start] != '&' && ressource[start] != '\0')
-		{
-			start++;
-		}
-		start++;
 		end = start;
 
-		while (ressource[end] != '=' && ressource[end] != '&' && ressource[end] != '\0')
+		if (para == TRUE)
 		{
-			end++;
+			while (ressource[end] != '=' && ressource[end] != '\0')
+			{
+				end++;
+			}
+		}
+		else
+		{
+			while (ressource[end] != '&' && ressource[end] != '\0')
+			{
+				end++;
+			}
 		}
 
 		infos[n] = calloc(1, sizeof(char) * (end - start + 1));
 		memcpy(infos[n], ressource + start, end - start);
 
 		n++;
-		start = end;
+		start = end + 1;
+
+		para = !para;
 	}
 
 	for (size_t i = 0; i < n; i += 2)
