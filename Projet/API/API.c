@@ -60,7 +60,7 @@ int findInfoTxs(size_t *amount, char **sender, char **receiver, char *ressource)
 
 	while (ressource[start] != '?' && ressource[start] != '\0')
 	{
-		start++
+		start++;
 	}
 	start++;
 	para = TRUE;
