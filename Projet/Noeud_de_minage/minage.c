@@ -54,17 +54,6 @@ struct mining_arg{
 	return NULL;
 }*/
 
-//len of the proof if it was a string
-size_t len_of_proof(unsigned long proof){
-	size_t len = 0;
-	unsigned long tmp = proof;
-	while(tmp != 0){
-		tmp /= 10;
-		len++;
-	}
-	return len;
-}
-
 //mine with the string from string_splitting
 void *thread_mining(void *arg){
 	struct mining_arg *m_a = arg;
@@ -216,46 +205,50 @@ int mining(BLOCKCHAIN_M *blockchain, TL_M * txl, shared_queue * exq, int nb_thre
 		//Get a transaction list's hash
 		//build a hash
 
-		BYTE *prev_hash = getLastBlock(&blockchain->bc)->blockHash;
-		//create a new block
-		BLOCK *block = malloc(sizeof(BLOCK));
-		memcpy(block->previusHash, prev_hash, SHA256_BLOCK_SIZE);
-		block->tl = initListTxs();
 		pthread_mutex_lock(&txl->mutex);
-		for(size_t i = 0; i < txl->tl.size; i++){
-			addTx(&block->tl, &txl->tl.transactions[i]);
+		if(txl->tl.size != 0)
+		{
+			BYTE *prev_hash = getLastBlock(&blockchain->bc)->blockHash;
+			//create a new block
+			BLOCK *block = malloc(sizeof(BLOCK));
+			memcpy(block->previusHash, prev_hash, SHA256_BLOCK_SIZE);
+			block->tl = initListTxs();
+			pthread_mutex_lock(&txl->mutex);
+			for(size_t i = 0; i < txl->tl.size; i++){
+				addTx(&block->tl, &txl->tl.transactions[i]);
+			}
+			pthread_mutex_unlock(&txl->mutex);
+
+			BYTE merkle_hash[SHA256_BLOCK_SIZE];
+			getMerkleHash(block, merkle_hash);
+
+			//Both hash need to be in ascii form
+			char Aprev_hash[2 * SHA256_BLOCK_SIZE + 1];
+			char Amerkle_hash[2 * SHA256_BLOCK_SIZE + 1];
+
+			sha256ToAscii(prev_hash, Aprev_hash);
+			sha256ToAscii(merkle_hash, Amerkle_hash);
+
+			Amerkle_hash[2 * SHA256_BLOCK_SIZE] = '\0';
+			Aprev_hash[2 * SHA256_BLOCK_SIZE] = '\0';
+			//mining a proof
+			BYTE sum[4 * SHA256_BLOCK_SIZE + 1];
+			sprintf((char *)sum,"%s%s", (char *)Aprev_hash, (char *)Amerkle_hash);
+			unsigned long proof = mine_from_string((char *)sum, nb_thread, difficulty);
+
+			//sha(proof/prev_hash/merkle_hash) = blockhash
+			block->proof = proof;
+
+			//hash with sha256
+			BYTE new_hash[SHA256_BLOCK_SIZE];
+			getHash(block, new_hash);
+
+			memcpy(block->blockHash, new_hash, SHA256_BLOCK_SIZE);
+
+			//return proof;
+			shared_queue_push(exq, block);
 		}
 		pthread_mutex_unlock(&txl->mutex);
-
-		BYTE merkle_hash[SHA256_BLOCK_SIZE];
-		getMerkleHash(block, merkle_hash);
-
-		//Both hash need to be in ascii form
-		char Aprev_hash[2 * SHA256_BLOCK_SIZE + 1];
-		char Amerkle_hash[2 * SHA256_BLOCK_SIZE + 1];
-
-		sha256ToAscii(prev_hash, Aprev_hash);
-		sha256ToAscii(merkle_hash, Amerkle_hash);
-
-		Amerkle_hash[2 * SHA256_BLOCK_SIZE] = '\0';
-		Aprev_hash[2 * SHA256_BLOCK_SIZE] = '\0';
-		//mining a proof
-		BYTE sum[4 * SHA256_BLOCK_SIZE + 1];
-		sprintf((char *)sum,"%s%s", (char *)Aprev_hash, (char *)Amerkle_hash);
-		unsigned long proof = mine_from_string((char *)sum, nb_thread, difficulty);
-
-		//sha(proof/prev_hash/merkle_hash) = blockhash
-		block->proof = proof;
-
-		//hash with sha256
-		BYTE new_hash[SHA256_BLOCK_SIZE];
-		getHash(block, new_hash);
-
-		memcpy(block->blockHash, new_hash, SHA256_BLOCK_SIZE);
-
-		//return proof;
-		shared_queue_push(exq, block);
-
 		sleep(10);
 	}
 	return 1;
