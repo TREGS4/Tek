@@ -52,7 +52,7 @@ void *gestion(void *arg)
         MINING_THREAD_ARG args = {
             .bc_m = &bc_m,
             .tl_m = &txs_temp_m,
-            .exp = mining_blocks,
+            .exq = mining_blocks,
             .nb_thread = nb_mining_thread,
             .difficulty = difficulty,
             .status = &mining_status,

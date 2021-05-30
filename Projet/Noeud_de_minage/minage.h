@@ -1,13 +1,22 @@
 #ifndef MINAGE_H
 #define MINAGE_H
 
-int moncuq();
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <err.h>
+#include <pthread.h>
+#include <sys/wait.h>
+#include <signal.h>
+#include "../Hash/sha256.h"
+#include "../Network/network.h"
+#include "../Block/transactions.h"
+#include "../Block/blockchain.h"
+#include "../Block/block.h"
+#include "../Tools/queue/shared_queue.h"
 
-unsigned int mine_from_string(char *strin, int nbthread);
-
-void *mining(MINING_THREAD_ARG);
-
-int mininglobby(int fdin, int fdout, int nbthread);
+void *mining(void * arg);
 
 typedef struct {
     BLOCKCHAIN_M *bc_m;

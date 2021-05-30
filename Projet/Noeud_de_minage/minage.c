@@ -1,17 +1,4 @@
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <err.h>
-#include <pthread.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include "../Hash/sha256.h"
-#include "../Network/network.h"
-#include "../Block/transactions.h"
-#include "../Block/blockchain.h"
-#include "../Block/block.h"
-#include "../Tools/queue/shared_queue.h"
+#include "minage.h"
 
 //read stdin "difficulty-index-prevhashmerklehash"
 //read : string(hash infos)
@@ -198,8 +185,15 @@ void rewrite(int fd, const void *buf, size_t count)
 //nb_trhead = number of thread we will use to mine,
 //difficulty : difficulty of the mining
 //status : to end the prgrm if needed
-void *mining(BLOCKCHAIN_M *blockchain, TL_M * txl, shared_queue * exq, int nb_thread, int difficulty, int * status)
+void *mining(void *arg)
 {
+	MINING_THREAD_ARG *m_a = (MINING_THREAD_ARG *)arg;
+	BLOCKCHAIN_M *blockchain = m_a->bc_m;
+	TL_M * txl = m_a->tl_m;
+	shared_queue * exq = m_a->exq;
+	int nb_thread = m_a->nb_thread;
+	int difficulty = m_a->difficulty;
+	int * status = m_a->status;
 	while(*status)
 	{
 		//Get a transaction list's hash
