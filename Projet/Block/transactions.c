@@ -230,8 +230,9 @@ void addTx(TRANSACTIONS_LIST *tl, TRANSACTION *t)
 		if (tl->transactions == NULL)
 			exit(1);
 	}
-
-	tl->transactions[tl->size] = *t;
+	TRANSACTION newtxs = CreateTxs(t->amount, t->sender, t->receiver);
+	newtxs.time = t->time;
+	tl->transactions[tl->size] = newtxs;
 	tl->size += 1;
 }
 

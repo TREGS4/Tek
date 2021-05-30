@@ -8,22 +8,10 @@
 #include <err.h>
 #include <pthread.h>
 #include <sys/wait.h>
-#include <signal.h>
 #include "../Hash/sha256.h"
-#include "../Network/network.h"
-#include "../Block/transactions.h"
-#include "../Block/blockchain.h"
-#include "../Block/block.h"
-#include "../Tools/queue/shared_queue.h"
 
-void *mining(void * arg);
 
-typedef struct {
-    BLOCKCHAIN_M *bc_m;
-    TL_M * tl_m;
-    shared_queue * exq;
-    int nb_thread;
-    int difficulty;
-    int * status;
-} MINING_THREAD_ARG;
+size_t len_of_proof(size_t proof);
+unsigned int mine_from_string(char *sum, int nbthread, int diff);
+
 #endif

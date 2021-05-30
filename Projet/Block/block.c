@@ -16,19 +16,6 @@ void freeBlock(BLOCK *b){
 	freeTxsList(&b->tl);
 }
 
-
-//len of the proof if it was a string
-size_t len_of_proof(size_t proof){
-	size_t len = 0;
-	size_t tmp = proof;
-	while(tmp != 0){
-		tmp /= 10;
-		len++;
-	}
-	return len;
-}
-
-
 bool isGenesis(BLOCK *b){
 	int isGenesis = true;
 	int a = 0;

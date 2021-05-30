@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <err.h>
+#include "../Noeud_de_minage/minage.h"
 
 
 BLOCK *getLastBlock(BLOCKCHAIN *blockchain)
@@ -58,13 +59,33 @@ BLOCKCHAIN initBlockchain()
 BLOCK createGenesis()
 {
 	BLOCK newGenesis = initBlock();
-	
-	BYTE buf[] = "HarryStylesAuraitDuAvoirUnGrammyPourHS1";
-	sha256(buf, newGenesis.blockHash);
-	for (int i = 0; i < SHA256_BLOCK_SIZE; i++){
-		newGenesis.previusHash[i] = 0;
-	}
-	
+
+	TRANSACTION txs = CreateTxs(1000, "", "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIVdUtUR9QG0wQl2jf00+0NiTOusk69PGFuHBEAoy7NIIzM7As81H1lGYUIg5pXVrWQ9ACt99trhVWNGRo3VMicCAwEAAQ==");
+	addTx(&newGenesis.tl, &txs);
+	memset(newGenesis.previusHash, 0, SHA256_BLOCK_SIZE);
+
+	BYTE merkle_hash[SHA256_BLOCK_SIZE];
+	getMerkleHash(&newGenesis, merkle_hash);
+
+	char Aprev_hash[2 * SHA256_BLOCK_SIZE + 1];
+	char Amerkle_hash[2 * SHA256_BLOCK_SIZE + 1];
+
+	sha256ToAscii(newGenesis.previusHash, Aprev_hash);
+	sha256ToAscii(merkle_hash, Amerkle_hash);
+
+	Amerkle_hash[2 * SHA256_BLOCK_SIZE] = '\0';
+	Aprev_hash[2 * SHA256_BLOCK_SIZE] = '\0';
+
+	BYTE sum[4 * SHA256_BLOCK_SIZE + 1];
+	sprintf((char *)sum,"%s%s", (char *)Aprev_hash, (char *)Amerkle_hash);
+	size_t proof = (size_t)mine_from_string((char *)sum, 1, 1);
+
+	newGenesis.proof = proof;
+
+	BYTE hash[SHA256_BLOCK_SIZE];
+	getHash(&newGenesis, hash);
+	memcpy(newGenesis.blockHash, hash, SHA256_BLOCK_SIZE);
+
 	return newGenesis;
 }
 

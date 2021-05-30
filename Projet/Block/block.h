@@ -3,6 +3,7 @@
 
 #include "../Hash/sha256.h"
 #include "transactions.h"
+#include "../Noeud_de_minage/minage.h"
 
 #include <stdbool.h>  
 
@@ -23,7 +24,6 @@ typedef struct
 
 BLOCK initBlock();
 void freeBlock(BLOCK *b);
-size_t len_of_proof(size_t proof);
 void getMerkleHash(BLOCK *b, BYTE merkleHash[SHA256_BLOCK_SIZE]);
 void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE]);
 char *blockToJson(BLOCK *b);
