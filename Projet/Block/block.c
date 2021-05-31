@@ -94,8 +94,13 @@ char *blockToJson(BLOCK *b)
 		char *txsjson = txsToJson(&b->tl.transactions[i]);
 		size_t t = txssize + strlen(txsjson) + 1;
 		restxs = realloc(restxs, t);
-		sprintf(restxs + txssize,"%s,",txsjson);
-		txssize += strlen(txsjson) + 1;
+		if (i == nbTxs - 1){
+			sprintf(restxs + txssize,"%s",txsjson);
+			txssize += strlen(txsjson);
+		}else{
+			sprintf(restxs + txssize,"%s,",txsjson);
+			txssize += strlen(txsjson) + 1;
+		}
 		free(txsjson);
 	}
 	json = calloc(size + txssize + 1, sizeof(char));

@@ -153,8 +153,13 @@ char *blockchainToJson(BLOCKCHAIN *bc)
 		char *blockjson = blockToJson(&bc->blocks[i]);
 		size_t t = blocksize + strlen(blockjson) + 1;
 		resblock = realloc(resblock, t);
-		sprintf(resblock + blocksize,"%s,",blockjson);
-		blocksize += strlen(blockjson) + 1;
+		if (i == bc->blocksNumber - 1){
+			sprintf(resblock + blocksize,"%s",blockjson);
+			blocksize += strlen(blockjson);
+		}else{
+			sprintf(resblock + blocksize,"%s,",blockjson);
+			blocksize += strlen(blockjson) + 1;
+		}
 		free(blockjson);
 	}
 	char *json = calloc(size + blocksize + 1, sizeof(char));

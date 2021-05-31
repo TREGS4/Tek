@@ -108,8 +108,13 @@ char *tlToJson(TRANSACTIONS_LIST *tl)
 		restxs = realloc(restxs, t + 1);
 		if (restxs != NULL)
 		{
-			sprintf(restxs + txssize, "%s,", txsjson);
-			txssize += size_json + 1;
+			if (i == nbTxs - 1){
+				sprintf(restxs + txssize, "%s", txsjson);
+				txssize += size_json;
+			}else{
+				sprintf(restxs + txssize, "%s,", txsjson);
+				txssize += size_json + 1;
+			}
 			free(txsjson);
 		}
 		else

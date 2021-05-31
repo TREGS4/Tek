@@ -138,8 +138,8 @@ void *gestion(void *arg)
     pthread_t mining_thread;
     shared_queue *mining_blocks;
     int mining_status = 1;
-    int nb_mining_thread = 2;
-    int difficulty = 1;
+    int nb_mining_thread = 1;
+    int difficulty = 2;
     
     MINING_THREAD_ARG args_mining = {
         .bc_m = &bc_m,
