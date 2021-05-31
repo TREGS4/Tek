@@ -265,7 +265,6 @@ void *sendNetwork(void *arg)
         {
             shared_queue_push(server->OutgoingMessages, message);
         }
-            
 
         free(messageBuff);
         sleep(2);
@@ -340,18 +339,13 @@ char *AllServerToJSON(struct clientInfo *client)
 
 char *ServerListToJSON(struct server *server)
 {
-    char *str = "{\"server_list\":[%s]}";
+    char *str = "{\"size\":%lu,\"server_list\":[%s]}";
 
-    pthread_mutex_lock(&server->lockKnownServers);
-
+    size_t size = listLen(server->KnownServers);
     char *temp = AllServerToJSON(server->KnownServers);
     char *res = calloc(1, sizeof(char) * (strlen(str) + strlen(temp) + 1));
-    sprintf(res, str, temp);
+    sprintf(res, str, size, temp);
     free(temp);
-
-    pthread_mutex_unlock(&server->lockKnownServers);
-
-    printf("%s\n", res);
 
     return res;
 }

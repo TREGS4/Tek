@@ -138,18 +138,18 @@ void temptransaction_cmd(int client_socket_id, TL_M *tl_m)
 
 void server_cmd(int client_socket_id, struct server *server)
 {
-	size_t len = listLen(server->KnownServers->sentinel);
-	char *str1 = "{\"size\":%ld}";
-	char *message = malloc(sizeof(char) * (strlen(str1) + 10));
-	if (message == NULL)
+	pthread_mutex_lock(&server->lockKnownServers);
+	char *listServer = ServerListToJSON(server);
+	pthread_mutex_unlock(&server->lockKnownServers);
+
+	if (listServer == NULL)
 	{
 		resend(client_socket_id, NULL, 0, 0);
 	}
 	else
 	{
-		sprintf(message, str1, len);
-		resend(client_socket_id, message, strlen(message), 0);
-		free(message);
+		resend(client_socket_id, listServer, strlen(listServer) + 1, 0);
+		free(listServer);
 	}
 }
 

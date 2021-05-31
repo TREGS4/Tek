@@ -238,7 +238,7 @@ size_t amountMoney(char *address, BLOCKCHAIN *bc)
 	{
 		for(size_t j = 0; j < bc->blocks[i].tl.size; j++)
 		{
-			TRANSACTION temp = bc->blocks[i]->tl.transactions[j];
+			TRANSACTION temp = bc->blocks[i].tl.transactions[j];
 
 			if(memcmp(address, temp.sender, lenAddr) == 0)
 			{
