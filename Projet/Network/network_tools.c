@@ -299,7 +299,7 @@ struct sockaddr_in GetIPfromHostname(struct address address)
 
 char *ServerToJSON(struct clientInfo *client)
 {
-    char *base = "{\"hostname\":\"%s\", \"port\":%s}";
+    char *base = "{\"hostname\":\"%s\",\"port\":%s}";
     size_t nbChar = strlen(client->address.hostname) + strlen(client->address.port) + strlen(base);
     char *res = calloc(1, nbChar + 1);
 
