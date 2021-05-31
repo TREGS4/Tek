@@ -148,7 +148,7 @@ void server_cmd(int client_socket_id, struct server *server)
 	}
 	else
 	{
-		resend(client_socket_id, listServer, strlen(listServer) + 1, 0);
+		resend(client_socket_id, listServer, strlen(listServer), 0);
 		free(listServer);
 	}
 }
