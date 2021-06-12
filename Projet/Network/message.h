@@ -8,6 +8,7 @@
 #include <err.h>
 #include <arpa/inet.h>
 
+
 #include "informations.h"
 
 /*
@@ -22,7 +23,7 @@ typedef struct
 {
     int type;
     unsigned long long sizeData;
-    char *data;
+    BYTE *data;
 } MESSAGE;
 
 /*
@@ -32,7 +33,7 @@ typedef struct
 *
 *   The MESSAGE must be freed with DestroyMessage()
 */
-MESSAGE *CreateMessage(int type, unsigned long long sizeData, char *data);
+MESSAGE *CreateMessage(int type, unsigned long long sizeData, BYTE *data);
 
 /*
 *   Free properly the message pas in argument.
@@ -54,7 +55,7 @@ char *MessageToBin(MESSAGE *message);
 *
 *   The MESSAGE must be freed with DestroyMessage()
 */
-MESSAGE *BinToMessage(char *buff);
+MESSAGE *BinToMessage(BYTE *buff);
 
 /*
 *   Print the header and data of message in it's binary representation

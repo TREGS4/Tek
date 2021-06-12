@@ -7,7 +7,7 @@
 *
 *   The MESSAGE must be freed with DestroyMessage()
 */
-MESSAGE *CreateMessage(int type, unsigned long long sizeData, char *data)
+MESSAGE *CreateMessage(int type, unsigned long long sizeData, BYTE *data)
 {
     MESSAGE *message = malloc(sizeof(MESSAGE));
     if (message == NULL)
@@ -34,7 +34,7 @@ MESSAGE *CreateMessage(int type, unsigned long long sizeData, char *data)
 *
 *   The MESSAGE must be freed with DestroyMessage()
 */
-MESSAGE *BinToMessage(char *buff)
+MESSAGE *BinToMessage(BYTE *buff)
 {
     int type = 0;
     unsigned long long sizeData = 0;
@@ -76,27 +76,30 @@ void DestroyMessage(MESSAGE *message)
 */
 void printMessage(MESSAGE *message, struct sockaddr_in *IP)
 {
-    size_t taille = (3 + 10 + 21 + message->sizeData + sizeof(struct sockaddr_in)) * 10;
+    size_t taille = (5 + 10 + 21 + message->sizeData + sizeof(struct sockaddr_in)) * 10;
     char display[taille];
     char *mess = "Type: %d\nSize: %llu\nFrom: %s:%u\nData: ";
 
     memset(display, 0, taille);
 
     char buffIP[16];
-    uint16_t port;
-    memset(buffIP, 0, 16);
-    if (IP != NULL)
-    {
-        inet_ntop(AF_INET, &IP->sin_addr, buffIP, 16);
-        port = ntohs(IP->sin_port);
+    memcpy(buffIP, "NONE ", 5);
+    uint16_t port = 0;
+    if (IP != NULL){
+        memset(buffIP, 0, 16);
+        if (IP != NULL)
+        {
+            inet_ntop(AF_INET, &IP->sin_addr, buffIP, 16);
+            port = ntohs(IP->sin_port);
+        }
     }
         
     sprintf(display, mess, message->type, message->sizeData, buffIP, port);
     size_t offset = strlen(display);
 
-    for (size_t i = 0; i < message->sizeData * 3; i += 3)
+    for (size_t i = 0; i < message->sizeData * 5; i += 5)
     {
-        sprintf(display + offset + i, "%02x ", message->data[i / 3]);
+        sprintf(display + offset + i, "%04x ", message->data[i / 5]);
     }
     display[strlen(display)] = '\n';
     display[strlen(display)] = '\n';

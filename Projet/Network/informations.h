@@ -2,6 +2,7 @@
 #define INFORMATIONS_H
 
 #include "../general_informations.h"
+#include "../Hash/sha256.h"
 
 /*
 *   This file contain some informations about the network, there is no .c attach to it
@@ -16,5 +17,7 @@
 #define SIZE_DATA_LEN_HEADER 8
 #define SIZE_TYPE_MSG sizeof(char)
 #define HEADER_SIZE SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG
+
+
 
 #endif

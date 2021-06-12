@@ -5,8 +5,8 @@ void *read_thread(void *arg)
 	struct connection *client = arg;
 	unsigned long long sizeData = 0;
 	int type = 0;
-	char headerBuff[HEADER_SIZE];
-	char *dataBuff;
+	BYTE headerBuff[HEADER_SIZE];
+	BYTE *dataBuff;
 	int problem = 0;
 	int ended = 0;
 	size_t nbCharToRead = HEADER_SIZE;

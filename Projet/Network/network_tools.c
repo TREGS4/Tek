@@ -228,7 +228,7 @@ void *sendNetwork(void *arg)
     struct clientInfo *client = server->KnownServers;
     char type = TYPE_NETWORK;
     unsigned long long dataSize = 0;
-    char *messageBuff;
+    BYTE *messageBuff;
     size_t offset = 0;
 
     while (server->status != EXITING)

@@ -181,7 +181,7 @@ void *gestion(void *arg)
                         addTx(&txs_temp_m.tl, &txs);
 
                         TRANSACTION_BIN txsbin = txsToBin(&txs);
-                        MESSAGE *msg = CreateMessage(TYPE_TXS, txsbin.nbBytes, (char *)txsbin.bin);
+                        MESSAGE *msg = CreateMessage(TYPE_TXS, txsbin.nbBytes, txsbin.bin);
                         shared_queue_push(network->OutgoingMessages, msg);
 
                         printf("FROM NETWORK: A acceptable transaction has been added.\n");
@@ -237,7 +237,7 @@ void *gestion(void *arg)
         if (isAPI && !shared_queue_isEmpty(api_txs))
         {
             TRANSACTION *txs = shared_queue_pop(api_txs);
-
+            printf("time : %lu\n", txs->time);
             // verification of the transaction
             pthread_mutex_lock(&txs_temp_m.mutex);
             int hassended = hasSendedTxs(txs->sender, &txs_temp_m.tl);
@@ -252,7 +252,7 @@ void *gestion(void *arg)
                 }else{
                     addTx(&txs_temp_m.tl, txs);
                     TRANSACTION_BIN txsbin = txsToBin(txs);
-                    MESSAGE *msg = CreateMessage(TYPE_TXS, txsbin.nbBytes, (char *)txsbin.bin);
+                    MESSAGE *msg = CreateMessage(TYPE_TXS, txsbin.nbBytes, txsbin.bin);
                     shared_queue_push(network->OutgoingMessages, msg);
 
                     printf("FROM API: A acceptable transaction has been added.\n");
@@ -274,7 +274,7 @@ void *gestion(void *arg)
 
             if (success){
                 BLOCKCHAIN_BIN bcbin = blockchainToBin(&bc_m.bc);
-                MESSAGE *msg = CreateMessage(TYPE_BLOCKCHAIN, bcbin.nbBytes, (char *)bcbin.bin);
+                MESSAGE *msg = CreateMessage(TYPE_BLOCKCHAIN, bcbin.nbBytes, bcbin.bin);
                 shared_queue_push(network->OutgoingMessages, msg);
                 printf("FROM MINING: correct Block received.\n");
             }else{
