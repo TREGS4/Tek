@@ -35,7 +35,7 @@ void *read_thread(void *arg)
 		memcpy(&type, headerBuff, SIZE_TYPE_MSG);
 		memcpy(&sizeData, headerBuff + SIZE_TYPE_MSG, SIZE_DATA_LEN_HEADER);
 		nbCharToRead = sizeData;
-		dataBuff = malloc(sizeof(char) * (sizeData + HEADER_SIZE));
+		dataBuff = malloc(sizeof(BYTE) * (sizeData + HEADER_SIZE));
 		memcpy(dataBuff, headerBuff, HEADER_SIZE);
 	}
 

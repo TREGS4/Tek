@@ -61,7 +61,7 @@ int SendMessageForOneClient(struct clientInfo *client, MESSAGE *message)
 	if ((skt = connectClient(client->address)) == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
-	char *binMessage = MessageToBin(message);
+	BYTE *binMessage = MessageToBin(message);
 	int res = Send(skt, binMessage, HEADER_SIZE + message->sizeData, 0);
 	free(binMessage);
 	res = close(skt) && res;

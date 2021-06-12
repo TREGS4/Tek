@@ -46,7 +46,7 @@ void DestroyMessage(MESSAGE *message);
 *
 *   The buffer can freed with free().
 */
-char *MessageToBin(MESSAGE *message);
+BYTE *MessageToBin(MESSAGE *message);
 
 /*
 *   Transforma a binary message into a structure MESSAGE

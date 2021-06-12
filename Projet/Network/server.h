@@ -13,6 +13,5 @@ struct connection
 };
 
 void *Server(void *arg);
-void printData(int type, unsigned long long len, char *buff);
 
 #endif

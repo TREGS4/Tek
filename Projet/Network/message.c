@@ -13,7 +13,7 @@ MESSAGE *CreateMessage(int type, unsigned long long sizeData, BYTE *data)
     if (message == NULL)
         return NULL;
 
-    message->data = malloc(sizeof(char) * sizeData);
+    message->data = malloc(sizeof(BYTE) * sizeData);
     if (message->data == NULL)
     {
         free(message);
@@ -51,10 +51,10 @@ MESSAGE *BinToMessage(BYTE *buff)
 *
 *   The buffer can freed with free().
 */
-char *MessageToBin(MESSAGE *message)
+BYTE *MessageToBin(MESSAGE *message)
 {
-    char *res = malloc(sizeof(char) * (HEADER_SIZE + message->sizeData));
-    char type = (char)message->type;
+    BYTE *res = malloc(sizeof(BYTE) * (HEADER_SIZE + message->sizeData));
+    BYTE type = (BYTE)message->type;
     memcpy(res, &type, SIZE_TYPE_MSG);
     memcpy(res + SIZE_TYPE_MSG, &message->sizeData, SIZE_DATA_LEN_HEADER);
     memcpy(res + HEADER_SIZE, message->data, message->sizeData);

@@ -73,7 +73,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
 
     close(skt);
     struct clientInfo *client = calloc(1, sizeof(struct clientInfo));
-    client->address.hostname = calloc(1, sizeof(char) * (strlen(address.hostname) + 1));
+    client->address.hostname = calloc(1, sizeof(BYTE) * (strlen(address.hostname) + 1));
 
     if (client != NULL)
     {
@@ -181,10 +181,10 @@ struct clientInfo *FindClient(struct address addr, struct clientInfo *list)
 
 void printIP(struct sockaddr_in *IP)
 {
-    char *buff = malloc(16 * sizeof(char));
+    BYTE *buff = malloc(16 * sizeof(BYTE));
 
     unsigned int port = ntohs(IP->sin_port);
-    inet_ntop(AF_INET, &IP->sin_addr, buff, 16);
+    inet_ntop(AF_INET, &IP->sin_addr, (char *)buff, 16);
 
     printf("%s:%u\n", buff, port);
     free(buff);
@@ -206,7 +206,7 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
         memcpy(&size, message->data + offset, HEADER_HOSTNAME_SIZE);
         sizeHostname = size - PORT_SIZE - 1;
 
-        temp.hostname = calloc(1, sizeof(char) * sizeHostname);
+        temp.hostname = calloc(1, sizeof(BYTE) * sizeHostname);
         offset += HEADER_HOSTNAME_SIZE;
 
         memcpy(temp.hostname, message->data + offset, sizeHostname);
@@ -226,7 +226,7 @@ void *sendNetwork(void *arg)
 {
     struct server *server = arg;
     struct clientInfo *client = server->KnownServers;
-    char type = TYPE_NETWORK;
+    BYTE type = TYPE_NETWORK;
     unsigned long long dataSize = 0;
     BYTE *messageBuff;
     size_t offset = 0;
@@ -241,7 +241,7 @@ void *sendNetwork(void *arg)
         for (struct clientInfo *temp = server->KnownServers->sentinel->next; temp->isSentinel == FALSE; temp = temp->next)
             dataSize += strlen(temp->address.hostname) + 1 + PORT_SIZE + 1 + HEADER_HOSTNAME_SIZE;
 
-        messageBuff = malloc(sizeof(char) * dataSize);
+        messageBuff = malloc(sizeof(BYTE) * dataSize);
 
         for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
         {

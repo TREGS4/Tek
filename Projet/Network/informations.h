@@ -15,7 +15,7 @@
 #define PORT_SIZE 5
 #define HEADER_HOSTNAME_SIZE 2
 #define SIZE_DATA_LEN_HEADER 8
-#define SIZE_TYPE_MSG sizeof(char)
+#define SIZE_TYPE_MSG sizeof(BYTE)
 #define HEADER_SIZE SIZE_DATA_LEN_HEADER + SIZE_TYPE_MSG
 
 
