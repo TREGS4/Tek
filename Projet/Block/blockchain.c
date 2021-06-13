@@ -265,3 +265,26 @@ int enoughMoney(char *address, ull_t amount, BLOCKCHAIN *bc)
 	
 	return res;
 }
+
+
+void printBlockchain(BLOCKCHAIN blockchain)
+{
+	printf("-------------------BLOCKCHAIN-------------------\n\n");
+	printf("----Genesis----\n");
+
+	printf("Hash : ");
+	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
+	{
+		printf("%02x", blockchain.blocks[0].blockHash[i]);
+	}
+	printf("\n");
+	printf("---------------\n\n");
+
+	for (ull_t i = 1; i < blockchain.blocksNumber; i++)
+	{
+		printf("---------------BLOCK %02llu---------------\n", i);
+		printBlock(blockchain.blocks[i]);
+		printf("--------------------------------------\n\n");
+	}
+	printf("------------------------------------------------\n");
+}

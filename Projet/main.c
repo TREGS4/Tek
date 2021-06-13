@@ -9,58 +9,6 @@
 #include "Network/network.h"
 #include <time.h>
 
-void printTransaction(TRANSACTION t)
-{
-	char *time_str = ctime(&t.time);
-	time_str[strlen(time_str) - 1] = '\0';
-	printf("Amount : %14llu$. From %s to %s. date: %s\n", t.amount, t.sender, t.receiver, time_str);
-}
-
-void printBlock(BLOCK block)
-{
-	printf("prevHash : ");
-	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
-	{
-		printf("%02x", block.previusHash[i]);
-	}
-	printf("\n");
-
-	printf("currHash : ");
-	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
-	{
-		printf("%02x", block.blockHash[i]);
-	}
-	printf("\n");
-
-	size_t nbTxs = block.tl.size;
-	for (size_t i = 0; i < nbTxs; i++)
-	{
-		printTransaction(block.tl.transactions[i]);
-	}
-}
-
-void printBlockchain(BLOCKCHAIN blockchain)
-{
-	printf("-------------------BLOCKCHAIN-------------------\n\n");
-	printf("----Genesis----\n");
-
-	printf("Hash : ");
-	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
-	{
-		printf("%02x", blockchain.blocks[0].blockHash[i]);
-	}
-	printf("\n");
-	printf("---------------\n\n");
-
-	for (size_t i = 1; i < blockchain.blocksNumber; i++)
-	{
-		printf("---------------BLOCK %02ld---------------\n", i);
-		printBlock(blockchain.blocks[i]);
-		printf("--------------------------------------\n\n");
-	}
-	printf("------------------------------------------------\n");
-}
-
 typedef struct
 {
 	char *IP;

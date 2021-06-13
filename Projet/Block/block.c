@@ -193,3 +193,27 @@ BLOCK binToBlock(BYTE *bin){
 	memcpy(b.blockHash, blockHash, SHA256_BLOCK_SIZE);
 	return b;
 }
+
+
+void printBlock(BLOCK block)
+{
+	printf("prevHash : ");
+	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
+	{
+		printf("%02x", block.previusHash[i]);
+	}
+	printf("\n");
+
+	printf("currHash : ");
+	for (int i = 0; i < SHA256_BLOCK_SIZE; i++)
+	{
+		printf("%02x", block.blockHash[i]);
+	}
+	printf("\n");
+
+	size_t nbTxs = block.tl.size;
+	for (size_t i = 0; i < nbTxs; i++)
+	{
+		printTransaction(block.tl.transactions[i]);
+	}
+}

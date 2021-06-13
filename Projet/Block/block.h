@@ -33,5 +33,6 @@ BLOCK_BIN blockToBin(BLOCK *b);
 BLOCK binToBlock(BYTE *bin);
 ull_t getSizeOf_blockbin(BLOCK *b);
 bool isGenesis(BLOCK *b);
+void printBlock(BLOCK block);
 
 #endif

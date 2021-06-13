@@ -54,6 +54,7 @@ void clearTxsList(TRANSACTIONS_LIST *tl);
 void removeTxsList(TRANSACTIONS_LIST *tl, ull_t start, ull_t end); //inclusive -  exclusive
 void freeTxsList(TRANSACTIONS_LIST *tl);
 void freeTxs(TRANSACTION *txs);
+void printTransaction(TRANSACTION t);
 
 
 
