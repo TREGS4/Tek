@@ -96,16 +96,11 @@ void *mining(void *arg)
     return NULL;
 }
 
-void *gestion(void *arg)
+int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struct server *network)
 {
-
-    /*
-        args
-    */
-    struct server *network = (struct server *)arg;
     if (network->status != ONLINE)
     {
-        return NULL;
+        return EXIT_FAILURE;
     }
 
     BLOCKCHAIN_M bc_m;
@@ -116,9 +111,6 @@ void *gestion(void *arg)
     TL_M txs_temp_m;
     pthread_mutex_init(&txs_temp_m.mutex, NULL);
     txs_temp_m.tl = initListTxs();
-
-    int isAPI = 0;
-    int isMINING = 1;
 
     pthread_t api_thread;
     shared_queue *api_txs;
@@ -139,8 +131,6 @@ void *gestion(void *arg)
     pthread_t mining_thread;
     shared_queue *mining_blocks;
     int mining_status = 1;
-    int nb_mining_thread = 1;
-    int difficulty = 2;
 
     MINING_THREAD_ARG args_mining = {
         .bc_m = &bc_m,
@@ -315,4 +305,6 @@ void *gestion(void *arg)
     pthread_mutex_destroy(&txs_temp_m.mutex);
     freeTxsList(&txs_temp_m.tl);
     freeBlockchain(&bc_m.bc);
+
+    return EXIT_SUCCESS;
 }

@@ -27,20 +27,17 @@ int connectClient(struct address address)
 	if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		return EXIT_FAILURE;
 
-	struct sockaddr_in IP = GetIPfromHostname(address); //return 0.0.0.0:00000 if the hostname is not valid
-	struct sockaddr_in temp;
-	memset(&temp, 0, sizeof(struct sockaddr_in));
+	struct sockaddr_in *IP = GetIPfromHostname(address);
 
-	if (memcmp(&IP, &temp, sizeof(struct sockaddr_in)) == 0)
-		return EXIT_FAILURE;
-
-	if (connect(skt, (struct sockaddr *)&IP, sizeof(struct sockaddr_in)) < 0)
+	if (IP == NULL || connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0)
 	{
+		if(IP != NULL)
+			free(IP);
 		fprintf(stderr, "Client: %s:%s disconnected\n", address.hostname, address.port);
-		perror(NULL);
 		return EXIT_FAILURE;
 	}
 
+	free(IP);
 	return skt;
 }
 

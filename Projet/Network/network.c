@@ -128,14 +128,15 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     /*
     *=========================================TEST==================================
     */
+
     if (server == NULL)
     {
-        fprintf(stderr, "Error while starting network: hostname is NULL\n");
+        fprintf(stderr, "Error while starting network: server is NULL\n");
         return EXIT_FAILURE;
     }
     if (hostname == NULL)
     {
-        fprintf(stderr, "Error while starting network: server is NULL\n");
+        fprintf(stderr, "Error while starting network: hostname is NULL\n");
         return EXIT_FAILURE;
     }
     if (port != NULL && strlen(port) > PORT_SIZE)

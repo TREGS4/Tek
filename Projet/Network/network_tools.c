@@ -58,18 +58,20 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
     if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         fprintf(stderr, "Can't create the socket, while trying to test %s:%s before adding it\n", address.hostname, address.port);
-        perror(NULL);
         return NULL;
     }
 
-    struct sockaddr_in IP = GetIPfromHostname(address);
+    struct sockaddr_in *IP = GetIPfromHostname(address);
 
-    if (connect(skt, (struct sockaddr *)&IP, sizeof(struct sockaddr_in)) < 0)
+    if (IP == NULL || connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0)
     {
+        if (IP != NULL)
+            free(IP);
         fprintf(stderr, "Can't add the client: %s:%s\n", address.hostname, address.port);
-        perror(NULL);
         return NULL;
     }
+
+    free(IP);
 
     close(skt);
     struct clientInfo *client = calloc(1, sizeof(struct clientInfo));
@@ -300,10 +302,10 @@ void *sendNetwork(void *arg)
     return NULL;
 }
 
-struct sockaddr_in GetIPfromHostname(struct address address)
+struct sockaddr_in *GetIPfromHostname(struct address address)
 {
-    struct sockaddr_in resIP, *temp;
-    struct addrinfo hints, *res;
+    struct sockaddr_in *resIP = NULL;
+    struct addrinfo hints, *res = NULL;
     memset(&resIP, 0, sizeof(struct sockaddr_in));
     memset(&hints, 0, sizeof(struct addrinfo));
 
@@ -312,13 +314,19 @@ struct sockaddr_in GetIPfromHostname(struct address address)
     if (address.hostname != NULL)
     {
         int r = getaddrinfo(address.hostname, address.port, &hints, &res);
-        temp = (struct sockaddr_in *)res->ai_addr;
-        if (temp != NULL && r == 0)
-            resIP = *temp;
+        if (res != NULL && res->ai_addr != NULL && r == 0)
+        {
+            resIP = malloc(sizeof(struct sockaddr_in));
+            if (resIP != NULL)
+                resIP = memcpy(resIP, res->ai_addr, sizeof(struct sockaddr_in));
+        }
+
         else
-            printf("An error as occured while resolving %s:%s", address.hostname, address.port);
-        freeaddrinfo(res);
+            printf("An error as occured while resolving %s:%s\n", address.hostname, address.port);
     }
+
+    if (res != NULL)
+        freeaddrinfo(res);
 
     return resIP;
 }
