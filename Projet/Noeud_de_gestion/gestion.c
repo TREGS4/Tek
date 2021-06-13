@@ -200,6 +200,7 @@ void *gestion(void *arg)
             { // blockchain
                 BLOCKCHAIN bc = binToBlockchain(message->data);
                 
+
                 // verifications
                 int res = checkBlockchain(&bc);
                 if (!res)

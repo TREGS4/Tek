@@ -143,7 +143,7 @@ BLOCK_BIN blockToBin(BLOCK *b)
 	cursor += sizeof(b->proof);
 	ull_t time = (ull_t)b->time;
 	memcpy(res + cursor, &time, sizeof(time));
-	cursor += sizeof(b->time);
+	cursor += sizeof(time);
 
 	for (ull_t i = 0; i < nbTxs; i++)
 	{
