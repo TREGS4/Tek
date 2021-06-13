@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-TRANSACTION CreateTxs(size_t amount, char *sender, char *receiver)
+TRANSACTION CreateTxs(ull_t amount, char *sender, char *receiver)
 {
 	time_t rawtime;
 	time(&rawtime);
@@ -13,8 +13,8 @@ TRANSACTION CreateTxs(size_t amount, char *sender, char *receiver)
 		.amount = amount,
 		.time = rawtime,
 	};
-	size_t sender_size = strlen(sender);
-	size_t receiver_size = strlen(receiver);
+	ull_t sender_size = strlen(sender);
+	ull_t receiver_size = strlen(receiver);
 	txs.sender = calloc(sender_size + 1, 1);
 	txs.receiver = calloc(receiver_size + 1, 1);
 	memcpy(txs.sender, sender, sender_size);
@@ -35,19 +35,19 @@ int TxsEqual(TRANSACTION *t1, TRANSACTION *t2){
 
 char *txsToString(TRANSACTION *txs)
 {
-	size_t size = strlen(txs->sender) + strlen(txs->receiver) + 14 + 11 + 1;
+	ull_t size = strlen(txs->sender) + strlen(txs->receiver) + 14 + 11 + 1;
 	char *res = calloc(1, size);
-	sprintf(res, "%s%s%014ld%011ld", txs->sender, txs->receiver, txs->amount, txs->time);
+	sprintf(res, "%s%s%014llu%011ld", txs->sender, txs->receiver, txs->amount, txs->time);
 	return res;
 }
 
 char *tlToString(TRANSACTIONS_LIST *tl)
 {
 	char *res = calloc(sizeof(char),1);
-	size_t offset = 0;
-	for (size_t i = 0; i < tl->size; i++){
+	ull_t offset = 0;
+	for (ull_t i = 0; i < tl->size; i++){
 		char *txs_buf = txsToString(&tl->transactions[i]);
-		size_t size = strlen(txs_buf);
+		ull_t size = strlen(txs_buf);
 		res = realloc(res, offset + size + 1);
 		sprintf(res + offset, "%s", txs_buf);
 		offset += size;
@@ -62,13 +62,13 @@ char *txsToJson(TRANSACTION *t)
 	char *s3 = "\",\"amount\":";
 	char *s4 = ",\"time\":";
 	char *s5 = "}";
-	size_t txs_size = strlen(t->receiver) + strlen(t->sender) + 14 + 11;
-	size_t size = strlen(s1) + strlen(s2) + strlen(s3) + strlen(s4) + strlen(s5);
+	ull_t txs_size = strlen(t->receiver) + strlen(t->sender) + 14 + 11;
+	ull_t size = strlen(s1) + strlen(s2) + strlen(s3) + strlen(s4) + strlen(s5);
 	char *res = calloc(size + txs_size + 1, sizeof(char));
 	char *json = NULL;
 	if (res != NULL)
 	{
-		sprintf(res, "%s%s%s%s%s%ld%s%ld%s", s1, t->sender, s2, t->receiver, s3, t->amount, s4, t->time, s5);
+		sprintf(res, "%s%s%s%s%s%llu%s%ld%s", s1, t->sender, s2, t->receiver, s3, t->amount, s4, t->time, s5);
 		size = strlen(res);
 		json = calloc(size + 1, sizeof(char));
 		if(json != NULL)
@@ -93,18 +93,18 @@ char *tlToJson(TRANSACTIONS_LIST *tl)
 {
 	char *s1 = "{\"transactions\":[";
 	char *s2 = "]}";
-	size_t size = strlen(s1) + strlen(s2);
+	ull_t size = strlen(s1) + strlen(s2);
 
 	char *json = NULL;
 
-	size_t nbTxs = tl->size;
+	ull_t nbTxs = tl->size;
 	char *restxs = NULL;
-	size_t txssize = 0;
-	for (size_t i = 0; i < nbTxs; i++)
+	ull_t txssize = 0;
+	for (ull_t i = 0; i < nbTxs; i++)
 	{
 		char *txsjson = txsToJson(&tl->transactions[i]);
-		size_t size_json = strlen(txsjson);
-		size_t t = txssize + size_json + 1;
+		ull_t size_json = strlen(txsjson);
+		ull_t t = txssize + size_json + 1;
 		restxs = realloc(restxs, t + 1);
 		if (restxs != NULL)
 		{
@@ -141,24 +141,24 @@ char *tlToJson(TRANSACTIONS_LIST *tl)
 	return json;
 }
 
-size_t getSizeOf_txsbin(TRANSACTION *t)
+ull_t getSizeOf_txsbin(TRANSACTION *t)
 {
-	size_t size = strlen(t->sender) + strlen(t->receiver);
-	size += sizeof(size_t) * 2;
+	ull_t size = strlen(t->sender) + strlen(t->receiver);
+	size += sizeof(ull_t) * 2;
 	size += sizeof(t->amount) + sizeof(t->time);
-	size += sizeof(size_t);
+	size += sizeof(ull_t);
 	return size;
 }
 TRANSACTION_BIN txsToBin(TRANSACTION *t)
 {
-	size_t size = getSizeOf_txsbin(t) - sizeof(size_t);
+	ull_t size = getSizeOf_txsbin(t) - sizeof(ull_t);
 	TRANSACTION_BIN txsbin = {
-		.nbBytes = size + sizeof(size_t),
+		.nbBytes = size + sizeof(ull_t),
 	};
 	txsbin.bin = calloc(1, txsbin.nbBytes);
-	size_t offset = 0;
+	ull_t offset = 0;
 
-	size_t tmp_size = sizeof(size_t);
+	ull_t tmp_size = sizeof(ull_t);
 	memcpy(txsbin.bin, &size, tmp_size);
 	offset += tmp_size;
 
@@ -176,6 +176,7 @@ TRANSACTION_BIN txsToBin(TRANSACTION *t)
 
 	tmp_size = sizeof(t->amount);
 	memcpy(txsbin.bin + offset, &t->amount, tmp_size);
+	
 	offset += tmp_size;
 
 	tmp_size = sizeof(t->time);
@@ -188,31 +189,32 @@ TRANSACTION_BIN txsToBin(TRANSACTION *t)
 TRANSACTION binToTxs(BYTE *bin)
 {
 	TRANSACTION txs;
-	size_t offset = 0;
+	ull_t offset = 0;
 
-	size_t size;
-	memcpy(&size, bin, sizeof(size_t));
-	offset += sizeof(size_t);
+	ull_t size;
+	memcpy(&size, bin, sizeof(ull_t));
+	offset += sizeof(ull_t);
 
-	size_t sender_size;
-	memcpy(&sender_size, bin + offset, sizeof(size_t));
-	offset += sizeof(size_t);
+	ull_t sender_size;
+	memcpy(&sender_size, bin + offset, sizeof(ull_t));
+	offset += sizeof(ull_t);
 	txs.sender = calloc(1, sender_size);
 	memcpy(txs.sender, bin + offset, sender_size);
 	offset += sender_size;
 
-	size_t receiver_size;
-	memcpy(&receiver_size, bin + offset, sizeof(size_t));
-	offset += sizeof(size_t);
+	ull_t receiver_size;
+	memcpy(&receiver_size, bin + offset, sizeof(ull_t));
+	offset += sizeof(ull_t);
 	txs.receiver = calloc(1, receiver_size);
 	memcpy(txs.receiver, bin + offset, receiver_size);
 	offset += receiver_size;
 
-	size_t amount_size = sizeof(txs.amount);
+	ull_t amount_size = sizeof(txs.amount);
 	memcpy(&txs.amount, bin + offset, amount_size);
 	offset += amount_size;
 
-	size_t time_size = sizeof(txs.time);
+
+	ull_t time_size = sizeof(txs.time);
 	memcpy(&txs.time, bin + offset, time_size);
 	offset += time_size;
 
@@ -254,10 +256,10 @@ void addTx(TRANSACTIONS_LIST *tl, TRANSACTION *t)
 }
 
 int hasSendedTxs(char *address, TRANSACTIONS_LIST *tl){
-	size_t size_address = strlen(address);
-	for (size_t i = 0; i < tl->size; i++){
-		size_t size_sender = strlen(tl->transactions[i].sender);
-		size_t cmp_size = (size_address > size_sender) ? size_address : size_sender;
+	ull_t size_address = strlen(address);
+	for (ull_t i = 0; i < tl->size; i++){
+		ull_t size_sender = strlen(tl->transactions[i].sender);
+		ull_t cmp_size = (size_address > size_sender) ? size_address : size_sender;
 		if (memcmp(tl->transactions[i].sender, address, cmp_size) == 0){
 			return 1;
 		}
@@ -265,12 +267,12 @@ int hasSendedTxs(char *address, TRANSACTIONS_LIST *tl){
 	return 0;
 }
 
-void removeTxsList(TRANSACTIONS_LIST *tl, size_t start, size_t end){
+void removeTxsList(TRANSACTIONS_LIST *tl, ull_t start, ull_t end){
 	TRANSACTIONS_LIST new_tl = initListTxs();
-	for (size_t i = 0; i < start; i++){
+	for (ull_t i = 0; i < start; i++){
 		addTx(&new_tl, &tl->transactions[i]);
 	}
-	for (size_t i = end; i < tl->size; i++){
+	for (ull_t i = end; i < tl->size; i++){
 		addTx(&new_tl, &tl->transactions[i]);
 	}
 	freeTxsList(tl);
@@ -284,7 +286,7 @@ void clearTxsList(TRANSACTIONS_LIST *tl){
 
 void freeTxsList(TRANSACTIONS_LIST *tl)
 {
-	for (size_t i = 0; i < tl->size; i++){
+	for (ull_t i = 0; i < tl->size; i++){
 		freeTxs(&tl->transactions[i]);
 	}
 	

@@ -7,14 +7,14 @@
 typedef struct
 {
 	BLOCK *blocks;
-	size_t blocksNumber;
+	ull_t blocksNumber;
 	
 } BLOCKCHAIN;
 
 typedef struct
 {
 	BYTE *bin;
-	size_t nbBytes;
+	ull_t nbBytes;
 } BLOCKCHAIN_BIN;
 
 typedef struct {
@@ -34,7 +34,7 @@ char *blockchainToJson(BLOCKCHAIN *bc);
 BLOCKCHAIN_BIN blockchainToBin(BLOCKCHAIN *bc);
 BLOCKCHAIN binToBlockchain(BYTE *bin);
 void freeBlockchain(BLOCKCHAIN *bc);
-size_t amountMoney(char *address, BLOCKCHAIN *bc);
-int enoughMoney(char *address, size_t amount, BLOCKCHAIN *bc);
+ull_t amountMoney(char *address, BLOCKCHAIN *bc);
+int enoughMoney(char *address, ull_t amount, BLOCKCHAIN *bc);
 
 #endif

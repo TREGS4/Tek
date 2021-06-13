@@ -2,12 +2,12 @@
 #define ACCOUNT_H
 
 #include <stdlib.h>
-
+#include "../general_informations.h"
 
 typedef struct
 {
 	char *publicKey_pem;
-    size_t size;
+    ull_t size;
 } ACCOUNT;
 
 

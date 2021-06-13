@@ -5,12 +5,13 @@
 
 
 
+
 ACCOUNT generate_account(){
     RSA *rsa;
 	rsa = generateRsaKeys(2048);
 	
 	char *pem;
-	size_t size = getPemFromRSA(rsa, &pem);
+	ull_t size = (ull_t)getPemFromRSA(rsa, &pem);
 	ACCOUNT acc;
 	acc.publicKey_pem = malloc(sizeof(char) * size + 1);
 	memcpy(acc.publicKey_pem, pem, size);

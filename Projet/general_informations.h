@@ -27,4 +27,6 @@
 #define EXITING 8
 #define STARTING 9
 
+typedef unsigned long long ull_t;
+
 #endif

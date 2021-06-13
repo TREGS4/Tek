@@ -18,8 +18,8 @@ char *string_append(char *full_request, char *request)
 char *findPath(char *str)
 {
 	char *res;
-	size_t start = 0;
-	size_t len;
+	ull_t start = 0;
+	ull_t len;
 
 	for (; (char)str[start] != ' '; start++)
 	{
@@ -40,22 +40,22 @@ char *findPath(char *str)
 
 	memset(res, 0, len + 1);
 
-	for (size_t i = 0; i < len; i++)
+	for (ull_t i = 0; i < len; i++)
 		res[i] = str[start + i];
 
 	return res;
 }
 
-int findInfoTxs(size_t *amount, char **sender, char **receiver, char *ressource)
+int findInfoTxs(ull_t *amount, char **sender, char **receiver, char *ressource)
 {
-	size_t nbarg = 6;
+	ull_t nbarg = 6;
 	char *infos[nbarg];
 
 	//?sender=LESENDER&receiver=LERECEIVER&amount=15
 
-	size_t start = 0;
-	size_t end = 0;
-	size_t n = 0;
+	ull_t start = 0;
+	ull_t end = 0;
+	ull_t n = 0;
 	int para = FALSE;
 
 	while (ressource[start] != '?' && ressource[start] != '\0')
@@ -93,7 +93,7 @@ int findInfoTxs(size_t *amount, char **sender, char **receiver, char *ressource)
 		para = !para;
 	}
 
-	for (size_t i = 0; i < n; i += 2)
+	for (ull_t i = 0; i < n; i += 2)
 	{
 		if (memcmp(infos[i], "sender", 7) == 0)
 		{
@@ -105,7 +105,7 @@ int findInfoTxs(size_t *amount, char **sender, char **receiver, char *ressource)
 		}
 		else if (memcmp(infos[i], "amount", 7) == 0)
 		{
-			*amount = (size_t)atol(infos[i + 1]);
+			*amount = (ull_t)atol(infos[i + 1]);
 			free(infos[i + 1]);
 		}
 		free(infos[i]);
@@ -114,7 +114,7 @@ int findInfoTxs(size_t *amount, char **sender, char **receiver, char *ressource)
 	return EXIT_SUCCESS;
 }
 
-void resend(int fd, const void *buf, size_t count, int flag)
+void resend(int fd, const void *buf, ull_t count, int flag)
 {
 	ssize_t send1 = send(fd, buf, count, flag);
 	if (send1 == -1)
@@ -168,7 +168,7 @@ void add_transaction_cmd(int client_socket_id, shared_queue *outgoingTxs, char *
 
 	char *sender = NULL;
 	char *receiver = NULL;
-	size_t amount = 0;
+	ull_t amount = 0;
 	findInfoTxs(&amount, &sender, &receiver, ressource);
 
 	if (amount <= 0 || sender == NULL || receiver == NULL)

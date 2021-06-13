@@ -13,7 +13,7 @@ void printTransaction(TRANSACTION t)
 {
 	char *time_str = ctime(&t.time);
 	time_str[strlen(time_str) - 1] = '\0';
-	printf("Amount : %14ld$. From %s to %s. date: %s\n", t.amount, t.sender, t.receiver, time_str);
+	printf("Amount : %14llu$. From %s to %s. date: %s\n", t.amount, t.sender, t.receiver, time_str);
 }
 
 void printBlock(BLOCK block)

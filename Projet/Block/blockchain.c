@@ -82,7 +82,7 @@ BLOCK createGenesis()
 
 	BYTE sum[4 * SHA256_BLOCK_SIZE + 1 + 11];
 	sprintf((char *)sum,"%011ld%s%s", newGenesis.time, (char *)Aprev_hash, (char *)Amerkle_hash);
-	size_t proof = (size_t)mine_from_string((char *)sum, 1, 2);
+	ull_t proof = (ull_t)mine_from_string((char *)sum, 1, 2);
 
 	newGenesis.proof = proof;
 
@@ -97,7 +97,7 @@ BLOCK createGenesis()
 
 int checkBlockchain(BLOCKCHAIN *blockchain)
 {
-	for (size_t i = 1 ; i < blockchain->blocksNumber ; i++)
+	for (ull_t i = 1 ; i < blockchain->blocksNumber ; i++)
 	{
 		BYTE hash[SHA256_BLOCK_SIZE];
 		BLOCK current = blockchain->blocks[i];
@@ -119,7 +119,7 @@ int checkBlockchain(BLOCKCHAIN *blockchain)
 
 void updateTlWithBc(TRANSACTIONS_LIST *tl, BLOCKCHAIN *bc){
 	TRANSACTIONS_LIST new_tl = initListTxs();
-	for (size_t i = 0; i < tl->size; i++){
+	for (ull_t i = 0; i < tl->size; i++){
 		if (!findTxsInBc(&tl->transactions[i], bc)){
 			if (enoughMoney(tl->transactions[i].sender, tl->transactions[i].amount, bc)){
 				addTx(&new_tl, &tl->transactions[i]);
@@ -131,8 +131,8 @@ void updateTlWithBc(TRANSACTIONS_LIST *tl, BLOCKCHAIN *bc){
 }
 
 int findTxsInBc(TRANSACTION *txs, BLOCKCHAIN *bc){
-	for (size_t i = 1; i < bc->blocksNumber; i++){
-		for (size_t a = 0; a < bc->blocks[i].tl.size; a++){
+	for (ull_t i = 1; i < bc->blocksNumber; i++){
+		for (ull_t a = 0; a < bc->blocks[i].tl.size; a++){
 			if (TxsEqual(txs, &bc->blocks[i].tl.transactions[a])){
 				return TRUE;
 			}
@@ -146,12 +146,12 @@ char *blockchainToJson(BLOCKCHAIN *bc)
 {
 	char *s1 = "{\"blocks\":[";
 	char *s2 = "]}";
-	size_t size = strlen(s1) + strlen(s2);
+	ull_t size = strlen(s1) + strlen(s2);
 	char *resblock = malloc(sizeof(char));
-	size_t blocksize = 0;
-	for (size_t i = 0; i < bc->blocksNumber; i++){
+	ull_t blocksize = 0;
+	for (ull_t i = 0; i < bc->blocksNumber; i++){
 		char *blockjson = blockToJson(&bc->blocks[i]);
-		size_t t = blocksize + strlen(blockjson) + 1;
+		ull_t t = blocksize + strlen(blockjson) + 1;
 		resblock = realloc(resblock, t);
 		if (i == bc->blocksNumber - 1){
 			sprintf(resblock + blocksize,"%s",blockjson);
@@ -171,16 +171,16 @@ char *blockchainToJson(BLOCKCHAIN *bc)
 
 BLOCKCHAIN_BIN blockchainToBin(BLOCKCHAIN *bc)
 {
-	size_t nbBlocks = bc->blocksNumber;
-	size_t size = sizeof(size_t);
-	size_t total_size = size;
+	ull_t nbBlocks = bc->blocksNumber;
+	ull_t size = sizeof(ull_t);
+	ull_t total_size = size;
 
 	BYTE *res = malloc(size);
-	size_t cursor = 0;
+	ull_t cursor = 0;
 	memcpy(res + cursor, &nbBlocks, sizeof(nbBlocks));
 	cursor += sizeof(nbBlocks);
 
-	for (size_t i = 0; i < bc->blocksNumber; i++){
+	for (ull_t i = 0; i < bc->blocksNumber; i++){
 		BLOCK_BIN blockbin = blockToBin(&bc->blocks[i]);
 		total_size += blockbin.nbBytes;
 		res = realloc(res, total_size);
@@ -197,8 +197,8 @@ BLOCKCHAIN_BIN blockchainToBin(BLOCKCHAIN *bc)
 
 
 BLOCKCHAIN binToBlockchain(BYTE *bin){
-	size_t nbBlocks;
-	size_t cursor = 0;
+	ull_t nbBlocks;
+	ull_t cursor = 0;
 	memcpy(&nbBlocks, bin + cursor, sizeof(nbBlocks));
 	cursor += sizeof(nbBlocks);
 
@@ -207,8 +207,8 @@ BLOCKCHAIN binToBlockchain(BYTE *bin){
 	};
 	bc.blocks = malloc(sizeof(BLOCK)*nbBlocks);
 
-	for (size_t i = 0; i < nbBlocks; i++){
-		size_t nbTxs;
+	for (ull_t i = 0; i < nbBlocks; i++){
+		ull_t nbTxs;
 		memcpy(&nbTxs, bin + cursor, sizeof(nbTxs));
 		BLOCK b = binToBlock(bin + cursor);
 		cursor += getSizeOf_blockbin(&b);
@@ -220,23 +220,23 @@ BLOCKCHAIN binToBlockchain(BYTE *bin){
 
 
 void freeBlockchain(BLOCKCHAIN *bc){
-	for (size_t i = 0; i < bc->blocksNumber; i++){
+	for (ull_t i = 0; i < bc->blocksNumber; i++){
 		freeBlock(&bc->blocks[i]);
 	}
 	free(bc->blocks);
 }
 
 
-size_t amountMoney(char *address, BLOCKCHAIN *bc)
+ull_t amountMoney(char *address, BLOCKCHAIN *bc)
 {
 	//N'A PAS ETAIT TESTEE
 
-	size_t money = 0;
-	size_t lenAddr = strlen(address);
+	ull_t money = 0;
+	ull_t lenAddr = strlen(address);
 
-	for(size_t i = 0; i < bc->blocksNumber; i++)
+	for(ull_t i = 0; i < bc->blocksNumber; i++)
 	{
-		for(size_t j = 0; j < bc->blocks[i].tl.size; j++)
+		for(ull_t j = 0; j < bc->blocks[i].tl.size; j++)
 		{
 			TRANSACTION temp = bc->blocks[i].tl.transactions[j];
 
@@ -255,7 +255,7 @@ size_t amountMoney(char *address, BLOCKCHAIN *bc)
 }
 
 
-int enoughMoney(char *address, size_t amount, BLOCKCHAIN *bc)
+int enoughMoney(char *address, ull_t amount, BLOCKCHAIN *bc)
 {
 	//N'A PAS ETAIT TESTEE
 

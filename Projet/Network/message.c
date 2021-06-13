@@ -76,7 +76,7 @@ void DestroyMessage(MESSAGE *message)
 */
 void printMessage(MESSAGE *message, struct sockaddr_in *IP)
 {
-    size_t taille = (5 + 10 + 21 + message->sizeData + sizeof(struct sockaddr_in)) * 10;
+    size_t taille = (3 + 10 + 21 + message->sizeData + sizeof(struct sockaddr_in)) * 10;
     char display[taille];
     char *mess = "Type: %d\nSize: %llu\nFrom: %s:%u\nData: ";
 
@@ -97,9 +97,9 @@ void printMessage(MESSAGE *message, struct sockaddr_in *IP)
     sprintf(display, mess, message->type, message->sizeData, buffIP, port);
     size_t offset = strlen(display);
 
-    for (size_t i = 0; i < message->sizeData * 5; i += 5)
+    for (size_t i = 0; i < message->sizeData * 3; i += 3)
     {
-        sprintf(display + offset + i, "%04x ", message->data[i / 5]);
+        sprintf(display + offset + i, "%02x ", message->data[i / 3]);
     }
     display[strlen(display)] = '\n';
     display[strlen(display)] = '\n';

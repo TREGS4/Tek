@@ -5,7 +5,8 @@
 #include "transactions.h"
 #include "../Noeud_de_minage/minage.h"
 
-#include <stdbool.h>  
+#include <stdbool.h>
+#include "../general_informations.h"
 
 
 typedef struct
@@ -13,14 +14,14 @@ typedef struct
 	BYTE previusHash[SHA256_BLOCK_SIZE];
 	TRANSACTIONS_LIST tl;
 	BYTE blockHash[SHA256_BLOCK_SIZE];
-	size_t proof;
+	ull_t proof;
 	time_t time;
 } BLOCK;
 
 typedef struct
 {
 	BYTE *bin;
-	size_t nbBytes;
+	ull_t nbBytes;
 } BLOCK_BIN;
 
 BLOCK initBlock();
@@ -30,7 +31,7 @@ void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE]);
 char *blockToJson(BLOCK *b);
 BLOCK_BIN blockToBin(BLOCK *b);
 BLOCK binToBlock(BYTE *bin);
-size_t getSizeOf_blockbin(BLOCK *b);
+ull_t getSizeOf_blockbin(BLOCK *b);
 bool isGenesis(BLOCK *b);
 
 #endif

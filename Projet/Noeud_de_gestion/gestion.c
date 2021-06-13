@@ -49,8 +49,8 @@ void *mining(void *arg)
 			memcpy(block->previusHash, prev_hash, SHA256_BLOCK_SIZE);
 
 			pthread_mutex_lock(&txl->mutex);
-            size_t nb_transactions = txl->tl.size;
-			for(size_t i = 0; i < nb_transactions; i++){
+            ull_t nb_transactions = txl->tl.size;
+			for(ull_t i = 0; i < nb_transactions; i++){
 				addTx(&block->tl, &txl->tl.transactions[i]);
 			}
 			pthread_mutex_unlock(&txl->mutex);
@@ -198,7 +198,7 @@ void *gestion(void *arg)
                int res = checkBlockchain(&bc);
                if (!res){
                     pthread_mutex_lock(&bc_m.mutex);
-                    size_t current_bc_size = bc_m.bc.blocksNumber;
+                    ull_t current_bc_size = bc_m.bc.blocksNumber;
                     if (current_bc_size == bc.blocksNumber){
                         BLOCK *last_cur_b = getLastBlock(&bc_m.bc);
                         BLOCK *last_new_b = getLastBlock(&bc);
@@ -253,6 +253,8 @@ void *gestion(void *arg)
                     addTx(&txs_temp_m.tl, txs);
                     TRANSACTION_BIN txsbin = txsToBin(txs);
                     MESSAGE *msg = CreateMessage(TYPE_TXS, txsbin.nbBytes, txsbin.bin);
+                    printMessage(msg, NULL);
+                    printf("amount : %llu\n", txs->amount);
                     shared_queue_push(network->OutgoingMessages, msg);
 
                     printf("FROM API: A acceptable transaction has been added.\n");
