@@ -5,11 +5,14 @@
 *   Initalise a server structure and return its pointer.
 *   If any error occurs return a null pointer.
 */
-struct server *initServer()
+struct server *initServer(int api, int mining)
 {
     struct server *server = malloc(sizeof(struct server));
     if (server != NULL)
     {
+        server->api = api;
+        server->mining = mining;
+
         int problemM1 = 0;
         int problemM2 = 0;
         server->KnownServers = NULL;
@@ -95,7 +98,9 @@ void *SendOutGoinMessages(void *arg)
         if (shared_queue_isEmpty(server->OutgoingMessages) == FALSE)
         {
             MESSAGE *messsage = shared_queue_pop(server->OutgoingMessages);
+            pthread_mutex_lock(&server->lockKnownServers);
             SendMessage(server->KnownServers, messsage);
+            pthread_mutex_unlock(&server->lockKnownServers);
             DestroyMessage(messsage);
         }
         sleep(0.05);
@@ -167,7 +172,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     }
     memcpy(server->address.hostname, hostname, strlen(hostname));
     memset(server->address.port, 0, PORT_SIZE + 1);
-
+ 
     if (port != NULL)
         memcpy(server->address.port, port, strlen(port));
     else
@@ -241,11 +246,11 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
             sleep(0.01);
 
         pthread_mutex_lock(&server->lockKnownServers);
-        if (addClient(server->KnownServers, server->address) == NULL)
+        if (addClient(server->KnownServers, server->address, server->api, server->mining) == NULL)
             problem = 1;
         if (problem == 0 && hostnameFirstServer != NULL)
         {
-            if (addClient(server->KnownServers, addressFirstServer) == NULL)
+            if (addClient(server->KnownServers, addressFirstServer, FALSE, FALSE) == NULL)
                 problem = 2;
         }
 

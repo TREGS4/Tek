@@ -4,6 +4,14 @@
 #include "network_tools.h"
 
 /*
+
+    PROBLEM: No mutext locking while modifing the clientlist could be dangerous
+
+*/
+
+
+
+/*
 *   Network start the peer to peer network, it need at least server and hostname arguments,
 *   the three last ones can be NULL.
 *   server: pointer to a server structure initialised with initServer().
@@ -26,7 +34,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
 *   Initalise a server structure and return its pointer.
 *   If any error occurs return a null pointer.
 */
-struct server *initServer();
+struct server *initServer(int api, int mining);
 
 /*
 *   Free properly the structure server pass in argument and all dynamic memory allocated in it. 
