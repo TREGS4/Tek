@@ -23,9 +23,16 @@ int Send(int fd, const void *buf, size_t count, int flag)
 int connectClient(struct address address)
 {
 	int skt = -1;
+	struct timeval timeout;      
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
 
 	if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		return EXIT_FAILURE;
+    
+    if (setsockopt (skt, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0)
+		return EXIT_FAILURE;
+
 
 	struct sockaddr_in *IP = GetIPfromHostname(address);
 

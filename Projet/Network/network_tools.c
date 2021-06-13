@@ -47,7 +47,10 @@ void freeClientList(struct clientInfo *clientList)
 */
 struct clientInfo *addClient(struct clientInfo *list, struct address address, int api, int mining)
 {
-    int skt;
+    int skt = -1;
+    struct timeval timeout;      
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
 
     if (address.hostname == NULL)
     {
@@ -60,6 +63,13 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
         fprintf(stderr, "Can't create the socket, while trying to test %s:%s before adding it\n", address.hostname, address.port);
         return NULL;
     }
+    
+    if (setsockopt (skt, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0)
+    {
+        fprintf(stderr, "Error can't set the flag of socket\n");
+        return NULL;
+    }
+
 
     struct sockaddr_in *IP = GetIPfromHostname(address);
 
