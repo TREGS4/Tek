@@ -39,7 +39,9 @@ void *mining(void *arg)
         //build a hash
         if (txl->tl.size != 0)
         {
+            pthread_mutex_lock(&blockchain->mutex);
             BLOCK *last_block = getLastBlock(&blockchain->bc);
+            pthread_mutex_unlock(&blockchain->mutex);
             BYTE prev_hash[SHA256_BLOCK_SIZE];
             memcpy(prev_hash, last_block->blockHash, SHA256_BLOCK_SIZE);
 
@@ -70,7 +72,7 @@ void *mining(void *arg)
             Aprev_hash[2 * SHA256_BLOCK_SIZE] = '\0';
             //mining a proof
             BYTE sum[4 * SHA256_BLOCK_SIZE + 11 + 1];
-            sprintf((char *)sum, "%011ld%s%s", block->time, (char *)Aprev_hash, (char *)Amerkle_hash);
+            sprintf((char *)sum, "%011llu%s%s", (ull_t)block->time, (char *)Aprev_hash, (char *)Amerkle_hash);
             unsigned long proof = mine_from_string((char *)sum, nb_thread, difficulty);
 
             pthread_mutex_lock(&txl->mutex);
@@ -116,7 +118,7 @@ void *gestion(void *arg)
     txs_temp_m.tl = initListTxs();
 
     int isAPI = 1;
-    int isMINING = 1;
+    int isMINING = 0;
 
     pthread_t api_thread;
     shared_queue *api_txs;
@@ -161,6 +163,7 @@ void *gestion(void *arg)
         if (!shared_queue_isEmpty(network->IncomingMessages))
         {
             MESSAGE *message = shared_queue_pop(network->IncomingMessages);
+
             if (message->type == TYPE_TXS)
             { //transactions
                 TRANSACTION txs = binToTxs((BYTE *)message->data);
@@ -195,7 +198,7 @@ void *gestion(void *arg)
             }
             else if (message->type == TYPE_BLOCKCHAIN)
             { // blockchain
-                BLOCKCHAIN bc = binToBlockchain((BYTE *)message->data);
+                BLOCKCHAIN bc = binToBlockchain(message->data);
                 
                 // verifications
                 int res = checkBlockchain(&bc);
@@ -251,7 +254,6 @@ void *gestion(void *arg)
         if (isAPI && !shared_queue_isEmpty(api_txs))
         {
             TRANSACTION *txs = shared_queue_pop(api_txs);
-            printf("time : %lu\n", txs->time);
             // verification of the transaction
             pthread_mutex_lock(&txs_temp_m.mutex);
             int hassended = hasSendedTxs(txs->sender, &txs_temp_m.tl);
@@ -273,8 +275,6 @@ void *gestion(void *arg)
                     addTx(&txs_temp_m.tl, txs);
                     TRANSACTION_BIN txsbin = txsToBin(txs);
                     MESSAGE *msg = CreateMessage(TYPE_TXS, txsbin.nbBytes, txsbin.bin);
-                    printMessage(msg, NULL);
-                    printf("amount : %llu\n", txs->amount);
                     shared_queue_push(network->OutgoingMessages, msg);
 
                     printf("FROM API: A acceptable transaction has been added.\n");

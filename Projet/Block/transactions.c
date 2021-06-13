@@ -214,9 +214,10 @@ TRANSACTION binToTxs(BYTE *bin)
 	memcpy(&txs.amount, bin + offset, amount_size);
 	offset += amount_size;
 
-
-	ull_t time_size = sizeof(txs.time);
-	memcpy(&txs.time, bin + offset, time_size);
+	ull_t time = 0;
+	ull_t time_size = sizeof(time);
+	memcpy(&time, bin + offset, time_size);
+	txs.time = (time_t)time;
 	offset += time_size;
 
 	return txs;

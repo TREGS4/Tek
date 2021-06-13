@@ -180,6 +180,7 @@ BLOCKCHAIN_BIN blockchainToBin(BLOCKCHAIN *bc)
 	memcpy(res + cursor, &nbBlocks, sizeof(nbBlocks));
 	cursor += sizeof(nbBlocks);
 
+
 	for (ull_t i = 0; i < bc->blocksNumber; i++){
 		BLOCK_BIN blockbin = blockToBin(&bc->blocks[i]);
 		total_size += blockbin.nbBytes;
@@ -201,12 +202,13 @@ BLOCKCHAIN binToBlockchain(BYTE *bin){
 	ull_t cursor = 0;
 	memcpy(&nbBlocks, bin + cursor, sizeof(nbBlocks));
 	cursor += sizeof(nbBlocks);
+	
 
 	BLOCKCHAIN bc = {
 		.blocksNumber = nbBlocks,
 	};
 	bc.blocks = malloc(sizeof(BLOCK)*nbBlocks);
-
+	
 	for (ull_t i = 0; i < nbBlocks; i++){
 		ull_t nbTxs;
 		memcpy(&nbTxs, bin + cursor, sizeof(nbTxs));

@@ -85,14 +85,13 @@ void printMessage(MESSAGE *message, struct sockaddr_in *IP)
     char buffIP[16];
     memcpy(buffIP, "NONE ", 5);
     uint16_t port = 0;
-    if (IP != NULL){
-        memset(buffIP, 0, 16);
-        if (IP != NULL)
-        {
-            inet_ntop(AF_INET, &IP->sin_addr, buffIP, 16);
-            port = ntohs(IP->sin_port);
-        }
+    memset(buffIP, 0, 16);
+    if (IP != NULL)
+    {
+        inet_ntop(AF_INET, &IP->sin_addr, buffIP, 16);
+        port = ntohs(IP->sin_port);
     }
+
         
     sprintf(display, mess, message->type, message->sizeData, buffIP, port);
     size_t offset = strlen(display);

@@ -44,9 +44,9 @@ void getHash(BLOCK *b, BYTE hash[SHA256_BLOCK_SIZE])
 	sha256ToAscii(merkleHash, var2);
 
 	ull_t offset = 0;
-	sprintf((char*)buf + offset, "%lld", b->proof);
+	sprintf((char*)buf + offset, "%llu", b->proof);
 	offset += proof_size;
-	sprintf((char*)buf + offset, "%011ld", b->time);
+	sprintf((char*)buf + offset, "%011llu", (ull_t)b->time);
 	offset += 11;
 	memcpy(buf + offset, var1, SHA256_BLOCK_SIZE*2);
 	offset += SHA256_BLOCK_SIZE*2;
@@ -118,7 +118,7 @@ char *blockToJson(BLOCK *b)
 ull_t getSizeOf_blockbin(BLOCK *b){
 	ull_t size = SHA256_BLOCK_SIZE * 2;
 	size += sizeof(b->proof);
-	size += sizeof(b->time);
+	size += sizeof(ull_t);
 	size += sizeof(ull_t);
 	for (ull_t i = 0; i < b->tl.size; i++){
 		size += getSizeOf_txsbin(&b->tl.transactions[i]);
@@ -141,7 +141,8 @@ BLOCK_BIN blockToBin(BLOCK *b)
 	cursor += SHA256_BLOCK_SIZE;
 	memcpy(res + cursor, &b->proof, sizeof(b->proof));
 	cursor += sizeof(b->proof);
-	memcpy(res + cursor, &b->time, sizeof(b->time));
+	ull_t time = (ull_t)b->time;
+	memcpy(res + cursor, &time, sizeof(time));
 	cursor += sizeof(b->time);
 
 	for (ull_t i = 0; i < nbTxs; i++)
@@ -173,7 +174,7 @@ BLOCK binToBlock(BYTE *bin){
 	ull_t proof = 0;
 	memcpy(&proof, bin + cursor, sizeof(proof));
 	cursor += sizeof(proof);
-	time_t time = 0;
+	ull_t time = 0;
 	memcpy(&time, bin + cursor, sizeof(time));
 	cursor += sizeof(time);
 
@@ -187,7 +188,7 @@ BLOCK binToBlock(BYTE *bin){
 	BLOCK b = {
 		.tl = tl,
 		.proof = proof,
-		.time = time,
+		.time = (time_t)time,
 	};
 	memcpy(b.previusHash, previusHash, SHA256_BLOCK_SIZE);
 	memcpy(b.blockHash, blockHash, SHA256_BLOCK_SIZE);
