@@ -145,7 +145,7 @@ ull_t getSizeOf_txsbin(TRANSACTION *t)
 {
 	ull_t size = strlen(t->sender) + strlen(t->receiver);
 	size += sizeof(ull_t) * 2;
-	size += sizeof(t->amount) + sizeof(t->time);
+	size += sizeof(t->amount) + sizeof(ull_t);
 	size += sizeof(ull_t);
 	return size;
 }
@@ -179,8 +179,9 @@ TRANSACTION_BIN txsToBin(TRANSACTION *t)
 	
 	offset += tmp_size;
 
-	tmp_size = sizeof(t->time);
-	memcpy(txsbin.bin + offset, &t->time, tmp_size);
+	tmp_size = sizeof(ull_t);
+	ull_t time = (ull_t)t->time;
+	memcpy(txsbin.bin + offset, &time, tmp_size);
 	offset += tmp_size;
 
 	return txsbin;
