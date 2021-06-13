@@ -73,7 +73,7 @@ void *mining(void *arg)
             //mining a proof
             BYTE sum[4 * SHA256_BLOCK_SIZE + 11 + 1];
             sprintf((char *)sum, "%011llu%s%s", (ull_t)block->time, (char *)Aprev_hash, (char *)Amerkle_hash);
-            unsigned long proof = mine_from_string((char *)sum, nb_thread, difficulty);
+            ull_t proof = mine_from_string((char *)sum, nb_thread, difficulty);
 
             pthread_mutex_lock(&txl->mutex);
             removeTxsList(&txl->tl, 0, nb_transactions);
@@ -117,8 +117,8 @@ void *gestion(void *arg)
     pthread_mutex_init(&txs_temp_m.mutex, NULL);
     txs_temp_m.tl = initListTxs();
 
-    int isAPI = 1;
-    int isMINING = 0;
+    int isAPI = 0;
+    int isMINING = 1;
 
     pthread_t api_thread;
     shared_queue *api_txs;

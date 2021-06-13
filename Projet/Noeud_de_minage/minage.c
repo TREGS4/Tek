@@ -15,9 +15,9 @@ struct mining_arg{
 };
 
 //len of the proof if it was a string
-size_t len_of_proof(size_t proof){
+size_t len_of_proof(ull_t proof){
 	size_t len = 0;
-	size_t tmp = proof;
+	ull_t tmp = proof;
 	while(tmp != 0){
 		tmp /= 10;
 		len++;
@@ -32,7 +32,7 @@ void *thread_mining(void *arg){
 	int diff = m_a->diff;
 	char * sum = m_a->sum;
 	unsigned long nbthread = m_a->nbthread;
-	unsigned long *proof = malloc(sizeof(unsigned long));
+	ull_t *proof = malloc(sizeof(ull_t));
 	*proof = m_a->start;
 	int *ismining = m_a->ismining;
 	free(m_a);
@@ -42,7 +42,7 @@ void *thread_mining(void *arg){
 	char str[8*SHA256_BLOCK_SIZE];
 	while(res == 1 && *ismining == 0){
 		//str = sum + proof
-		sprintf((char *)str, "%ld%s", *proof, sum);
+		sprintf((char *)str, "%llu%s", *proof, sum);
 		//printf("proof : %ld\nstring : %s\n",*proof, str);
 
 		//hash with sha256
@@ -68,11 +68,11 @@ void *thread_mining(void *arg){
 }
 
 //return 0 if proof is correct, 1 if not
-unsigned int testproof(int diff, char * sum, unsigned long proof){
+unsigned int testproof(int diff, char * sum, ull_t proof){
 	unsigned int res = 0;
 	BYTE str[4 * SHA256_BLOCK_SIZE + len_of_proof(proof) + 1];
 	//str = sum + proof
-	sprintf((char *)str, "%ld%s", proof, sum);
+	sprintf((char *)str, "%llu%s", proof, sum);
 
 	//hash with sha256
 	BYTE buf[SHA256_BLOCK_SIZE];
@@ -87,7 +87,7 @@ unsigned int testproof(int diff, char * sum, unsigned long proof){
 
 
 //find the proof from the string
-unsigned int mine_from_string(char *sum, int nbthread, int diff){
+ull_t mine_from_string(char *sum, int nbthread, int diff){
 
 
 	//uncomment to debug
@@ -95,8 +95,8 @@ unsigned int mine_from_string(char *sum, int nbthread, int diff){
 
 	//threads for the mining
 	pthread_t thr[nbthread];
-	unsigned int proof = 0;
-	unsigned int *output = NULL;
+	ull_t proof = 0;
+	ull_t *output = NULL;
 	int ismining = 0;
 	for(int n = 0; n < nbthread; n++){
 		//struct for arg
