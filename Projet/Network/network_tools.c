@@ -64,7 +64,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
         return NULL;
     }
     
-    if (setsockopt (skt, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0)
+    if (setsockopt (skt, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0)
     {
         fprintf(stderr, "Error can't set the flag of socket\n");
         return NULL;

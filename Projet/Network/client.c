@@ -30,7 +30,7 @@ int connectClient(struct address address)
 	if ((skt = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		return EXIT_FAILURE;
     
-    if (setsockopt (skt, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0)
+    if (setsockopt (skt, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0)
 		return EXIT_FAILURE;
 
 
