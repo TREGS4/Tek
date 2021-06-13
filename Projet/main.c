@@ -110,14 +110,14 @@ int grosTest(int argc, char **argv)
 	{
 		sleep(0.2);
 	}
-	//pthread_t gestionthread;
-	//pthread_create(&gestionthread, NULL, gestion, (void *)server);
+	pthread_t gestionthread;
+	pthread_create(&gestionthread, NULL, gestion, (void *)server);
 
-	sleep(10);
-	server->status = EXITING;
+	//sleep(10);
+	//server->status = EXITING;
 
 	pthread_join(networkthread, NULL);
-	//pthread_join(gestionthread, NULL);
+	pthread_join(gestionthread, NULL);
 
 	freeServer(network.server);
 
