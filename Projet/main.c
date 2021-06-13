@@ -34,7 +34,7 @@ int grosTest(int argc, char **argv)
 		return -1;
 	}
 
-	struct server *server = initServer();
+	struct server *server = initServer(TRUE, TRUE);
 	NETWORK network;
 	network.server = server;
 	network.IP = argv[1];
@@ -60,6 +60,9 @@ int grosTest(int argc, char **argv)
 	}
 	pthread_t gestionthread;
 	pthread_create(&gestionthread, NULL, gestion, (void *)server);
+
+	//sleep(10);
+	//server->status = EXITING;
 
 	pthread_join(networkthread, NULL);
 	pthread_join(gestionthread, NULL);

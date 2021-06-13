@@ -33,6 +33,8 @@ struct address
 struct clientInfo
 {
     struct address address;
+    int api;
+    int mining;
 
     //TRUE is the it's the sentinel, FALSE otherwise
     short isSentinel;
@@ -50,6 +52,10 @@ struct server
 {
     //Status of the server
     int status;
+    
+    //Boolean saying if the server is also api and/or a miner
+    int api;
+    int mining;
     
     struct address address;
     
@@ -76,7 +82,7 @@ void freeClientList(struct clientInfo *clientList);
 //add the new element is the list, not necessarily at the end
 //Before adding try to connect, if it fails it does not add the client and return NULL
 //return the pointer of the new client otherwise.
-struct clientInfo *addClient(struct clientInfo *list, struct address address);
+struct clientInfo *addClient(struct clientInfo *list, struct address address, int api, int mining);
 
 //Remove the client from the list
 int removeClient(struct clientInfo *client);
@@ -90,7 +96,7 @@ struct clientInfo *last(struct clientInfo *client);
 //Compare to sockaddr_in, if there are equals return TRUE, FALSE otherwise
 int sameIP(struct address addr1, struct address addr2);
 
-//Search the tab in the list, return his pointer if find, Null pointer otherwise
+//Search the addr in the list, return his pointer if find, Null pointer otherwise
 struct clientInfo *FindClient(struct address addr, struct clientInfo *list);
 
 //Print the hostname and port in the terminal

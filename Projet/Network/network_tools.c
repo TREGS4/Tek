@@ -45,7 +45,7 @@ void freeClientList(struct clientInfo *clientList)
 *
 *   Before anything the function try to connect to the client to be sure it's a valid client.
 */
-struct clientInfo *addClient(struct clientInfo *list, struct address address)
+struct clientInfo *addClient(struct clientInfo *list, struct address address, int api, int mining)
 {
     int skt;
 
@@ -80,6 +80,8 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address)
         client->isSentinel = FALSE;
         memcpy(client->address.port, address.port, strlen(address.port));
         memcpy(client->address.hostname, address.hostname, strlen(address.hostname));
+        client->api = api;
+        client->mining = mining;
 
         client->next = list->next;
         client->prev = list;
@@ -193,6 +195,8 @@ void printIP(struct sockaddr_in *IP)
 void addServerFromMessage(MESSAGE *message, struct server *server)
 {
     size_t offset = 0;
+    size_t sizeAPI = sizeof(server->api);
+    size_t sizeMining = sizeof(server->mining);
 
     //peut y avoir un souci si la taille de data depasse la taille du buffer du file descriptor
     //comportement inconnu dans ce cas la
@@ -200,6 +204,8 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
     while (offset < message->sizeData)
     {
         struct address temp;
+        int api = FALSE;
+        int mining = FALSE;
         uint16_t size = 0;
         uint16_t sizeHostname;
 
@@ -213,9 +219,22 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
         memcpy(temp.port, message->data + offset + sizeHostname, PORT_SIZE + 1);
         offset += size;
 
+        memcpy(&api, message->data + offset, sizeAPI);
+        offset += sizeAPI;
+        memcpy(&mining, message->data + offset, sizeMining);
+        offset += sizeMining;
+
         pthread_mutex_lock(&server->lockKnownServers);
-        if (FindClient(temp, server->KnownServers) == NULL)
-            addClient(server->KnownServers, temp);
+        struct clientInfo *tempClient = FindClient(temp, server->KnownServers);
+        if (tempClient == NULL)
+        {
+            addClient(server->KnownServers, temp, api, mining);
+        }
+        else
+        {
+            tempClient->api = api;
+            tempClient->mining = mining;
+        }
         pthread_mutex_unlock(&server->lockKnownServers);
 
         free(temp.hostname);
@@ -230,6 +249,8 @@ void *sendNetwork(void *arg)
     unsigned long long dataSize = 0;
     BYTE *messageBuff;
     size_t offset = 0;
+    size_t sizeAPI = sizeof(server->api);
+    size_t sizeMining = sizeof(server->mining);
 
     while (server->status != EXITING)
     {
@@ -239,7 +260,7 @@ void *sendNetwork(void *arg)
         pthread_mutex_lock(&server->lockKnownServers);
 
         for (struct clientInfo *temp = server->KnownServers->sentinel->next; temp->isSentinel == FALSE; temp = temp->next)
-            dataSize += strlen(temp->address.hostname) + 1 + PORT_SIZE + 1 + HEADER_HOSTNAME_SIZE;
+            dataSize += strlen(temp->address.hostname) + 1 + PORT_SIZE + 1 + HEADER_HOSTNAME_SIZE + sizeMining + sizeAPI;
 
         messageBuff = malloc(sizeof(BYTE) * dataSize);
 
@@ -255,6 +276,11 @@ void *sendNetwork(void *arg)
             offset += sizeHostname;
             memcpy(messageBuff + offset, client->address.port, PORT_SIZE + 1);
             offset += PORT_SIZE + 1;
+
+            memcpy(messageBuff + offset, &server->api, sizeAPI);
+            offset += sizeAPI;
+            memcpy(messageBuff + offset, &server->mining, sizeMining);
+            offset += sizeMining;
         }
 
         pthread_mutex_unlock(&server->lockKnownServers);
@@ -299,11 +325,11 @@ struct sockaddr_in GetIPfromHostname(struct address address)
 
 char *ServerToJSON(struct clientInfo *client)
 {
-    char *base = "{\"hostname\":\"%s\",\"port\":%s}";
-    size_t nbChar = strlen(client->address.hostname) + strlen(client->address.port) + strlen(base);
+    char *base = "{\"hostname\":\"%s\",\"port\":%s,\"api\":%d,\"mining\":%d}";
+    size_t nbChar = strlen(client->address.hostname) + strlen(client->address.port) + strlen(base) + 2;
     char *res = calloc(1, nbChar + 1);
 
-    sprintf(res, base, client->address.hostname, client->address.port);
+    sprintf(res, base, client->address.hostname, client->address.port, client->api, client->mining);
 
     return res;
 }
