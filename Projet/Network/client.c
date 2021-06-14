@@ -119,13 +119,14 @@ void SendMessage(struct clientInfo *clientList, MESSAGE *message)
 		{
 			pthread_join(tab[i].thread, NULL);
 
-			if (tab[i++].res == EXIT_FAILURE)
+			if (tab[i].res == EXIT_FAILURE)
 			{
 				struct clientInfo *temp = clientList;
 				clientList = clientList->next;
 				removeClient(temp);
 			}
 		}
+		i++;
 	}
 
 	free(tab);
