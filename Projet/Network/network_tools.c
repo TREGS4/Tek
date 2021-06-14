@@ -127,6 +127,8 @@ int removeClient(struct clientInfo *client)
     client->prev->next = client->next;
     client->next->prev = client->prev;
 
+    printf("Client: %s:%s successfully removed\n", client->address.hostname, client->address.port);
+
     free(client->address.hostname);
     free(client);
 

@@ -83,6 +83,7 @@ void *SendMessageThread(void *arg)
 {
 	struct msgInfo *temp = arg;
 	temp->res = SendMessageForOneClient(temp->client, temp->msg);
+
 	return NULL;
 }
 
@@ -104,8 +105,9 @@ void SendMessage(struct clientInfo *clientList, MESSAGE *message)
 	{
 		tab[i].msg = message;
 		tab[i].client = clientList;
+		tab[i].res = -2;
 
-		if (pthread_create(&tab[i].thread, NULL, SendMessageThread, (void *)tab + i) != 0)
+		if (pthread_create(&tab[i].thread, NULL, SendMessageThread, (void *)&tab[i]) != 0)
 			tab[i].res = ERROR;
 			
 		i++;
@@ -115,7 +117,7 @@ void SendMessage(struct clientInfo *clientList, MESSAGE *message)
 
 	for (clientList = clientList->sentinel->next; clientList->isSentinel == FALSE; clientList = clientList->next)
 	{
-		if (tab[i].res != ERROR)
+		if (tab[i].res == -2 || tab[i].res == EXIT_SUCCESS || tab[i].res == EXIT_FAILURE)
 		{
 			pthread_join(tab[i].thread, NULL);
 
