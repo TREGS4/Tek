@@ -70,8 +70,6 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
         return NULL;
     }
 
-    printf("on est la\n");
-
     struct sockaddr_in *IP = GetIPfromHostname(address);
 
     printf("IP ptr: %p\n", IP);
@@ -346,6 +344,7 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
     if (res != NULL)
         freeaddrinfo(res);
 
+    printf("on est a la fin de la fonction\n");
     return resIP;
 }
 
