@@ -243,7 +243,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
         *   added to the list. The first server we are contaction is ourselves so we need to
         *   wait.
         */
-        server->status = ONLINE;
+
         while (server->status != ONLINE)
             sleep(0.01);
 
