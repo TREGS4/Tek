@@ -252,7 +252,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
             problem = 1;
         if (problem == 0 && hostnameFirstServer != NULL)
         {
-            if (addClient(server->KnownServers, addressFirstServer, FALSE, FALSE) == NULL)
+            if (addClient(server->KnownServers, addressFirstServer, -1, -1) == NULL)
                 problem = 2;
         }
 
