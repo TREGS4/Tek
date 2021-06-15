@@ -12,6 +12,7 @@ struct server *initServer(int api, int mining)
     {
         server->api = api;
         server->mining = mining;
+        server->waitForMessage = FALSE;
 
         int problemM1 = 0;
         int problemM2 = 0;
@@ -185,6 +186,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
 
     if (hostnameFirstServer != NULL)
     {
+        server->waitForMessage = TRUE;
         addressFirstServer.hostname = calloc(1, strlen(hostnameFirstServer) + 1);
         memcpy(addressFirstServer.hostname, hostnameFirstServer, strlen(hostnameFirstServer));
         memset(addressFirstServer.port, 0, PORT_SIZE + 1);
