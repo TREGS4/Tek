@@ -87,7 +87,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
     close(skt);
 
     printf("on est toujours la\n");
-    /*struct clientInfo *client = calloc(1, sizeof(struct clientInfo));
+    struct clientInfo *client = calloc(1, sizeof(struct clientInfo));
     client->address.hostname = calloc(1, sizeof(BYTE) * (strlen(address.hostname) + 1));
 
     if (client != NULL)
@@ -111,7 +111,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
     else
         fprintf(stderr, "Error during the allocation of memory for %s:%s in addClient()\n", address.hostname, address.port);
 
-    return client;*/
+    return client;
     return NULL;
 }
 
@@ -327,6 +327,9 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
 
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
+
+    printf("on affiche ce qu'il recoit: %s:%s\n", address.hostname, address.port);
+
     if (address.hostname != NULL)
     {
         int r = getaddrinfo(address.hostname, address.port, &hints, &res);
