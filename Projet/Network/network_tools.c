@@ -246,7 +246,6 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
         }
         else
         {
-            printf("%s:%s Api: %d mining: %d\n", temp.hostname, temp.port, api, mining);
             if (api != -1)
                 tempClient->api = api;
             if (mining != -1)
@@ -255,11 +254,6 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
         pthread_mutex_unlock(&server->lockKnownServers);
 
         free(temp.hostname);
-    }
-
-    for (struct clientInfo *client = server->KnownServers->next; client->isSentinel == FALSE; client = client->next)
-    {
-        //printf("%s:%s Api: %d mining: %d\n", client->address.hostname, client->address.port, client->api, client->mining);
     }
 }
 
