@@ -345,7 +345,8 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
         freeaddrinfo(res);
 */
     printf("on est a la fin de la fonction\n");
-    return resIP;
+    //return resIP;
+    return NULL;
 }
 
 char *ServerToJSON(struct clientInfo *client)
