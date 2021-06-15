@@ -246,6 +246,7 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
         }
         else
         {
+            printf("%s:%s Api: %d mining: %d\n", temp.hostname, temp.port, api, mining);
             if (api != -1)
                 tempClient->api = api;
             if (mining != -1)
@@ -258,7 +259,7 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
 
     for (struct clientInfo *client = server->KnownServers->next; client->isSentinel == FALSE; client = client->next)
     {
-        printf("%s:%s Api: %d mining: %d\n", client->address.hostname, client->address.port, client->api, client->mining);
+        //printf("%s:%s Api: %d mining: %d\n", client->address.hostname, client->address.port, client->api, client->mining);
     }
 }
 
@@ -299,9 +300,9 @@ void *sendNetwork(void *arg)
             memcpy(messageBuff + offset, client->address.port, PORT_SIZE + 1);
             offset += PORT_SIZE + 1;
 
-            memcpy(messageBuff + offset, &server->api, sizeAPI);
+            memcpy(messageBuff + offset, &client->api, sizeAPI);
             offset += sizeAPI;
-            memcpy(messageBuff + offset, &server->mining, sizeMining);
+            memcpy(messageBuff + offset, &client->mining, sizeMining);
             offset += sizeMining;
         }
 
