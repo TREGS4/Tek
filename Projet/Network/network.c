@@ -248,6 +248,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
             sleep(0.01);
 
         pthread_mutex_lock(&server->lockKnownServers);
+        printf("truc: %s:%s, api: %d, mining: %d, ptr: %p\n", server->address.hostname, server->address.port, server->api, server->mining, server->KnownServers);
         if (addClient(server->KnownServers, server->address, server->api, server->mining) == NULL)
             problem = 1;
         if (problem == 0 && hostnameFirstServer != NULL)
