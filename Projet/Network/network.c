@@ -210,7 +210,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     /*
     *====================================STARTIGN THREAD============================
     */
-    problem = 0; /*pthread_create(&serverThread, NULL, Server, (void *)server);
+    problem = pthread_create(&serverThread, NULL, Server, (void *)server);
     if (problem != 0)
         problem = -1;
 
@@ -226,7 +226,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
         problem = pthread_create(&sendNetworkThread, NULL, sendNetwork, (void *)server);
         if (problem != 0)
             problem = -3;
-    }*/
+    }
 
     /*
     *==============================================================================

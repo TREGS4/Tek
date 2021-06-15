@@ -74,7 +74,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
 
     printf("IP ptr: %p\n", IP);
 
-    /*if (IP == NULL || connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0)
+    if (IP == NULL || connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0)
     {
         if (IP != NULL)
             free(IP);
@@ -111,8 +111,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
     else
         fprintf(stderr, "Error during the allocation of memory for %s:%s in addClient()\n", address.hostname, address.port);
 
-    return client;*/
-    return NULL;
+    return client;
 }
 
 /*
@@ -322,7 +321,6 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
 {
     struct sockaddr_in *resIP = NULL;
     struct addrinfo hints, *res = NULL;
-    /*memset(&resIP, 0, sizeof(struct sockaddr_in));
     memset(&hints, 0, sizeof(struct addrinfo));
 
     hints.ai_family = AF_INET;
@@ -335,7 +333,7 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
         {
             resIP = malloc(sizeof(struct sockaddr_in));
             if (resIP != NULL)
-                resIP = memcpy(resIP, res->ai_addr, sizeof(struct sockaddr_in));
+                memcpy(resIP, res->ai_addr, sizeof(struct sockaddr_in));
         }
         else
             printf("An error as occured while resolving %s:%s\n", address.hostname, address.port);
@@ -343,8 +341,7 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
 
     if (res != NULL)
         freeaddrinfo(res);
-*/
-    printf("on est a la fin de la fonction\n");
+
     return resIP;
 }
 
