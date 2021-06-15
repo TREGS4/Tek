@@ -93,7 +93,7 @@ void *Server(void *arg)
 	hints.ai_flags = AI_PASSIVE;
 
 	getaddrinfo(NULL, server->address.port, &hints, &res);
-/*
+
 	while (res != NULL && connect == 0)
 	{
 		int value = 1;
@@ -112,7 +112,7 @@ void *Server(void *arg)
 			res = res->ai_next;
 	}
 
-	freeaddrinfo(res);
+	//freeaddrinfo(res);
 
 	if (skt < 0)
 		err(EXIT_FAILURE, "Error while creating the socket in server.c");
@@ -158,7 +158,6 @@ void *Server(void *arg)
 	}
 
 	close(skt);
-*/
 	printf("Server is exiting\n");
 	return NULL;
 }
