@@ -210,8 +210,8 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     /*
     *====================================STARTIGN THREAD============================
     */
-    problem = pthread_create(&serverThread, NULL, Server, (void *)server);
-    /*if (problem != 0)
+    problem = 0;/*pthread_create(&serverThread, NULL, Server, (void *)server);
+    if (problem != 0)
         problem = -1;
 
     if (problem == 0)
@@ -243,6 +243,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
         *   added to the list. The first server we are contaction is ourselves so we need to
         *   wait.
         */
+        server->status = ONLINE;
         while (server->status != ONLINE)
             sleep(0.01);
 

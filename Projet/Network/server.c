@@ -112,7 +112,7 @@ void *Server(void *arg)
 			res = res->ai_next;
 	}
 
-	//freeaddrinfo(res);
+	freeaddrinfo(res);
 
 	if (skt < 0)
 		err(EXIT_FAILURE, "Error while creating the socket in server.c");
