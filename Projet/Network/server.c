@@ -93,7 +93,7 @@ void *Server(void *arg)
 	hints.ai_flags = AI_PASSIVE;
 
 	getaddrinfo(NULL, server->address.port, &hints, &res);
-
+/*
 	while (res != NULL && connect == 0)
 	{
 		int value = 1;
@@ -127,7 +127,7 @@ void *Server(void *arg)
 	{
 		fprintf(stderr, "Error while setting not blocking fd in server()\n");
 	}
-/*
+
 	while (server->status != EXITING)
 	{
 		struct connection *client = malloc(sizeof(struct connection));
