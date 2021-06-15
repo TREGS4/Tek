@@ -70,6 +70,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
         return NULL;
     }
 
+    printf("on est la\n");
 
     struct sockaddr_in *IP = GetIPfromHostname(address);
 
@@ -84,6 +85,8 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
     free(IP);
 
     close(skt);
+
+    printf("on est toujours la\n");
     /*struct clientInfo *client = calloc(1, sizeof(struct clientInfo));
     client->address.hostname = calloc(1, sizeof(BYTE) * (strlen(address.hostname) + 1));
 
