@@ -56,7 +56,6 @@ struct server
     //Boolean saying if the server is also api and/or a miner
     int api;
     int mining;
-    int waitForMessage;
     
     struct address address;
     

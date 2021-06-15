@@ -246,8 +246,10 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
         }
         else
         {
-            tempClient->api = api;
-            tempClient->mining = mining;
+            if (api != -1)
+                tempClient->api = api;
+            if (mining != -1)
+                tempClient->mining = mining;
         }
         pthread_mutex_unlock(&server->lockKnownServers);
 
@@ -258,8 +260,6 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
     {
         printf("%s:%s Api: %d mining: %d\n", client->address.hostname, client->address.port, client->api, client->mining);
     }
-
-    server->waitForMessage = FALSE;
 }
 
 void *sendNetwork(void *arg)
@@ -275,50 +275,48 @@ void *sendNetwork(void *arg)
 
     while (server->status != EXITING)
     {
-        if (server->waitForMessage == FALSE)
+
+        dataSize = 0;
+        offset = 0;
+
+        pthread_mutex_lock(&server->lockKnownServers);
+
+        for (struct clientInfo *temp = server->KnownServers->sentinel->next; temp->isSentinel == FALSE; temp = temp->next)
+            dataSize += strlen(temp->address.hostname) + 1 + PORT_SIZE + 1 + HEADER_HOSTNAME_SIZE + sizeMining + sizeAPI;
+
+        messageBuff = malloc(sizeof(BYTE) * dataSize);
+
+        for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
         {
-            dataSize = 0;
-            offset = 0;
+            uint16_t sizeHostname = strlen(client->address.hostname) + 1;
+            uint16_t size = sizeHostname + PORT_SIZE + 1;
 
-            pthread_mutex_lock(&server->lockKnownServers);
+            memcpy(messageBuff + offset, &size, HEADER_HOSTNAME_SIZE);
+            offset += HEADER_HOSTNAME_SIZE;
 
-            for (struct clientInfo *temp = server->KnownServers->sentinel->next; temp->isSentinel == FALSE; temp = temp->next)
-                dataSize += strlen(temp->address.hostname) + 1 + PORT_SIZE + 1 + HEADER_HOSTNAME_SIZE + sizeMining + sizeAPI;
+            memcpy(messageBuff + offset, client->address.hostname, sizeHostname);
+            offset += sizeHostname;
+            memcpy(messageBuff + offset, client->address.port, PORT_SIZE + 1);
+            offset += PORT_SIZE + 1;
 
-            messageBuff = malloc(sizeof(BYTE) * dataSize);
-
-            for (client = client->sentinel->next; client->isSentinel == FALSE; client = client->next)
-            {
-                uint16_t sizeHostname = strlen(client->address.hostname) + 1;
-                uint16_t size = sizeHostname + PORT_SIZE + 1;
-
-                memcpy(messageBuff + offset, &size, HEADER_HOSTNAME_SIZE);
-                offset += HEADER_HOSTNAME_SIZE;
-
-                memcpy(messageBuff + offset, client->address.hostname, sizeHostname);
-                offset += sizeHostname;
-                memcpy(messageBuff + offset, client->address.port, PORT_SIZE + 1);
-                offset += PORT_SIZE + 1;
-
-                memcpy(messageBuff + offset, &server->api, sizeAPI);
-                offset += sizeAPI;
-                memcpy(messageBuff + offset, &server->mining, sizeMining);
-                offset += sizeMining;
-            }
-
-            pthread_mutex_unlock(&server->lockKnownServers);
-
-            MESSAGE *message = CreateMessage(type, dataSize, messageBuff);
-
-            if (message != NULL)
-            {
-                shared_queue_push(server->OutgoingMessages, message);
-            }
-
-            free(messageBuff);
+            memcpy(messageBuff + offset, &server->api, sizeAPI);
+            offset += sizeAPI;
+            memcpy(messageBuff + offset, &server->mining, sizeMining);
+            offset += sizeMining;
         }
-        sleep(2);
+
+        pthread_mutex_unlock(&server->lockKnownServers);
+
+        MESSAGE *message = CreateMessage(type, dataSize, messageBuff);
+
+        if (message != NULL)
+        {
+            shared_queue_push(server->OutgoingMessages, message);
+        }
+
+        free(messageBuff);
     }
+    sleep(2);
 
     printf("Send Network is exiting\n");
     return NULL;
