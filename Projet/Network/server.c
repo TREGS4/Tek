@@ -92,6 +92,8 @@ void *Server(void *arg)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
+	printf("%s\n", server->address.hostname);
+
 	getaddrinfo(NULL, server->address.port, &hints, &res);
 
 	while (res != NULL && connect == 0)
