@@ -197,7 +197,7 @@ int main(int argc, char **argv)
 	}
 	else if (ProcessingArgs((size_t)argc, argv, args) == TRUE)
 	{
-		LaunchTEK(args);
+		//LaunchTEK(args);
 	}
 	else
 	{

@@ -105,10 +105,10 @@ void SendMessage(struct clientInfo *clientList, MESSAGE *message)
 	{
 		tab[i].msg = message;
 		tab[i].client = clientList;
-		tab[i].res = ERROR;
+		tab[i].res = -2;
 
-		/*if (pthread_create(&tab[i].thread, NULL, SendMessageThread, (void *)&tab[i]) != 0)
-			tab[i].res = ERROR;*/
+		if (pthread_create(&tab[i].thread, NULL, SendMessageThread, (void *)&tab[i]) != 0)
+			tab[i].res = ERROR;
 			
 		i++;
 	}
