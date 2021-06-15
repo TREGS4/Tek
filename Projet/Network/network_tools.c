@@ -82,7 +82,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
         return NULL;
     }
 
-    free(IP);
+   /* free(IP);
 
     close(skt);
 
@@ -111,7 +111,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
     else
         fprintf(stderr, "Error during the allocation of memory for %s:%s in addClient()\n", address.hostname, address.port);
 
-    return client;
+    return client;*/
     return NULL;
 }
 
