@@ -127,7 +127,7 @@ void *Server(void *arg)
 	{
 		fprintf(stderr, "Error while setting not blocking fd in server()\n");
 	}
-
+/*
 	while (server->status != EXITING)
 	{
 		struct connection *client = malloc(sizeof(struct connection));
@@ -158,7 +158,7 @@ void *Server(void *arg)
 	}
 
 	close(skt);
-
+*/
 	printf("Server is exiting\n");
 	return NULL;
 }
