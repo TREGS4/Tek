@@ -253,6 +253,11 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
 
         free(temp.hostname);
     }
+
+    for(struct clientInfo *client = server->KnownServers->next; client->isSentinel == FALSE; client = client->next)
+    {
+        printf("%s:%s Api: %d mining: %d\n", client->address.hostname, client->address.port, client->api, client->mining);
+    }
 }
 
 void *sendNetwork(void *arg)
