@@ -65,8 +65,8 @@ int LaunchTEK(ARGS *args)
 	pthread_t networkthread;
 	pthread_t gestionthread;
 
-	args->network.server->status = ONLINE;
-	//pthread_create(&networkthread, NULL, NetworkThread, (void *)&args->network);
+	
+	pthread_create(&networkthread, NULL, NetworkThread, (void *)&args->network);
 
 	while (args->network.server->status != ONLINE)
 	{
@@ -75,7 +75,7 @@ int LaunchTEK(ARGS *args)
 
 	pthread_create(&gestionthread, NULL, GestionThread, (void *)args);
 
-	//pthread_join(networkthread, NULL);
+	pthread_join(networkthread, NULL);
 	pthread_join(gestionthread, NULL);
 
 	freeServer(args->network.server);
