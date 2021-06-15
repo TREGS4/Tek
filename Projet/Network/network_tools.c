@@ -72,6 +72,8 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
 
     struct sockaddr_in *IP = GetIPfromHostname(address);
 
+    printf("Ip ptr: %p\n", IP);
+
     if (IP == NULL || connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0)
     {
         if (IP != NULL)
