@@ -84,7 +84,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
     free(IP);
 
     close(skt);
-    struct clientInfo *client = calloc(1, sizeof(struct clientInfo));
+    /*struct clientInfo *client = calloc(1, sizeof(struct clientInfo));
     client->address.hostname = calloc(1, sizeof(BYTE) * (strlen(address.hostname) + 1));
 
     if (client != NULL)
@@ -108,7 +108,8 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
     else
         fprintf(stderr, "Error during the allocation of memory for %s:%s in addClient()\n", address.hostname, address.port);
 
-    return client;
+    return client;*/
+    return NULL;
 }
 
 /*
