@@ -72,8 +72,6 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
 
     struct sockaddr_in *IP = GetIPfromHostname(address);
 
-    printf("IP ptr: %p\n", IP);
-
     if (IP == NULL || connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0)
     {
         if (IP != NULL)
@@ -86,7 +84,6 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
 
     close(skt);
 
-    printf("on est toujours la\n");
     struct clientInfo *client = calloc(1, sizeof(struct clientInfo));
     client->address.hostname = calloc(1, sizeof(BYTE) * (strlen(address.hostname) + 1));
 
