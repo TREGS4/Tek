@@ -246,12 +246,20 @@ void addServerFromMessage(MESSAGE *message, struct server *server)
         }
         else
         {
-            tempClient->api = api;
-            tempClient->mining = mining;
+            printf("%s:%s Api: %d mining: %d\n", temp.hostname, temp.port, api, mining);
+            if (api != -1)
+                tempClient->api = api;
+            if (mining != -1)
+                tempClient->mining = mining;
         }
         pthread_mutex_unlock(&server->lockKnownServers);
 
         free(temp.hostname);
+    }
+
+    for (struct clientInfo *client = server->KnownServers->next; client->isSentinel == FALSE; client = client->next)
+    {
+        //printf("%s:%s Api: %d mining: %d\n", client->address.hostname, client->address.port, client->api, client->mining);
     }
 }
 
@@ -268,6 +276,7 @@ void *sendNetwork(void *arg)
 
     while (server->status != EXITING)
     {
+
         dataSize = 0;
         offset = 0;
 
@@ -291,9 +300,9 @@ void *sendNetwork(void *arg)
             memcpy(messageBuff + offset, client->address.port, PORT_SIZE + 1);
             offset += PORT_SIZE + 1;
 
-            memcpy(messageBuff + offset, &server->api, sizeAPI);
+            memcpy(messageBuff + offset, &client->api, sizeAPI);
             offset += sizeAPI;
-            memcpy(messageBuff + offset, &server->mining, sizeMining);
+            memcpy(messageBuff + offset, &client->mining, sizeMining);
             offset += sizeMining;
         }
 
@@ -307,6 +316,7 @@ void *sendNetwork(void *arg)
         }
 
         free(messageBuff);
+
         sleep(2);
     }
 
@@ -345,7 +355,7 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
 char *ServerToJSON(struct clientInfo *client)
 {
     char *base = "{\"hostname\":\"%s\",\"port\":%s,\"api\":%d,\"mining\":%d}";
-    size_t nbChar = strlen(client->address.hostname) + strlen(client->address.port) + strlen(base) + 2;
+    size_t nbChar = strlen(client->address.hostname) + strlen(client->address.port) + strlen(base) + 4;
     char *res = calloc(1, nbChar + 1);
 
     sprintf(res, base, client->address.hostname, client->address.port, client->api, client->mining);
