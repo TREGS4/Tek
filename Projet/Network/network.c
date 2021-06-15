@@ -249,11 +249,11 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
         pthread_mutex_lock(&server->lockKnownServers);
         if (addClient(server->KnownServers, server->address, server->api, server->mining) == NULL)
             problem = 1;
-        if (problem == 0 && hostnameFirstServer != NULL)
+        /*if (problem == 0 && hostnameFirstServer != NULL)
         {
             if (addClient(server->KnownServers, addressFirstServer, FALSE, FALSE) == NULL)
                 problem = 2;
-        }
+        }*/
 
         pthread_mutex_unlock(&server->lockKnownServers);
 
