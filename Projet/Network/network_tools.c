@@ -70,11 +70,11 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
         return NULL;
     }
 
-    struct sockaddr_in *IP = GetIPfromHostname(address);
+    /*struct sockaddr_in *IP = GetIPfromHostname(address);
 
     printf("IP ptr: %p\n", IP);
 
-    if (IP == NULL /*|| connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0*/)
+    if (IP == NULL || connect(skt, (struct sockaddr *)IP, sizeof(struct sockaddr_in)) < 0)
     {
         if (IP != NULL)
             free(IP);
@@ -82,7 +82,7 @@ struct clientInfo *addClient(struct clientInfo *list, struct address address, in
         return NULL;
     }
 
-   /* free(IP);
+    free(IP);
 
     close(skt);
 
