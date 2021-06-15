@@ -355,7 +355,7 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
 char *ServerToJSON(struct clientInfo *client)
 {
     char *base = "{\"hostname\":\"%s\",\"port\":%s,\"api\":%d,\"mining\":%d}";
-    size_t nbChar = strlen(client->address.hostname) + strlen(client->address.port) + strlen(base) + 2;
+    size_t nbChar = strlen(client->address.hostname) + strlen(client->address.port) + strlen(base) + 4;
     char *res = calloc(1, nbChar + 1);
 
     sprintf(res, base, client->address.hostname, client->address.port, client->api, client->mining);
