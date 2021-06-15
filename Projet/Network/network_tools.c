@@ -322,13 +322,13 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
 {
     struct sockaddr_in *resIP = NULL;
     struct addrinfo hints, *res = NULL;
-    memset(&resIP, 0, sizeof(struct sockaddr_in));
+    /*memset(&resIP, 0, sizeof(struct sockaddr_in));
     memset(&hints, 0, sizeof(struct addrinfo));
 
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    /*if (address.hostname != NULL)
+    if (address.hostname != NULL)
     {
         int r = getaddrinfo(address.hostname, address.port, &hints, &res);
         if (res != NULL && res->ai_addr != NULL && r == 0)
@@ -345,8 +345,7 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
         freeaddrinfo(res);
 */
     printf("on est a la fin de la fonction\n");
-    //return resIP;
-    return NULL;
+    return resIP;
 }
 
 char *ServerToJSON(struct clientInfo *client)
