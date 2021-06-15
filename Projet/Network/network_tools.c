@@ -339,7 +339,6 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
             if (resIP != NULL)
                 resIP = memcpy(resIP, res->ai_addr, sizeof(struct sockaddr_in));
         }
-
         else
             printf("An error as occured while resolving %s:%s\n", address.hostname, address.port);
     }
@@ -347,6 +346,7 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
     if (res != NULL)
         freeaddrinfo(res);
 
+    printf("on est a fin de GetIp\n");
     return resIP;
 }
 
