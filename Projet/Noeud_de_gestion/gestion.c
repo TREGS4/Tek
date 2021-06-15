@@ -96,6 +96,39 @@ void *mining(void *arg)
     return NULL;
 }
 
+
+void *send_data(void *args){
+    API_THREAD_ARG *api_args = (API_THREAD_ARG *)args;
+	BLOCKCHAIN_M *bc_m = api_args->bc_m;
+	TL_M *tl_m = api_args->tl_m;
+	struct server *server = api_args->server;
+
+    while(1){
+        sleep(5);
+        pthread_mutex_lock(&bc_m->mutex);
+
+        BLOCKCHAIN_BIN bcbin = blockchainToBin(&bc_m->bc);
+        MESSAGE *msg = CreateMessage(TYPE_BLOCKCHAIN, bcbin.nbBytes, bcbin.bin);
+        shared_queue_push(server->OutgoingMessages, msg);
+
+        pthread_mutex_unlock(&bc_m->mutex);
+
+        pthread_mutex_lock(&tl_m->mutex);
+
+        for (size_t i = 0; i < tl_m->tl.size; i++){
+            TRANSACTION_BIN txsbin = txsToBin(&tl_m->tl.transactions[i]);
+            MESSAGE *msg = CreateMessage(TYPE_TXS, txsbin.nbBytes, txsbin.bin);
+            shared_queue_push(server->OutgoingMessages, msg);
+            sleep(0.5);
+        }
+        
+        pthread_mutex_unlock(&tl_m->mutex);
+
+        sleep(1);
+    }
+    return NULL;
+}
+
 int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struct server *network)
 {
     if (network->status != ONLINE)
@@ -146,6 +179,9 @@ int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struc
         args_mining.exq = mining_blocks;
         pthread_create(&mining_thread, NULL, mining, (void *)&args_mining);
     }
+
+    pthread_t send_data_thread;
+    pthread_create(&send_data_thread, NULL, send_data, (void *)&args_api);
 
     while (1)
     {
@@ -298,6 +334,7 @@ int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struc
             pthread_mutex_unlock(&bc_m.mutex);
             free(b);
         }
+
         sleep(0.05);
     }
 
