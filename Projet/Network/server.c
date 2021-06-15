@@ -114,6 +114,8 @@ void *Server(void *arg)
 			res = res->ai_next;
 	}
 
+
+	printf("on est la\n");
 	freeaddrinfo(res);
 
 	if (skt < 0)
@@ -130,8 +132,11 @@ void *Server(void *arg)
 		fprintf(stderr, "Error while setting not blocking fd in server()\n");
 	}
 
+
+	printf("on est toujours la\n");
 	while (server->status != EXITING)
 	{
+		printf("on est dans la boucle\n");
 		struct connection *client = malloc(sizeof(struct connection));
 		pthread_t thread;
 		client->server = server;
