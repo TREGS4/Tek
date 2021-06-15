@@ -161,7 +161,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     *=============================SETTING UP SERVER AND FIRST SERVER================
     */
 
-    if(server->address.hostname != NULL)
+    if (server->address.hostname != NULL)
     {
         free(server->address.hostname);
     }
@@ -173,7 +173,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     }
     memcpy(server->address.hostname, hostname, strlen(hostname));
     memset(server->address.port, 0, PORT_SIZE + 1);
- 
+
     if (port != NULL)
         memcpy(server->address.port, port, strlen(port));
     else
@@ -210,7 +210,7 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
     /*
     *====================================STARTIGN THREAD============================
     */
-    problem = 0;/*pthread_create(&serverThread, NULL, Server, (void *)server);
+    problem = 0; /*pthread_create(&serverThread, NULL, Server, (void *)server);
     if (problem != 0)
         problem = -1;
 
@@ -248,7 +248,6 @@ int Network(struct server *server, char *hostname, char *port, char *hostnameFir
             sleep(0.01);
 
         pthread_mutex_lock(&server->lockKnownServers);
-        printf("truc: %s:%s, api: %d, mining: %d, ptr: %p\n", server->address.hostname, server->address.port, server->api, server->mining, server->KnownServers);
         if (addClient(server->KnownServers, server->address, server->api, server->mining) == NULL)
             problem = 1;
         if (problem == 0 && hostnameFirstServer != NULL)
