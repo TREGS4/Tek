@@ -315,8 +315,9 @@ void *sendNetwork(void *arg)
         }
 
         free(messageBuff);
+
+        sleep(2);
     }
-    sleep(2);
 
     printf("Send Network is exiting\n");
     return NULL;
