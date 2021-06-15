@@ -320,7 +320,7 @@ void *sendNetwork(void *arg)
 
 struct sockaddr_in *GetIPfromHostname(struct address address)
 {
-    struct sockaddr_in *resIP = NULL;
+    /*struct sockaddr_in *resIP = NULL;
     struct addrinfo hints, *res = NULL;
     memset(&resIP, 0, sizeof(struct sockaddr_in));
     memset(&hints, 0, sizeof(struct addrinfo));
@@ -345,7 +345,8 @@ struct sockaddr_in *GetIPfromHostname(struct address address)
         freeaddrinfo(res);
 
     printf("on est a la fin de la fonction\n");
-    return resIP;
+    return resIP;*/
+    return NULL;
 }
 
 char *ServerToJSON(struct clientInfo *client)
