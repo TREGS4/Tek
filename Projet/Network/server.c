@@ -92,8 +92,6 @@ void *Server(void *arg)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	printf("%s\n", server->address.hostname);
-
 	getaddrinfo(NULL, server->address.port, &hints, &res);
 
 	while (res != NULL && connect == 0)
@@ -114,8 +112,6 @@ void *Server(void *arg)
 			res = res->ai_next;
 	}
 
-
-	printf("on est la\n");
 	freeaddrinfo(res);
 
 	if (skt < 0)
@@ -127,17 +123,16 @@ void *Server(void *arg)
 	server->status = ONLINE;
 	pthread_mutex_unlock(&server->lockStatus);
 
-	if(fcntl(skt, F_SETFL, O_NONBLOCK) == - 1)
+	if (fcntl(skt, F_SETFL, O_NONBLOCK) == -1)
 	{
 		fprintf(stderr, "Error while setting not blocking fd in server()\n");
 	}
-
 
 	printf("on est toujours la\n");
 	while (server->status != EXITING)
 	{
 		printf("on est dans la boucle\n");
-		struct connection *client = malloc(sizeof(struct connection));
+		/*struct connection *client = malloc(sizeof(struct connection));
 		pthread_t thread;
 		client->server = server;
 		socklen_t temp = sizeof(client->IP);
@@ -159,7 +154,7 @@ void *Server(void *arg)
 		else
 		{
 			free(client);
-		}
+		}*/
 
 		sleep(0.1);
 	}
