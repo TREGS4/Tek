@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=  -Wall -Wextra 
+CFLAGS=  -Wall -Wextra -Werror
 CFLAGS +=$(FINAL)
 LDLIBS= -pthread -lm -lcrypto
 
@@ -21,5 +21,8 @@ $(TARGET): $(OBJS)
 .PHONY: clean
 clean:
 	$(RM) $(OBJS) $(DEPS)
+
+cleanall: clean
+	$(RM) blockchain
 
 -include $(DEPS)
