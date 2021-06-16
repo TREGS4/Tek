@@ -17,11 +17,11 @@
 "  -p		Port of the node, set to DEFAULT_PORT by default\n"\
 "  -ip2 		IP or hostname of another node in the network.\n"\
 "  -p2 		Port of the other node, set to DEFAULT_PORT by default.\n"\
-"  -a 		Active the API part of the node. Disable by default.\n"\
-"  -m 		Active the mining part of the node. Disable by default.\n"\
+"  -a 		Active the API part of the node. Disabled by default.\n"\
+"  -m 		Active the mining part of the node. Disabled by default.\n"\
 "  -d 		The difficulty for the mining, set to the DEFAULT_DIFFICULTY by default.\n"\
 "		This parameter is for tests only. Normaly this information is given by the network.\n"\
-"  -nbthr	The number of thread the mining thread can use, set to the number of tcores - 1 by default\n"\
+"  -nbthr	The number of thread the mining thread can use, set to the number of cores - 1 by default.\n"\
 
 
 typedef struct
