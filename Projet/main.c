@@ -33,6 +33,7 @@ typedef struct
 	struct server *server;
 } NETWORK;
 
+
 typedef struct
 {
 	NETWORK network;
