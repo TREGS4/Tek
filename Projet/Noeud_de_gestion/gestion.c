@@ -91,7 +91,7 @@ void *mining(void *arg)
             //return proof;
             shared_queue_push(exq, block);
         }
-        sleep(5);
+        sleep(2);
     }
     return NULL;
 }

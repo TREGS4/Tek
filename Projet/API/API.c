@@ -110,6 +110,7 @@ int findInfoTxs(ull_t *amount, char **sender, char **receiver, char *ressource)
 		}
 		free(infos[i]);
 	}
+	
 
 	return EXIT_SUCCESS;
 }

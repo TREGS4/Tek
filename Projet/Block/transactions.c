@@ -199,14 +199,14 @@ TRANSACTION binToTxs(BYTE *bin)
 	ull_t sender_size;
 	memcpy(&sender_size, bin + offset, sizeof(ull_t));
 	offset += sizeof(ull_t);
-	txs.sender = calloc(1, sender_size);
+	txs.sender = calloc(1, sender_size + 1);
 	memcpy(txs.sender, bin + offset, sender_size);
 	offset += sender_size;
 
 	ull_t receiver_size;
 	memcpy(&receiver_size, bin + offset, sizeof(ull_t));
 	offset += sizeof(ull_t);
-	txs.receiver = calloc(1, receiver_size);
+	txs.receiver = calloc(1, receiver_size + 1);
 	memcpy(txs.receiver, bin + offset, receiver_size);
 	offset += receiver_size;
 

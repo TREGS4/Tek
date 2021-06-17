@@ -148,22 +148,24 @@ char *blockchainToJson(BLOCKCHAIN *bc)
 	char *s1 = "{\"blocks\":[";
 	char *s2 = "]}";
 	ull_t size = strlen(s1) + strlen(s2);
-	char *resblock = malloc(sizeof(char));
+	char *resblock = calloc(sizeof(char), 1);
 	ull_t blocksize = 0;
 	for (ull_t i = 0; i < bc->blocksNumber; i++){
 		char *blockjson = blockToJson(&bc->blocks[i]);
-		ull_t t = blocksize + strlen(blockjson) + 1;
-		resblock = realloc(resblock, t);
 		if (i == bc->blocksNumber - 1){
+			ull_t t = blocksize + strlen(blockjson) + 1;
+			resblock = realloc(resblock, t);
 			sprintf(resblock + blocksize,"%s",blockjson);
 			blocksize += strlen(blockjson);
 		}else{
+			ull_t t = blocksize + strlen(blockjson) + 1 + 1;
+			resblock = realloc(resblock, t);
 			sprintf(resblock + blocksize,"%s,",blockjson);
 			blocksize += strlen(blockjson) + 1;
 		}
 		free(blockjson);
 	}
-	char *json = calloc(size + blocksize + 1, sizeof(char));
+	char *json = calloc(sizeof(char), size + blocksize + 1);
 	sprintf(json, "%s%s%s", s1, resblock, s2);
 	free(resblock);
 	return json;
