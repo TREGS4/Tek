@@ -78,13 +78,17 @@ unsigned int testproof(int diff, char * sum, ull_t proof){
 	BYTE str[4 * SHA256_BLOCK_SIZE + len_of_proof(proof) + 1];
 	//str = sum + proof
 	sprintf((char *)str, "%llu%s", proof, sum);
-
 	//hash with sha256
 	BYTE buf[SHA256_BLOCK_SIZE];
 	sha256(str, buf);
-	for(int i = SHA256_BLOCK_SIZE - diff; i < SHA256_BLOCK_SIZE; i++)
+	for(int i = SHA256_BLOCK_SIZE - diff/2; i < SHA256_BLOCK_SIZE; i++)
 	{
-		if(buf[i] != 0)
+			if(buf[i] != 0)
+				res = 1;
+	}
+	if(diff%2 == 1 && res != 1)
+	{
+		if((buf[SHA256_BLOCK_SIZE - diff/2 -1] & 0x0f) != 0)
 			res = 1;
 	}
 	return res;
@@ -97,7 +101,6 @@ ull_t mine_from_string(char *sum, int nbthread, int diff){
 
 	//uncomment to debug
 	//printf("mine from string : \nsum : %s\n", sum);
-
 	//threads for the mining
 	pthread_t thr[nbthread];
 	ull_t proof = 0;
@@ -122,6 +125,7 @@ ull_t mine_from_string(char *sum, int nbthread, int diff){
 			proof = *output;
 		}
 	}
+	
 	free(output);
 	return proof;
 }

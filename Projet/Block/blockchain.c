@@ -41,9 +41,9 @@ int addBlock(BLOCKCHAIN *blockchain, BLOCK block)
 	return 1;
 }
 
-BLOCKCHAIN initBlockchain()
+BLOCKCHAIN initBlockchain(int diff)
 {
-	BLOCK newGenesis = createGenesis();
+	BLOCK newGenesis = createGenesis(diff);
 	
 	BLOCKCHAIN newBlockchain =  
 	{
@@ -60,7 +60,7 @@ BLOCKCHAIN initBlockchain()
 	return newBlockchain;	
 }
 
-BLOCK createGenesis()
+BLOCK createGenesis(int diff)
 {
 	BLOCK newGenesis = initBlock();
 
@@ -83,7 +83,7 @@ BLOCK createGenesis()
 
 	BYTE sum[4 * SHA256_BLOCK_SIZE + 1 + 11];
 	sprintf((char *)sum,"%011ld%s%s", newGenesis.time, (char *)Aprev_hash, (char *)Amerkle_hash);
-	ull_t proof = (ull_t)mine_from_string((char *)sum, 1, 2);
+	ull_t proof = (ull_t)mine_from_string((char *)sum, 1, diff);
 
 	newGenesis.proof = proof;
 

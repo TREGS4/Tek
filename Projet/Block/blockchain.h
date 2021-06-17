@@ -25,8 +25,8 @@ typedef struct {
 
 BLOCK *getLastBlock(BLOCKCHAIN *blockchain);
 int addBlock(BLOCKCHAIN *blockchain, BLOCK block);
-BLOCKCHAIN initBlockchain();
-BLOCK createGenesis();
+BLOCKCHAIN initBlockchain(int diff);
+BLOCK createGenesis(int diff);
 int checkBlockchain(BLOCKCHAIN *blockchain);
 void updateTlWithBc(TRANSACTIONS_LIST *tl, BLOCKCHAIN *bc);
 int findTxsInBc(TRANSACTION *txs, BLOCKCHAIN *bc);

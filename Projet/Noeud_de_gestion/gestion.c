@@ -156,13 +156,13 @@ int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struc
         BLOCKCHAIN *loadbc = loadBlockchain();
         if (loadbc == NULL){
             printf("The loading of the binary file of the blockchain failed. An empty blockchain have been init.\n");
-            bc_m.bc = initBlockchain();
+            bc_m.bc = initBlockchain(difficulty);
         }else{
             bc_m.bc = *loadbc;
             free(loadbc);
         }
     }else{
-        bc_m.bc = initBlockchain();
+        bc_m.bc = initBlockchain(difficulty);
     }
     printf("Blockchain init.\n");
 
