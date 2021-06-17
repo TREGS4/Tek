@@ -64,7 +64,7 @@ BLOCK createGenesis()
 {
 	BLOCK newGenesis = initBlock();
 
-	TRANSACTION txs = CreateTxs(1000, "", "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIVdUtUR9QG0wQl2jf00+0NiTOusk69PGFuHBEAoy7NIIzM7As81H1lGYUIg5pXVrWQ9ACt99trhVWNGRo3VMicCAwEAAQ==");
+	TRANSACTION txs = CreateTxs(10000, "", "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIVdUtUR9QG0wQl2jf00+0NiTOusk69PGFuHBEAoy7NIIzM7As81H1lGYUIg5pXVrWQ9ACt99trhVWNGRo3VMicCAwEAAQ==");
 	
 	addTx(&newGenesis.tl, &txs);
 	memset(newGenesis.previusHash, 0, SHA256_BLOCK_SIZE);
