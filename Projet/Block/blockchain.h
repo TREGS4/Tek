@@ -37,5 +37,7 @@ void freeBlockchain(BLOCKCHAIN *bc);
 ull_t amountMoney(char *address, BLOCKCHAIN *bc);
 int enoughMoney(char *address, ull_t amount, BLOCKCHAIN *bc);
 void printBlockchain(BLOCKCHAIN blockchain);
+int saveBlockchain(BLOCKCHAIN blockchain);
+BLOCKCHAIN *loadBlockchain();
 
 #endif

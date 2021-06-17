@@ -129,7 +129,21 @@ void *send_data(void *args){
     return NULL;
 }
 
-int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struct server *network)
+
+void *save_worker(void *args){
+    BLOCKCHAIN_M *bc_m = (BLOCKCHAIN_M*)args;
+    while (1){
+        sleep(30);
+
+        pthread_mutex_lock(&bc_m->mutex);
+        saveBlockchain(bc_m->bc);
+        pthread_mutex_unlock(&bc_m->mutex);
+        printf("FROM SAVING: the blockchain have been saved into './bcsave.data'\n");
+    }
+    return NULL;
+}
+
+int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struct server *network, int load_bc)
 {
     if (network->status != ONLINE)
     {
@@ -138,7 +152,18 @@ int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struc
 
     BLOCKCHAIN_M bc_m;
     pthread_mutex_init(&bc_m.mutex, NULL);
-    bc_m.bc = initBlockchain();
+    if (load_bc){
+        BLOCKCHAIN *loadbc = loadBlockchain();
+        if (loadbc == NULL){
+            printf("The loading of the binary file of the blockchain failed. An empty blockchain have been init.\n");
+            bc_m.bc = initBlockchain();
+        }else{
+            bc_m.bc = *loadbc;
+            free(loadbc);
+        }
+    }else{
+        bc_m.bc = initBlockchain();
+    }
     printf("Blockchain init.\n");
 
     TL_M txs_temp_m;
@@ -182,6 +207,10 @@ int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struc
 
     pthread_t send_data_thread;
     pthread_create(&send_data_thread, NULL, send_data, (void *)&args_api);
+
+    pthread_t save_bc_thread;
+    pthread_create(&save_bc_thread, NULL, save_worker, (void *)&bc_m);
+    
 
     while (1)
     {

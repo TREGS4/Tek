@@ -20,6 +20,7 @@
 "  -a 		Active the API part of the node. Disabled by default.\n"\
 "  -m 		Active the mining part of the node. Disabled by default.\n"\
 "  -d 		The difficulty for the mining, set to the DEFAULT_DIFFICULTY by default.\n"\
+"  -l		Active the loading of the binary file of the blockchain. path: 'bcsave.data'.\n"\
 "		This parameter is for tests only. Normaly this information is given by the network.\n"\
 "  -nbthr	The number of thread the mining thread can use, set to the number of cores - 1 by default.\n"\
 
@@ -41,6 +42,7 @@ typedef struct
 	int mining;
 	int difficulty;
 	int nb_mining_thread;
+	int load_blockchain;
 } ARGS;
 
 void *NetworkThread(void *arg)
@@ -54,7 +56,7 @@ void *NetworkThread(void *arg)
 void *GestionThread(void *arg)
 {
 	ARGS *args = arg;
-	gestion(args->api, args->mining, args->difficulty, args->nb_mining_thread, args->network.server);
+	gestion(args->api, args->mining, args->difficulty, args->nb_mining_thread, args->network.server, args->load_blockchain);
 
 	return NULL;
 }
@@ -99,6 +101,11 @@ int ProcessingArgs(size_t argc, char **argv, ARGS *args)
 		else if (memcmp(argv[i], "-m", 3) == 0)
 		{
 			args->mining = TRUE;
+			i++;
+		}
+		else if (memcmp(argv[i], "-l", 3) == 0)
+		{
+			args->load_blockchain = TRUE;
 			i++;
 		}
 		else if (argv[i][0] == '-' && i < argc - 1)
@@ -178,6 +185,7 @@ ARGS *initArgs()
 		args->mining = DEFAULT_MINING_STATUS;
 		args->difficulty = DEFAULT_DIFFICULTY;
 		args->nb_mining_thread = DEFAULT_NB_MINING_THREAD;
+		args->load_blockchain = FALSE;
 	}
 
 	return args;

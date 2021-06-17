@@ -291,3 +291,56 @@ void printBlockchain(BLOCKCHAIN blockchain)
 	}
 	printf("------------------------------------------------\n");
 }
+
+
+int saveBlockchain(BLOCKCHAIN blockchain){
+	char *filename = "bcsave.data";
+
+    // open the file for writing
+    FILE *fp = fopen(filename, "w");
+    if (fp == NULL)
+    {
+        printf("Error opening the file %s", filename);
+        return 0;
+    }
+    // write to the text file
+    BLOCKCHAIN_BIN bcbin = blockchainToBin(&blockchain);
+	fwrite(&bcbin.nbBytes, sizeof(bcbin.nbBytes), 1, fp);
+	fwrite(bcbin.bin, sizeof(BYTE), bcbin.nbBytes, fp);
+
+    // close the file
+    fclose(fp);
+
+    return 1;
+}
+
+BLOCKCHAIN *loadBlockchain(){
+	char *filename = "bcsave.data";
+    FILE *fp = fopen(filename, "r");
+
+    if (fp == NULL)
+    {
+        printf("Error: could not open file %s\n", filename);
+        return NULL;
+    }
+
+	ull_t size = 0;
+	fread(&size, sizeof(size), 1, fp);
+	
+	BYTE *bin = calloc(sizeof(BYTE), size);
+	if (bin == NULL){
+		return NULL;
+	}
+    fread(bin, sizeof(BYTE), size, fp);
+
+	BLOCKCHAIN bc1 = binToBlockchain(bin);
+	
+	BLOCKCHAIN *bc2 = malloc(sizeof(BLOCKCHAIN));
+	if (bc2 == NULL){
+		return NULL;
+	}
+
+	memcpy(bc2, &bc1, sizeof(BLOCKCHAIN));
+	fclose(fp);
+    return bc2;
+}
