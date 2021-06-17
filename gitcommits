@@ -1,0 +1,436 @@
+* 83114f2 - (HEAD -> main, origin/main, origin/HEAD) modif readme et makefile (2 hours ago) <thimot>
+* 8a08001 - add readme (3 hours ago) <Thimot>
+* fd957cf - (origin/minage) remove prints (32 hours ago) <thimot>
+*   feeb65f - Merge remote-tracking branch 'origin/reseau' into main (32 hours ago) <thimot>
+|\  
+| * 8807efe - (origin/reseau, reseau) modif serverToJSON (32 hours ago) <thimot>
+| * c23b9be - debug envoie api et mining (32 hours ago) <thimot>
+| * 09d2575 - correction bug transmission api et mining 2 (32 hours ago) <thimot>
+| * 0971666 - correction bug transmission api et mining 2 (32 hours ago) <thimot>
+| * 735a4b8 - correction bug transmission api et mining 2 (32 hours ago) <thimot>
+| * dc9d5b6 - correction bug transmission api et mining (32 hours ago) <thimot>
+| * 9d11598 - test info api et mining (33 hours ago) <thimot>
+* | 99e19a0 - update each x sec (33 hours ago) <root>
+|/  
+* 8b2d339 - plus de probleme 32bits (2 days ago) <thimot>
+* 7b48009 - debug 32bits (2 days ago) <thimot>
+* fd15b0a - test 32bits (2 days ago) <thimot>
+* 4272570 - debug 32bits (2 days ago) <thimot>
+* 22b8f99 - debug 32bits (2 days ago) <thimot>
+* 8101cc0 - test 32bits (2 days ago) <thimot>
+* ea28db6 - test 32bits (2 days ago) <thimot>
+* 47d35c8 - test 32bits (2 days ago) <thimot>
+* 74d9530 - test 32bits (2 days ago) <thimot>
+* 091e181 - test 32bits (2 days ago) <thimot>
+* 4319b30 - test 32bits (2 days ago) <thimot>
+* 1a8d78f - test 32bits (2 days ago) <thimot>
+* c2f4a74 - test 32bits (2 days ago) <thimot>
+* 893480e - test 32bits (2 days ago) <thimot>
+* a37c245 - test 32bits (2 days ago) <thimot>
+* fd11570 - test 32bits (2 days ago) <thimot>
+* 84bc359 - test 32bits (2 days ago) <thimot>
+* f6e64d5 - test 32bits (2 days ago) <thimot>
+* e674917 - test 32bits (2 days ago) <thimot>
+* 1cd178f - test 32bits (2 days ago) <thimot>
+* e39cd4b - test 32bits (2 days ago) <thimot>
+* 6374528 - test 32bits (2 days ago) <thimot>
+* f74e491 - test 32bits (2 days ago) <thimot>
+* 960dc11 - test 32bits (2 days ago) <thimot>
+* 79f4d7e - test 32bits (2 days ago) <thimot>
+* 4e98f79 - test 32bits (2 days ago) <thimot>
+* 977f310 - test 32bits (2 days ago) <thimot>
+* ac6843a - test 32bits (2 days ago) <thimot>
+* a4aea43 - test 32bits (2 days ago) <thimot>
+* 43d48ad - test 32bits (2 days ago) <thimot>
+* 81f37f4 - test 32bits (2 days ago) <thimot>
+* 204a1c0 - test 32bits (2 days ago) <thimot>
+* 3315c25 - test 32bits (2 days ago) <thimot>
+* 7c21dbd - test 32bits (2 days ago) <thimot>
+* 2ba519a - test 32bits (2 days ago) <thimot>
+* c57530a - test 32bits (2 days ago) <thimot>
+* 20de83f - test 32bits (2 days ago) <thimot>
+* 0315d3c - test 32bits (2 days ago) <thimot>
+* 7667585 - debug multithread sendMessage (2 days ago) <thimot>
+* 0e4796b - multithread envoie msg (2 days ago) <thimot>
+* 593ed1a - multithread envoie msg (2 days ago) <thimot>
+* 0ab7dc1 - test reduction timeout socket 2 (3 days ago) <thimot>
+* d8e5ee4 - test reduction timeout socket (3 days ago) <thimot>
+* 5bc38a9 - (origin/gestion) ajout gestion arguments (3 days ago) <thimot>
+*   8a0ad3c - (gestion) Merge remote-tracking branch 'origin/reseau' into gestion (3 days ago) <root>
+|\  
+| * 2179c8d - ajout info dans ServerToJson (3 days ago) <thimot>
+| * 8daf49b - ajout info api et mining dans reseau (3 days ago) <thimot>
+* | 0eb7b0d - 32 grosses bites (3 days ago) <Le beaugosse adrien>
+* | e2da395 - update debug (3 days ago) <Le beaugosse adrien>
+* | 976294f - debug 32bit (4 days ago) <Le beaugosse adrien>
+* | d01780f - time 64bit (4 days ago) <Le beaugosse adrien>
+* | b537233 - modif (4 days ago) <Le beaugosse adrien>
+* | d0b5945 - size_t -> ull_t (4 days ago) <root>
+* | 37b2dc4 - char* -> BYTE v2 (4 days ago) <root>
+* | f3d2d4c - char* -> BYTE <3 (4 days ago) <root>
+|/  
+* 7c17984 - modif ServerToList (2 weeks ago) <thimot>
+* 7ce24e5 - modif ServerToList (2 weeks ago) <thimot>
+* f8f4034 - modif port ServerToList (2 weeks ago) <thimot>
+* e6e8835 - ajout server list API (2 weeks ago) <thimot>
+* 1d376a7 - correction bug amount money (2 weeks ago) <thimot>
+* 10b280d - ok (2 weeks ago) <root>
+* 1460298 - beaucoup de belles choses :) (2 weeks ago) <root>
+* b62a2a5 - bah thimot c'est con ca (2 weeks ago) <root>
+* 3fe3587 - correction bug url (2 weeks ago) <thimot>
+* 897b58f - de (2 weeks ago) <root>
+* 0dd0bfa - debug pointeur (2 weeks ago) <thimot>
+* b49a272 - sdgfsdfsdfdsfsdfdsfsdfsdfsdfsdfsdfsdfsdfdsfdsfsdfsdfsdfsdfsdfsdfsdfsdfsdf (2 weeks ago) <root>
+*   fd76091 - Merge remote-tracking branch 'origin/main' into gestion (2 weeks ago) <root>
+|\  
+| * 60b215c - (origin/API, API) add complete transaction command (3 weeks ago) <thimot>
+* | 423efbb - oui (2 weeks ago) <Pierre Litoux>
+* |   6e385fa - Merge remote-tracking branch 'origin/gestion' into minage (3 weeks ago) <Pierre Litoux>
+|\ \  
+| * | 50bbb39 - dq (3 weeks ago) <root>
+* | | 5b6cb12 - je ferai un alias un jour (3 weeks ago) <Pierre Litoux>
+* | |   f5da57a - Merge remote-tracking branch 'origin/gestion' into minage (3 weeks ago) <Pierre Litoux>
+|\ \ \  
+| |/ /  
+| * | 8e08690 - midif (3 weeks ago) <root>
+* | | f99f8cd - in order to merge (3 weeks ago) <Pierre Litoux>
+* | |   b5ab7ff - Merge remote-tracking branch 'origin/gestion' into minage (3 weeks ago) <Pierre Litoux>
+|\ \ \  
+| |/ /  
+| * | 3f42bef - d (3 weeks ago) <root>
+| |/  
+| *   c974f70 - Merge remote-tracking branch 'origin/main' into gestion (3 weeks ago) <thimot>
+| |\  
+| * | 3aae588 - ajout calcul amount of money and general_info.h (3 weeks ago) <thimot>
+| * | 17b9d6f - remove warning (3 weeks ago) <root>
+* | | 9c281b3 - in order ot merge (3 weeks ago) <Pierre Litoux>
+* | |   35786a2 - Merge remote-tracking branch 'origin/gestion' into minage (3 weeks ago) <Pierre Litoux>
+|\ \ \  
+| |/ /  
+| * | 8fdb5a1 - tltostring (3 weeks ago) <root>
+* | |   3c5a68a - ok (3 weeks ago) <Pierre Litoux>
+|\ \ \  
+| | |/  
+| |/|   
+| * | 79cbf8b - remove test reseau (3 weeks ago) <thimot>
+| |/  
+| * e384299 - oubli for de test (3 weeks ago) <thimot>
+| * 352568f - debug (3 weeks ago) <thimot>
+| * 2e9b9c2 - api debug (3 weeks ago) <thimot>
+| * 4070b02 - balek (3 weeks ago) <thimot>
+| *   c65bd8d - Merge remote-tracking branch 'origin/main' into API (3 weeks ago) <thimot>
+| |\  
+| | * 6575969 - modif reseau passe valgrind (3 weeks ago) <thimot>
+| | * 7f4aac7 - push before merge (3 weeks ago) <thimot>
+| | * 643d8ea - correction bug sameIP() (3 weeks ago) <thimot>
+| | * 707990a - pas de bug en fait (3 weeks ago) <thimot>
+| | * aa98a8f - modif print message and main (3 weeks ago) <Thimot>
+| | * 73727c8 - correction bug valgrind (3 weeks ago) <thimot>
+| | *   d51b7da - modif api (3 weeks ago) <thimot>
+| | |\  
+| | * | a6e07ef - truc (3 weeks ago) <thimot>
+| | * |   018ba98 - Merge remote-tracking branch 'origin/gestion' into reseau (3 weeks ago) <thimot>
+| | |\ \  
+| * | \ \   610de6c - push before merge (3 weeks ago) <thimot>
+| |\ \ \ \  
+| | | |_|/  
+| | |/| |   
+| * | | |   c6f587f - Merge remote-tracking branch 'origin/main' into API (3 weeks ago) <thimot>
+| |\ \ \ \  
+| | | |/ /  
+| | |/| |   
+| * | | | 812b700 - commit before merge (3 weeks ago) <thimot>
+* | | | | 0f1a225 - j'ai battu mega satan (3 weeks ago) <Pierre Litoux>
+* | | | |   bf7f3e7 - fetch (3 weeks ago) <Pierre Litoux>
+|\ \ \ \ \  
+| | |_|/ /  
+| |/| | |   
+| * | | | f46493c - add time transactions (3 weeks ago) <root>
+| | |_|/  
+| |/| |   
+| * | | e985ce7 - api upgrade (3 weeks ago) <root>
+| * | |   98cd9a0 - Merge remote-tracking branch 'origin/main' into gestion (3 weeks ago) <root>
+| |\ \ \  
+| | |/ /  
+| * | | 9e6c3ab - ok (3 weeks ago) <root>
+| * | |   68f7d7f - zedtu (3 weeks ago) <root>
+| |\ \ \  
+| * | | | 470b707 - gestion thread begin (3 weeks ago) <root>
+* | | | | 9d89383 - aaaaaaaaaaaaaaa (3 weeks ago) <Pierre Litoux>
+* | | | |   2483fa7 - Merge remote-tracking branch 'origin/main' into minage (3 weeks ago) <Pierre Litoux>
+|\ \ \ \ \  
+| | |_|_|/  
+| |/| | |   
+| * | | | d647b64 - main basique pour network (3 weeks ago) <Thimot>
+| * | | | 6839a3d - restore main (3 weeks ago) <Thimot>
+| * | | | 1fdcfd6 - ajout fonction server List to json (3 weeks ago) <Thimot>
+| * | | | 853f07e - truc (3 weeks ago) <thimot>
+| | |_|/  
+| |/| |   
+| * | | 50b6230 - makefile (3 weeks ago) <Pierre Litoux>
+| * | |   b52d830 - Merge remote-tracking branch 'origin/main' into API (3 weeks ago) <Pierre Litoux>
+| |\ \ \  
+| | * | | 3d60ff0 - oubli dossier tools (3 weeks ago) <thimot>
+| * | | |   7615760 - Merge remote-tracking branch 'origin/main' into API (3 weeks ago) <Pierre Litoux>
+| |\ \ \ \  
+| | |/ / /  
+| | * | | a9ca8d9 - modif queue en void * (3 weeks ago) <thimot>
+| | | |/  
+| | |/|   
+| * | | 5c12532 - API sans gmodule (3 weeks ago) <Pierre Litoux>
+| * | |   ec2418d - Merge remote-tracking branch 'origin/main' into API (3 weeks ago) <Pierre Litoux>
+| |\ \ \  
+| | |/ /  
+| | * |   120bc27 - Merge remote-tracking branch 'origin/main' into reseau (3 weeks ago) <thimot>
+| | |\ \  
+| | | * | 23d123e - debug reseau (4 weeks ago) <thimot>
+| | * | | ae8223b - v avec resolution nom de domaine (3 weeks ago) <thimot>
+| | * | | 366e764 - ajout commentaire et modif mais ya un bug (3 weeks ago) <thimot>
+| | * | | 6dea20a - petites modifs (3 weeks ago) <thimot>
+| | * | | 21f67c9 - erreur if dans le cas d'un hostname invalide (3 weeks ago) <thimot>
+| | * | | 6a36780 - correction free in read_thread (3 weeks ago) <thimot>
+| | * | | a1a0d1e - correction seg fault when invalid hostname (3 weeks ago) <thimot>
+| | * | | 62a6de2 - amelioration lisibilite (3 weeks ago) <thimot>
+| | * | | 90cb5d3 - v2 tests finaux (3 weeks ago) <thimot>
+| | * | | 7301a85 - test (3 weeks ago) <thimot>
+| | * | | da16257 - test (4 weeks ago) <thimot>
+| | * | | 529d795 - debug (4 weeks ago) <thimot>
+| | * | | 53a2d3f - debug (4 weeks ago) <thimot>
+| | * | | 07de262 - debug sendNetwork (4 weeks ago) <thimot>
+| | * | | 5d8efd3 - debug (4 weeks ago) <thimot>
+| | * | | 1fcc65b - debug resolution nom de domaine (4 weeks ago) <thimot>
+| | * | | f024dae - modif (4 weeks ago) <thimot>
+| * | | | bef57c7 - test (3 weeks ago) <Pierre Litoux>
+| * | | |   b4001c5 - Merge branch 'API' of github.com:TREGS4/BlockchainS4 into API (4 weeks ago) <thimot>
+| |\ \ \ \  
+| | * \ \ \   06fc3e2 - merge reseau (4 weeks ago) <hugo.ruiz-le-mao>
+| | |\ \ \ \  
+| | | |/ / /  
+| | | * | | 8df5aa9 - save before big changement (4 weeks ago) <thimot>
+| | | * | | 2b0a4f0 - debug reseau (4 weeks ago) <thimot>
+| | | * | | d719ada - debug problem when error (4 weeks ago) <thimot>
+| | | |/ /  
+| | | * | 345e1fa - reseau v2 test (4 weeks ago) <thimot>
+| * | | | 7278c9c - reset merge (4 weeks ago) <thimot>
+| |/ / /  
+| * | | 677b9dc - v1 API (4 weeks ago) <hugo.ruiz-le-mao>
+| * | |   c72127a - merge gestion/origin (4 weeks ago) <hugo.ruiz-le-mao>
+| |\ \ \  
+| | | |/  
+| | |/|   
+| | * | 5c9942e - json (4 weeks ago) <root>
+| * | |   2db57e5 - push (4 weeks ago) <hugo.ruiz-le-mao>
+| |\ \ \  
+| | |/ /  
+| | * | 35389c3 - rsa openssl (5 weeks ago) <root>
+| * | | b2afc78 - deuxieme push (4 weeks ago) <hugo.ruiz-le-mao>
+| * | | ea5d9ef -  api premier push (4 weeks ago) <hugo.ruiz-le-mao>
+| * | | 9d7a62c - tttserver (4 weeks ago) <hugo.ruiz-le-mao>
+| | |/  
+| |/|   
+| * |   66ade9e - Merge remote-tracking branch 'origin/main' into reseau (4 weeks ago) <thimot>
+| |\ \  
+| | * | cbb6482 - présentation soutenance 2 (6 weeks ago) <Clac9queur>
+| | * | 35809b6 - rapport de soutenance 2 (6 weeks ago) <Clac9queur>
+| | * | 945f827 - test finis (6 weeks ago) <Thimot>
+| | * | 68a832a - test reseau (6 weeks ago) <Thimot>
+| * | | 330a065 - prepare for merge into main (4 weeks ago) <thimot>
+| * | | ce8e74a - test envoie blockchain (5 weeks ago) <thimot>
+| * | | b499fa1 - tests envoie de message (5 weeks ago) <thimot>
+| * | | cb5c70f - fontionnel je crois (5 weeks ago) <thimot>
+| * | | b7dc581 - bug boucle infinie (5 weeks ago) <thimot>
+| * | | 5d4ef5c - ajout IP lors de l'affichage des messages (5 weeks ago) <thimot>
+| * | | a83e9ac - debug addClientFromMessage (5 weeks ago) <thimot>
+| * | | ecb9504 - tests (5 weeks ago) <thimot>
+| * | | 384102e - correction boucle infinie (5 weeks ago) <thimot>
+| * | | f7ed2d7 - v3 debut fonctionnel (5 weeks ago) <thimot>
+| * | | 9b73737 - debug (5 weeks ago) <thimot>
+| * | | 6feda87 - network v3 (5 weeks ago) <thimot>
+| * | | 1cb7bba - tests (5 weeks ago) <thimot>
+| * | | 5a91a3c - test envoie de message (5 weeks ago) <thimot>
+| * | | 0395742 - tests (5 weeks ago) <thimot>
+| * | | feb4fc9 - correction petit probleme (5 weeks ago) <thimot>
+| * | | 8a2199b - correction seg fault (5 weeks ago) <thimot>
+| * | | b57052a - thread pour remove client (5 weeks ago) <thimot>
+| * | | 85bd803 - correction fin de thread (5 weeks ago) <thimot>
+| * | | 3039c6e - gestion error read (5 weeks ago) <thimot>
+| * | | cf82415 - oubli de unlock un mutext (5 weeks ago) <thimot>
+| * | | 18a6b0a - modif pour tests (5 weeks ago) <thimot>
+| * | | a5dae32 - amelioration code et debug (5 weeks ago) <thimot>
+| * | | 0e631fd - supression client lorsque que probleme (5 weeks ago) <thimot>
+| * | | 88100b3 - debug diverse fonctions (5 weeks ago) <thimot>
+| * | | 56e6866 - correction bug isInList (5 weeks ago) <thimot>
+| * | | 33f17b5 - ajout fonction add client (5 weeks ago) <thimot>
+| * | | c631b99 - modif en close direct apres envoie d'un message (5 weeks ago) <thimot>
+| * | |   e2ddec6 - Merge branch 'reseau' of github.com:TREGS4/BlockchainS4 into reseau (5 weeks ago) <thimot>
+| |\ \ \  
+| | * | | d5bf6be - debug un bug avec les test fait avec Adrien (5 weeks ago) <Thimot>
+| | * | | f9c0534 - correction de 1 ligne (5 weeks ago) <Thimot>
+| * | | | eab4a8e - commit for merge (5 weeks ago) <thimot>
+| |/ / /  
+| * | | c37de0c - test5 (5 weeks ago) <thimot>
+| * | | 287f318 - tests (5 weeks ago) <thimot>
+| * | | 6ee4b14 - test envoie message (5 weeks ago) <thimot>
+| * | | 7ffa7a8 - tests (5 weeks ago) <thimot>
+| * | | e00ca8f - test send big message (5 weeks ago) <thimot>
+| * | |   c377fc1 - Merge remote-tracking branch 'origin/gestion' into reseau (5 weeks ago) <thimot>
+| |\ \ \  
+| | | |/  
+| | |/|   
+| | * | 4fffe63 - bin to struct (5 weeks ago) <root>
+| | * | 7e02ca6 - struct to bin (5 weeks ago) <root>
+| * | | f4dd54e - commit before merge (5 weeks ago) <thimot>
+| * | |   b2812a3 - to merge gestion (5 weeks ago) <thimot>
+| |\ \ \  
+| | |/ /  
+| | * | 849d9c2 - changement fonctionnement des transactions (6 weeks ago) <Margaux Cavalie>
+| | * |   1d2250b - verif blockchain (7 weeks ago) <Margaux Cavalie>
+| | |\ \  
+| | * | | 88879ca - verif blockchain (7 weeks ago) <Margaux Cavalie>
+| * | | | af1a7cf - premiers validees (5 weeks ago) <thimot>
+| * | | | 76425ce - changement port when receiving network (5 weeks ago) <thimot>
+| * | | | e003425 - fini modif debut tests (5 weeks ago) <thimot>
+| * | | | ad0e8e7 - fini modif debut tests (5 weeks ago) <thimot>
+| * | | | 1e01008 - correction bug Send() (5 weeks ago) <thimot>
+| * | | | 380588b - amelioration envoie message (5 weeks ago) <thimot>
+| * | | | ceb6bf1 - ajout print plus facile (6 weeks ago) <thimot>
+| * | | | 57c1c5a - test bug message (6 weeks ago) <thimot>
+| * | | | 779bebc - correction bug mutex (6 weeks ago) <thimot>
+| * | | | 3ea6305 - test (6 weeks ago) <thimot>
+| * | | | 73401fb - amelioration code (6 weeks ago) <thimot>
+| * | | |   acef1c1 - Merge branch 'reseau' of github.com:TREGS4/BlockchainS4 into reseau (6 weeks ago) <thimot>
+| |\ \ \ \  
+| | * | | | 7627d40 - test reseau (6 weeks ago) <Thimot>
+| | * | | | 7e5933e - test reseau (6 weeks ago) <Thimot>
+| * | | | | ddd718f - amelioration lisibilite du code (6 weeks ago) <thimot>
+| |/ / / /  
+* | | | | dfdf8f0 - before a merge (3 weeks ago) <Pierre Litoux>
+| |_|_|/  
+|/| | |   
+* | | |   99deb55 - (minage) Merge remote-tracking branch 'origin/main' into minage (7 weeks ago) <Pierre Litoux>
+|\ \ \ \  
+| |/ / /  
+| * | |   2b2095e - Merge remote-tracking branch 'origin/main' into reseau (7 weeks ago) <thimot>
+| |\ \ \  
+| | * \ \   319b124 - Merge branch 'main' of https://github.com/TREGS4/BlockchainS4 into main (3 months ago) <Clac9queur>
+| | |\ \ \  
+| | * | | | 29e6575 - rapport de soutenance (3 months ago) <Clac9queur>
+| * | | | | 1c81282 - ajout header size (7 weeks ago) <thimot>
+| * | | | | d3ac0d2 - remove print (7 weeks ago) <thimot>
+| * | | | | ead6612 - modif main (7 weeks ago) <thimot>
+| * | | | | 076932d - correction connection client (7 weeks ago) <thimot>
+| * | | | | 5d4fc37 - un autre test (7 weeks ago) <thimot>
+| * | | | | 20b3c2e - test message (7 weeks ago) <thimot>
+| * | | | | 4cb2e19 - amelioration header (7 weeks ago) <thimot>
+| * | | | | 7248192 - tests (7 weeks ago) <thimot>
+| * | | | | 328cffc - corrections bugs (7 weeks ago) <thimot>
+| * | | | | c4a559b - corrections divers bugs (7 weeks ago) <thimot>
+| * | | | | 5fad5d0 - bug avec comp IP (7 weeks ago) <thimot>
+| * | | | | 9c56d2f - correction IP (7 weeks ago) <thimot>
+| * | | | | 627313f - correction main (7 weeks ago) <thimot>
+| * | | | | 49ab185 - modif affichage (7 weeks ago) <thimot>
+| * | | | | 6b43a78 - correction timeout (7 weeks ago) <thimot>
+| * | | | | 1b08540 - tests9 (7 weeks ago) <thimot>
+| * | | | | 500e155 - tests8 (7 weeks ago) <thimot>
+| * | | | | dd4ebab - tests7 (7 weeks ago) <thimot>
+| * | | | | 64c1a1c - tests6 (7 weeks ago) <thimot>
+| * | | | | cd1c5ed - tests6 (7 weeks ago) <thimot>
+| * | | | | fef2098 - tests5 (7 weeks ago) <thimot>
+| * | | | | ed6db7b - tests5 (7 weeks ago) <thimot>
+| * | | | | 903d669 - tests4 (7 weeks ago) <thimot>
+| * | | | | 1452240 - tests (7 weeks ago) <thimot>
+| * | | | | e5c2865 - tests (7 weeks ago) <thimot>
+| * | | | | d98ea21 - tests (7 weeks ago) <thimot>
+| * | | | | d3c4e68 - tests (7 weeks ago) <thimot>
+| * | | | | 333c8ac - premier tests (7 weeks ago) <thimot>
+| * | | | | f42303b - reseau quasi fini manque juste l'envoie de message (8 weeks ago) <thimot>
+| * | | | | ffa5174 - reception message fonctionnel mais pas de traitement (8 weeks ago) <thimot>
+| * | | | | 7d0d5a5 - debut integration parsing message (2 months ago) <Thimot>
+* | | | | | 1671893 - minage multi thread (7 weeks ago) <Pierre Litoux>
+* | | | | |   90d69f9 - Merge remote-tracking branch 'origin/reseau' into minage (2 months ago) <Pierre Litoux>
+|\ \ \ \ \ \  
+| |/ / / / /  
+| * | | | | 229f0f5 - compile sans warning (2 months ago) <Thimot>
+* | | | | |   4a32757 - Merge remote-tracking branch 'origin/reseau' into minage (2 months ago) <Pierre Litoux>
+|\ \ \ \ \ \  
+| |/ / / / /  
+| * | | | | 270a5b2 - v1 fonctionnel mais sans peer to peer (2 months ago) <Thimot>
+| * | | | | f32e082 - v1 server fonctionne, peut recevoir et envoyer info (2 months ago) <Thimot>
+| * | | | | 3833fca - debut changement vers liste chainee (2 months ago) <Thimot>
+* | | | | |   6114687 - commit for merge 2 (2 months ago) <Pierre Litoux>
+|\ \ \ \ \ \  
+| |/ / / / /  
+| * | | | | 65f95b7 - v1 presque fini reste plus qu'a kill a thread (2 months ago) <Thimot>
+| * | | | | 7a380bb - coorection beaucoup de bugs, debut kill propre cote client et serveur (2 months ago) <Thimot>
+| * | | | | 857c12e - debug de la liste de server, bug avec realloc (3 months ago) <Thimot>
+| * | | | | 74564cf - debug en cours (3 months ago) <Thimot>
+| * | | | | 511900c - client se connect au serveur (3 months ago) <Thimot>
+| |/ / / /  
+* | | | | 177abc8 - commit before merge (2 months ago) <Pierre Litoux>
+| |_|_|/  
+|/| | |   
+* | | | 3b2a132 - Delete blockchain (3 months ago) <TheSnowyxGIT>
+* | | | 1eca874 - ajout system zebi de json (3 months ago) <Adrien Pingard>
+| |_|/  
+|/| |   
+* | | a688104 - creation branch bis (3 months ago) <Margaux Cavalie>
+| |/  
+|/|   
+* | e323f86 - creation de branch (3 months ago) <Margaux Cavalie>
+* |   7c69867 - seqdgqsdgsrfhd (3 months ago) <Adrien Pingard>
+|\ \  
+| * | 9558b0a - rm a file (3 months ago) <Pierre Litoux>
+| * | 4c046a5 - minage v1 (3 months ago) <Pierre Litoux>
+| * | c974e54 - Pour adrien (3 months ago) <Pierre Litoux>
+| * | 090d398 - prototype minage (3 months ago) <Pierre Litoux>
+| * |   2b650cd - pouet (3 months ago) <Pierre Litoux>
+| |\ \  
+| | |/  
+| * | f50fc28 - voila (3 months ago) <Pierre Litoux>
+| * | 48fb626 - ok (3 months ago) <Pierre Litoux>
+| * |   f0b5566 - Merge remote-tracking branch 'origin/main' into minage (3 months ago) <Pierre Litoux>
+| |\ \  
+| * | | e1ce9f6 - push (3 months ago) <Pierre Litoux>
+| * | | f75144f - v1 avec commentaires (3 months ago) <Pierre Litoux>
+* | | | ac4ec33 - envoie v1 noeud gestion (3 months ago) <Adrien Pingard>
+| |_|/  
+|/| |   
+* | | 3cf071e - tous les .c qui passe pas avec -Werror ont ete renomes en .marchepas (3 months ago) <Thimot>
+* | | 7f9242d - correction flags -Wall -Wextra on Makefile (3 months ago) <Thimot>
+* | | 4c31a21 - correction problem with the Makefile (3 months ago) <Thimot>
+| |/  
+|/|   
+* | 879a715 - correction problem with the Makefile (3 months ago) <Thimot>
+* | b088f79 - garbage (3 months ago) <Thimot>
+* | 2a531b4 - delete waste (3 months ago) <Thimot>
+* | 32a7346 - fork while client and thread for read and write (3 months ago) <Thimot>
+* | 69c2f2f - pb avec lors de la compilation (3 months ago) <Thimot>
+* | 0f7dcb7 - debut (3 months ago) <Thimot>
+* |   0a32c1b - Merge branch 'main' into reseau (3 months ago) <Thimot>
+|\ \  
+| |/  
+| * 6543a12 - modif Makefile (3 months ago) <Thimot>
+* | 46c6bb2 - truc (3 months ago) <Thimot>
+* |   212903b - Merge branch 'main' into reseau (3 months ago) <Thimot>
+|\ \  
+| |/  
+| * a92afcd - makefile fonctionnel (3 months ago) <Thimot>
+* | 76d3e6d - premier push (3 months ago) <Thimot>
+|/  
+* 04cc70d - ajout d'un main (3 months ago) <Thimot>
+* 8e9aaf9 - reverse (4 months ago) <TheSnowyxGIT>
+*   7ecb62d - Merge branch 'main' of github.com:TREGS4/BlockchainS4 into main (4 months ago) <TheSnowyxGIT>
+|\  
+| * 79e1339 - structure (4 months ago) <Thimot>
+| *   d728c0e - Merge branch 'main' of github.com:TREGS4/BlockchainS4 into main (4 months ago) <Thimot>
+| |\  
+| * | 430bac9 - branche web (4 months ago) <Thimot>
+* | | f6549d5 - fe (4 months ago) <TheSnowyxGIT>
+| |/  
+|/|   
+* | 1f3f032 - zebi (4 months ago) <Adrien Pingard>
+|/  
+* 6bf9f63 - structure (4 months ago) <Clac9queur>
+* 6e14f1a - Ajout d'une librairie de hashage sha256 (4 months ago) <Adrien Pingard>
+* e26c5ea - bonjour (4 months ago) <Hugo Ruiz Le Mao>
+* fa839f5 - Initial commit (4 months ago) <Clac9queur>

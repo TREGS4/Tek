@@ -16,4 +16,5 @@ Syntax: blockchain [OPTIONS] -ip YOUR IP OR HOSTNAME [OPTIONS]
   -m 		Active the mining part of the node. Disabled by default.
   -d 		The difficulty for the mining, set to the DEFAULT_DIFFICULTY by default.
 		    This parameter is for tests only. Normaly this information is given by the network.
+  -l		Active the loading of the binary file of the blockchain. path: 'bcsave.data'.
   -nbthr	The number of thread the mining thread can use, set to the number of cores - 1 by default.

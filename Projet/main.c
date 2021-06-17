@@ -20,8 +20,8 @@
 "  -a 		Active the API part of the node. Disabled by default.\n"\
 "  -m 		Active the mining part of the node. Disabled by default.\n"\
 "  -d 		The difficulty for the mining, set to the DEFAULT_DIFFICULTY by default.\n"\
-"  -l		Active the loading of the binary file of the blockchain. path: 'bcsave.data'.\n"\
 "		This parameter is for tests only. Normaly this information is given by the network.\n"\
+"  -l		Active the loading of the binary file of the blockchain. path: 'bcsave.data'.\n"\
 "  -nbthr	The number of thread the mining thread can use, set to the number of cores - 1 by default.\n"\
 
 
