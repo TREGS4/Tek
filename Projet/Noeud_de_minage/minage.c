@@ -54,9 +54,14 @@ void *thread_mining(void *arg){
 		  	printf("%02x", buf[i]);
 		printf("\n");*/
 		res = 0;
-		for(int i = SHA256_BLOCK_SIZE - diff; i < SHA256_BLOCK_SIZE; i++)
+		for(int i = SHA256_BLOCK_SIZE - diff/2; i < SHA256_BLOCK_SIZE; i++)
 		{
 			if(buf[i] != 0)
+				res = 1;
+		}
+		if(diff%2 == 1 && res != 1)
+		{
+			if((buf[SHA256_BLOCK_SIZE - diff/2 -1] & 0x0f) != 0)
 				res = 1;
 		}
 		if(res == 1)
