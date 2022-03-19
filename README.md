@@ -7,7 +7,7 @@ A blockchain based on a peer-to-peer network.
 
 ## Try it
 
-A permanent demo website is available on [here](https://tek.ollopa.fr/).
+A permanent demo website is available on [here](http://tek.ollopa.fr/).
 
 ****BE CARFOUL****: **The demo web site source code and the database password is accessible by everybody. And the passwords are not secured, so put not real passwords**
 
@@ -22,7 +22,7 @@ Of course all transactions inside the website has no real value and you cannot b
 
 ## Installation
 
-You can **download a binary** from the demo website. [here](https://tek.ollopa.fr/). (Linux Amd64)
+You can **download a binary** from the demo website. [here](http://tek.ollopa.fr/). (Linux Amd64)
 
 **Or**
 
