@@ -1,4 +1,44 @@
-The all project is in the Projet directory
+# Tek by TREG
+
+Tek is a project ....
+
+
+## Try it
+
+A permanent demo website is available on [here](https://tek.ollopa.fr/).
+
+You can **create an account** and you will **receive a generous donation** from us !
+You can play with the website and send transactions requests to the blockchain.
+
+For budget concerns, the blockchain networks is composed of few nodes, 
+but nothing prevents you to join the network for fun. You can do this by following the [installation section]()
+
+Of course all trasnactions inside the website has no real value and you cannot buy anything with it.
+
+
+## Installation
+
+You can **download a binary** from the demo website. [here](https://tek.ollopa.fr/).
+
+**Or**
+
+You can **manually compile the source code** by following the next steps.
+
+You need to go in the `Projet/` directory
+```sh
+cd Projet/ #From the root of the source code
+```
+Then, you need to compile the projet with `Makefile` by running
+```sh
+make
+```
+
+>You you have not Makefile installed, run this following command.
+>```sh
+>sudo apt install make
+>```
+
+
 
 Command to compile and clean the project:
 make : compile the project
@@ -18,3 +58,14 @@ Syntax: blockchain [OPTIONS] -ip YOUR IP OR HOSTNAME [OPTIONS]
 		    This parameter is for tests only. Normaly this information is given by the network.
   -l		Active the loading of the binary file of the blockchain. path: 'bcsave.data'.
   -nbthr	The number of thread the mining thread can use, set to the number of cores - 1 by default.
+
+
+
+
+## Contributors
+|   Name          |        mail              |
+|-----------------|--------------------------|
+| Adrien Pingard  | adrien.pingard@epita.fr  |
+| Thimot Veyre    | thimot.veyre@gmail.com   |
+| Margaux Cavalie | margaux.cavalie@epita.fr |
+| Pierre Litoux   | pierre.litoux@epita.fr   |

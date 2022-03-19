@@ -3,7 +3,7 @@ CFLAGS=  -Wall -Wextra -Werror
 CFLAGS +=$(FINAL)
 LDLIBS= -pthread -lm -lcrypto
 
-TARGET ?= blockchain
+TARGET ?= tek
 SRC_DIRS ?= ./
 
 SRCS := $(shell find $(SRC_DIRS) -name '*.c' -or -name '*.s')
