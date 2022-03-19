@@ -13,7 +13,7 @@
 #define DEFAULT_API_STATUS FALSE
 #define DEFAULT_MINING_STATUS FALSE
 #define DEFAULT_NB_MINING_THREAD ((sysconf(_SC_NPROCESSORS_CONF) - 1) == 0 ? 1 : (sysconf(_SC_NPROCESSORS_CONF) - 1))
-#define MANUAL "Syntax: blockchain [OPTIONS] -ip YOUR IP OR HOSTNAME [OPTIONS]\n\n"\
+#define MANUAL "Syntax: tek [OPTIONS] -ip YOUR IP OR HOSTNAME [OPTIONS]\n\n"\
 "  -p		Port of the node, set to DEFAULT_PORT by default\n"\
 "  -ip2 		IP or hostname of another node in the network.\n"\
 "  -p2 		Port of the other node, set to DEFAULT_PORT by default.\n"\
