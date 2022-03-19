@@ -1,19 +1,23 @@
 # Tek by TREG
 
-Tek is a project ....
+Tek is a student project.
+
+A blockchain based on a peer-to-peer network.
 
 
 ## Try it
 
 A permanent demo website is available on [here](https://tek.ollopa.fr/).
 
+****BE CARFOUL****: **The demo web site source code and the database password is accessible by everybody. And the passwords are not secured, so put not real passwords**
+
 You can **create an account** and you will **receive a generous donation** from us !
 You can play with the website and send transactions requests to the blockchain.
 
 For budget concerns, the blockchain networks is composed of few nodes, 
-but nothing prevents you to join the network for fun. You can do this by following the [installation section]()
+but nothing prevents you to join the network for fun. You can do this by following the [installation section](#Installation)
 
-Of course all trasnactions inside the website has no real value and you cannot buy anything with it.
+Of course all transactions inside the website has no real value and you cannot buy anything with it.
 
 
 ## Installation
