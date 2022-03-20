@@ -8,7 +8,8 @@
 *   This file contain some informations about the network, there is no .c attach to it
 */
 
-#define DEFAULT_PORT "1313"
+#define DEFAULT_PORT "7071"
+#define DEFAULT_API_PORT "7072"
 
 // Message part
 #define BUFFER_SIZE_SOCKET 512

@@ -20,6 +20,7 @@ typedef struct{
 	TL_M *tl_m;
 	struct server *server;
 	shared_queue *outgoingTxs;
+	char *port;
 } API_THREAD_ARG;
 
 struct WORK_ARG { 

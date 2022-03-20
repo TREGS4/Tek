@@ -20,9 +20,7 @@ $(TARGET): $(OBJS)
 
 .PHONY: clean
 clean:
-	$(RM) $(OBJS) $(DEPS)
+	$(RM) $(OBJS) $(DEPS) ${TARGET}
 
-cleanall: clean
-	$(RM) blockchain
 
 -include $(DEPS)

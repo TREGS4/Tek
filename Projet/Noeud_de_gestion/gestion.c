@@ -143,7 +143,7 @@ void *save_worker(void *args){
     return NULL;
 }
 
-int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struct server *network, int load_bc)
+int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struct server *network, int load_bc, char *api_port)
 {
     if (network->status != ONLINE)
     {
@@ -177,6 +177,7 @@ int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struc
         .server = network,
         .bc_m = &bc_m,
         .tl_m = &txs_temp_m,
+        .port = api_port
     };
 
     if (isAPI)

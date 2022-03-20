@@ -8,6 +8,6 @@
 #include "../Hash/sha256.h"
 #include "../Network/network.h"
 
-int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struct server *network, int load_bc);
+int gestion(int isAPI, int isMINING, int difficulty, int nb_mining_thread, struct server *network, int load_bc, char *api_port);
 
 #endif

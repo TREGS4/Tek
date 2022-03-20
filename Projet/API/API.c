@@ -301,10 +301,11 @@ void *API(void *args)
 	API_THREAD_ARG *api_args = (API_THREAD_ARG *)args;
 	BLOCKCHAIN_M *bc_m = api_args->bc_m;
 	TL_M *tl_m = api_args->tl_m;
+	char *port = api_args->port;
 	struct server *server = api_args->server;
 	shared_queue *outgoingTxs = api_args->outgoingTxs;
 
-	printf("API launched.\n");
+	printf("API launched on port '%s'.\n", port);
 
 	struct addrinfo hints;
 	struct addrinfo *addr_list, *addr;
@@ -317,7 +318,7 @@ void *API(void *args)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	res = getaddrinfo(NULL, "2048", &hints, &addr_list);
+	res = getaddrinfo(NULL, port, &hints, &addr_list);
 
 	//If error, exit the program
 	if (res != 0)

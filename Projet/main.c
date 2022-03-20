@@ -18,6 +18,7 @@
 "  -ip2 		IP or hostname of another node in the network.\n"\
 "  -p2 		Port of the other node, set to DEFAULT_PORT by default.\n"\
 "  -a 		Active the API part of the node. Disabled by default.\n"\
+"  -pa      Port of the api server. Set to DEFAULT_API_PORT by default. \n"\
 "  -m 		Active the mining part of the node. Disabled by default.\n"\
 "  -d 		The difficulty for the mining, set to the DEFAULT_DIFFICULTY by default.\n"\
 "		This parameter is for tests only. Normaly this information is given by the network.\n"\
@@ -39,6 +40,7 @@ typedef struct
 {
 	NETWORK network;
 	int api;
+	char *api_port;
 	int mining;
 	int difficulty;
 	int nb_mining_thread;
@@ -56,7 +58,7 @@ void *NetworkThread(void *arg)
 void *GestionThread(void *arg)
 {
 	ARGS *args = arg;
-	gestion(args->api, args->mining, args->difficulty, args->nb_mining_thread, args->network.server, args->load_blockchain);
+	gestion(args->api, args->mining, args->difficulty, args->nb_mining_thread, args->network.server, args->load_blockchain, args->api_port);
 
 	return NULL;
 }
@@ -138,6 +140,15 @@ int ProcessingArgs(size_t argc, char **argv, ARGS *args)
 				if(atoi(args->network.portFirstServer) <= 0)
 					correct = FALSE;
 			}
+			else if (memcmp(argv[i], "-pa", 4) == 0)
+			{
+				size_t len = strlen(argv[++i]) + 1;
+				free(args->api_port);
+				args->api_port = malloc(sizeof(char) * len);
+				memcpy(args->api_port, argv[i++], len);
+				if(atoi(args->api_port) <= 0)
+					correct = FALSE;
+			}
 			else if (memcmp(argv[i], "-d", 3) == 0)
 			{
 				args->difficulty = atoi(argv[++i]);
@@ -182,6 +193,7 @@ ARGS *initArgs()
 		args->network.portFirstServer = NULL;
 
 		args->api = DEFAULT_API_STATUS;
+		args->api_port = strdup(DEFAULT_API_PORT);
 		args->mining = DEFAULT_MINING_STATUS;
 		args->difficulty = DEFAULT_DIFFICULTY;
 		args->nb_mining_thread = DEFAULT_NB_MINING_THREAD;
