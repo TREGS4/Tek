@@ -7,7 +7,7 @@ A blockchain based on a peer-to-peer network.
 
 ## Try it
 
-A permanent demo website is available on [here](http://tek.ollopa.fr/).
+A permanent demo website is available on [here](http://tek.ollopa.fr:7000/).
 
 ****BE CARFOUL****: **The demo web site source code and the database password is accessible by everybody. And the passwords are not secured, so put not real passwords**
 
@@ -23,7 +23,7 @@ Of course all transactions inside the website has no real value and you cannot b
 
 ## Installation
 
-You can **download a binary** from the demo website. [here](http://tek.ollopa.fr/). (Linux Amd64)
+You can **download a binary** from the demo website. [here](http://tek.ollopa.fr:7000/). (Linux Amd64)
 
 **Or**
 
@@ -64,6 +64,7 @@ Binary builded: **tek**
 -  **-ip2** 		IP or hostname of another node in the network.
 -  **-p2** 		Port of the other node, set to DEFAULT_PORT by default.
 -  **-a** 		Active the API part of the node. Disabled by default.
+-  **-pa**      Port of the api server. Set to DEFAULT_API_PORT by default.
 -  **-m** 		Active the mining part of the node. Disabled by default.
 -  **-d** 		The difficulty for the mining, set to the DEFAULT_DIFFICULTY by default.
 
