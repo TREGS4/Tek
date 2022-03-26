@@ -9,7 +9,7 @@ A blockchain based on a peer-to-peer network.
 
 A permanent demo website is available on [here](http://tek.ollopa.fr:7000/).
 
-****BE CAREFUL****: **The demo web site source code and the database password is accessible by everybody. And the passwords are not secured, so put not real passwords**
+****BE CAREFUL****: **The demo web site source code and the database password are accessible by everybody and the passwords are not secured, so do not choose  real passwords.**
 
 You can **create an account** and you will **receive a generous donation** from us !
 You can play with the website and send transactions requests to the blockchain.
