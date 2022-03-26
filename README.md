@@ -11,13 +11,12 @@ A permanent demo website is available on [here](http://tek.ollopa.fr:7000/).
 
 ****BE CAREFUL****: **The demo web site source code and the database password are accessible by everybody and the passwords are not secured, so do not choose  real passwords.**
 
-You can **create an account** and you will **receive a generous donation** from us !
+You can **create an account** and you will **receive a generous donation** from us!
 You can play with the website and send transactions requests to the blockchain.
 
-For budget concerns, the blockchain networks is composed of few nodes, 
-but nothing prevents you to join the network for fun. You can do this by following the [installation section](#Installation)
+For budget concerns, the blockchain network is only composed of few nodes, but nothing prevents you from joining the network for fun. You can do this by following the [installation section](#Installation)
 
-Of course all transactions inside the website has no real value and you cannot buy anything with it.
+Of course, transactions inside the website have no real value and you cannot buy anything with it.
 
 **Website source code**: [go to](https://github.com/TREGS4/Tek_webdemo)
 
