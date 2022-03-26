@@ -1,6 +1,7 @@
 # Tek by TREG
 
 Tek is a cryptocurrency that uses a blockchain, based on a peer-to-peer network.
+
 This is a 2nd year student project.
 
 ## Try it
