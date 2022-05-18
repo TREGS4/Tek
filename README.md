@@ -43,7 +43,7 @@ make
 >```sh
 >sudo apt install gcc
 >```
->If OpenSSL is not already installed, run the following command.
+>If OpenSSL is not already installed, run the following command:
 >```sh
 >sudo apt install libssl-dev
 >```
