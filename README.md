@@ -26,7 +26,7 @@ You can **download a binary** from the demo website [here](http://tek.ollopa.fr:
 
 You can **manually compile the source code** by following the next steps:
 
-In order to do so, you need to go to the `Projet/` directory:
+First you need to go to the `Projet/` directory:
 ```sh
 cd Projet/ #From the root of the source code
 ```
