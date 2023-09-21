@@ -5,7 +5,7 @@ This is a 2nd year student project.
 
 ## About Tek
 
-A permanent demo website is available [here](http://tek.ollopa.fr:7000/).
+A permanent demo website is available [here](http://tek.ollopa.fr:7000/). (no longer available / available soon)
 
 ****BE CAREFUL****: The demo website's source code and the database passwords are accessible by everyone and the passwords are not secured, so do not choose real passwords.
 
