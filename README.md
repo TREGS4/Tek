@@ -7,6 +7,8 @@ This is a 2nd year student project.
 
 A permanent demo website is available [here](http://tek.ollopa.fr:7000/). (no longer available / available soon)
 
+Github of the demo website : [https://github.com/TREGS4/Tek_webdemo](https://github.com/TREGS4/Tek_webdemo)
+
 ****BE CAREFUL****: The demo website's source code and the database passwords are accessible by everyone and the passwords are not secured, so do not choose real passwords.
 
 You can **create an account** and you will **receive a generous donation** from us!
